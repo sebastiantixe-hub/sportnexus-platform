@@ -26,9 +26,11 @@ model User {
   refreshTokens   RefreshToken[]
   reservations    Reservation[]
   trainerProfile  TrainerProfile?
-  userMemberships UserMembership[]
+  userMemberships      UserMembership[]
   professionalServices ProfessionalService[]
   eventsOrganized      Event[]
+  wearableMetrics      WearableMetric[]
+  invoices             Invoice[]
 
   @@map("users")
 }
@@ -53,9 +55,11 @@ model Gym {
   classes         Class[]
   gymTrainers     GymTrainer[]
   owner           User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  membershipPlans MembershipPlan[]
-  orders          Order[]
-  products        Product[]
+  membershipPlans    MembershipPlan[]
+  orders             Order[]
+  products           Product[]
+  marketingCampaigns MarketingCampaign[]
+  invoices           Invoice[]
 
   @@map("gyms")
 }
@@ -179,6 +183,7 @@ model Payment {
   membership   UserMembership? @relation(fields: [membershipId], references: [id])
   order        Order?          @relation(fields: [orderId], references: [id])
   user         User            @relation(fields: [userId], references: [id])
+  invoice      Invoice?
 
   @@map("payments")
 }
@@ -345,3 +350,77 @@ enum EventType {
   WORKSHOP
   RETREAT
 }
+
+enum CampaignType {
+  EMAIL
+  PUSH
+  SMS
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENT
+  FAILED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  VOID
+}
+
+model WearableMetric {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  deviceType   String   @db.VarChar(100) // 'APPLE_WATCH', 'FITBIT', etc.
+  steps        Int      @default(0)
+  heartRateAvg Int?     @map("heart_rate_avg")
+  calories     Int      @default(0)
+  date         DateTime @db.Date
+  createdAt    DateTime @default(now()) @map("created_at")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@map("wearable_metrics")
+}
+
+model MarketingCampaign {
+  id          String         @id @default(uuid())
+  gymId       String         @map("gym_id")
+  title       String         @db.VarChar(200)
+  subject     String?        @db.VarChar(200)
+  content     String         @db.Text
+  type        CampaignType   @default(EMAIL)
+  status      CampaignStatus @default(DRAFT)
+  sentCount   Int            @default(0) @map("sent_count")
+  scheduledAt DateTime?      @map("scheduled_at")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+  gym         Gym            @relation(fields: [gymId], references: [id], onDelete: Cascade)
+
+  @@map("marketing_campaigns")
+}
+
+model Invoice {
+  id          String        @id @default(uuid())
+  paymentId   String        @unique @map("payment_id")
+  userId      String        @map("user_id")
+  gymId       String?       @map("gym_id")
+  invoiceNum  String        @unique @map("invoice_num") @db.VarChar(50)
+  amount      Decimal       @db.Decimal(10, 2)
+  tax         Decimal       @default(0.00) @db.Decimal(10, 2)
+  total       Decimal       @db.Decimal(10, 2)
+  pdfUrl      String?       @map("pdf_url") @db.VarChar(500)
+  status      InvoiceStatus @default(ISSUED)
+  issuedAt    DateTime      @default(now()) @map("issued_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  payment     Payment       @relation(fields: [paymentId], references: [id])
+  user        User          @relation(fields: [userId], references: [id])
+  gym         Gym?          @relation(fields: [gymId], references: [id])
+
+  @@map("invoices")
+}
+

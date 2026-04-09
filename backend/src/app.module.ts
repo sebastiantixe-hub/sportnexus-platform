@@ -14,6 +14,10 @@ import { MarketplaceModule } from './marketplace/marketplace.module';
 import { ProfessionalsModule } from './professionals/professionals.module';
 import { EventsModule } from './events/events.module';
 import { RecommendationsModule } from './recommendations/recommendations.module';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { MarketingModule } from './marketing/marketing.module';
+import { WearablesModule } from './wearables/wearables.module';
+import { InvoicesModule } from './invoices/invoices.module';
 
 
 @Module({
@@ -32,6 +36,10 @@ import { RecommendationsModule } from './recommendations/recommendations.module'
     ProfessionalsModule,
     EventsModule,
     RecommendationsModule,
+    AnalyticsModule,
+    MarketingModule,
+    WearablesModule,
+    InvoicesModule,
   ],
 
 

@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Query,
   Post,
   Body,
   Patch,
@@ -41,6 +42,16 @@ export class GymsController {
   @ApiOperation({ summary: 'Obtener lista de gimnasios activos' })
   findAll() {
     return this.gymsService.findAll();
+  }
+
+  @Get('nearby')
+  @ApiOperation({ summary: 'Obtener gimnasios cercanos por geolocalización' })
+  findNearby(
+    @Query('lat') lat: string,
+    @Query('lng') lng: string,
+    @Query('radius') radius: string = '5',
+  ) {
+    return this.gymsService.findNearby(Number(lat), Number(lng), Number(radius));
   }
 
   @Get(':id')

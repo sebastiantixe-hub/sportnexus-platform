@@ -36,6 +36,31 @@ export class GymsService {
     });
   }
 
+  async findNearby(lat: number, lng: number, radiusKm: number) {
+    const gyms = await this.findAll();
+    
+    // Haversine formula
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2, lat1) => ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = (lon2, lon1) => ((lon2 - lon1) * Math.PI) / 180;
+    
+    return gyms.filter((gym) => {
+      if (!gym.latitude || !gym.longitude) return false;
+      const dlat = dLat(gym.latitude, lat);
+      const dlon = dLon(gym.longitude, lng);
+      const a =
+        Math.sin(dlat / 2) * Math.sin(dlat / 2) +
+        Math.cos((lat * Math.PI) / 180) *
+          Math.cos((gym.latitude * Math.PI) / 180) *
+          Math.sin(dlon / 2) *
+          Math.sin(dlon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const distance = R * c; // Distance in km
+      
+      return distance <= radiusKm;
+    });
+  }
+
   async findOne(id: string) {
     const gym = await this.prisma.gym.findUnique({
       where: { id },

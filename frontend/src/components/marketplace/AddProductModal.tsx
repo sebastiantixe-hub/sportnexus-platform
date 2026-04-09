@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Package, Loader2, Image as ImageIcon, Link } from 'lucide-react';
+import { X, Package, Loader2, Link } from 'lucide-react';
 import api from '../../api/api-client';
 
 interface AddProductModalProps {

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/api-client';
-import { useAuth } from '../../context/auth-context';
 import { 
   CreditCard, 
   CheckCircle2, 
@@ -74,7 +73,6 @@ const MembershipsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
-  const { user } = useAuth();
 
   useEffect(() => {
     const fetchPlans = async () => {

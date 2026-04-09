@@ -16,6 +16,10 @@ import {
   Star,
   Activity,
   CheckCircle2,
+  BarChart,
+  Mail,
+  Watch,
+  Receipt,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import RecommendationsPanel from '../../components/ai/RecommendationsPanel';
@@ -265,7 +269,22 @@ const Dashboard: React.FC = () => {
               <QuickAction label="Ver Clases" icon={Calendar} to="/classes" desc="Reserva tu próxima sesión" />
               <QuickAction label="Explorar Tienda" icon={ShoppingBag} to="/marketplace" desc="Equipamiento deportivo" />
               <QuickAction label="Próximos Eventos" icon={Trophy} to="/events" desc="Torneos y masterclasses" />
-              {isOwner && <QuickAction label="Mis Gimnasios" icon={Dumbbell} to="/gyms" desc="Administrar establecimientos" />}
+              
+              {!isOwner && !isTrainer && (
+                <>
+                  <QuickAction label="Mis Wearables" icon={Watch} to="/dashboard/wearables" desc="Sincroniza tu actividad" />
+                  <QuickAction label="Mis Facturas" icon={Receipt} to="/dashboard/invoices" desc="Historial de pagos" />
+                </>
+              )}
+
+              {isOwner && (
+                <>
+                  <QuickAction label="Analítica Avanzada" icon={BarChart} to="/dashboard/analytics" desc="KPIs y Rendimiento" />
+                  <QuickAction label="Marketing y CRM" icon={Mail} to="/dashboard/crm" desc="Campañas de email" />
+                  <QuickAction label="Facturación" icon={Receipt} to="/dashboard/invoices" desc="Gestión de Invoices" />
+                  <QuickAction label="Mis Gimnasios" icon={Dumbbell} to="/gyms" desc="Administrar establecimientos" />
+                </>
+              )}
             </div>
           </div>
         </section>

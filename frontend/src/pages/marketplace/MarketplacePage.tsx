@@ -3,7 +3,6 @@ import api from '../../api/api-client';
 import { useAuth } from '../../context/auth-context';
 import { 
   ShoppingBag, 
-  Tag, 
   ShoppingCart, 
   Plus, 
   Search,

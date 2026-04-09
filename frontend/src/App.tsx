@@ -12,6 +12,10 @@ import MembershipsPage from './pages/memberships/MembershipsPage';
 import ProfessionalsPage from './pages/professionals/ProfessionalsPage';
 import MapSearchPage from './pages/discovery/MapSearchPage';
 import EventsPage from './pages/events/EventsPage';
+import AnalyticsView from './pages/dashboard/AnalyticsView';
+import CRMView from './pages/dashboard/CRMView';
+import WearablesView from './pages/dashboard/WearablesView';
+import InvoicesView from './pages/dashboard/InvoicesView';
 
 function App() {
   return (
@@ -26,6 +30,10 @@ function App() {
           {/* Protected Routes inside MainLayout */}
           <Route element={<ProtectedRoute />}>
             <Route element={<MainLayout><Dashboard /></MainLayout>} path="/dashboard" />
+            <Route element={<MainLayout><AnalyticsView /></MainLayout>} path="/dashboard/analytics" />
+            <Route element={<MainLayout><CRMView /></MainLayout>} path="/dashboard/crm" />
+            <Route element={<MainLayout><WearablesView /></MainLayout>} path="/dashboard/wearables" />
+            <Route element={<MainLayout><InvoicesView /></MainLayout>} path="/dashboard/invoices" />
             <Route element={<MainLayout><GymsPage /></MainLayout>} path="/gyms" />
             <Route element={<MainLayout><ClassesPage /></MainLayout>} path="/classes" />
             <Route element={<MainLayout><MarketplacePage /></MainLayout>} path="/marketplace" />

@@ -1,11 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/api-client';
 import { motion } from 'framer-motion';
-import { MapPin, Navigation, Map, Navigation2 } from 'lucide-react';
+import { MapPin, Map as MapIcon, Navigation2 } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix para los íconos por defecto de Leaflet en React
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 const MapSearchPage: React.FC = () => {
   const [gyms, setGyms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [usingLocation, setUsingLocation] = useState(false);
+  const [centerMap, setCenterMap] = useState<[number, number]>([-12.0464, -77.0428]);
 
   useEffect(() => {
     const fetchGyms = async () => {
@@ -21,34 +34,78 @@ const MapSearchPage: React.FC = () => {
     fetchGyms();
   }, []);
 
+  const handleNearbySearch = () => {
+    if (!navigator.geolocation) {
+      alert('Tu navegador no soporta geolocalización');
+      return;
+    }
+    
+    setLoading(true);
+    setUsingLocation(true);
+    
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setCenterMap([latitude, longitude]);
+        try {
+          const { data } = await api.get(`/gyms/nearby?lat=${latitude}&lng=${longitude}&radius=10`);
+          setGyms(data);
+        } catch (err) {
+          console.error('Error fetching nearby gyms:', err);
+        } finally {
+          setLoading(false);
+        }
+      },
+      (error) => {
+        console.error(error);
+        setLoading(false);
+        setUsingLocation(false);
+        alert('No se pudo obtener tu ubicación');
+      }
+    );
+  };
+
   return (
     <div className="space-y-6 h-[calc(100vh-120px)] flex flex-col">
       <header className="flex-shrink-0">
         <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-          <Map className="text-primary-light" /> Descubrir Gimnasios
+          <MapIcon className="text-primary-light" /> Descubrir Gimnasios
         </h1>
         <p className="text-slate-400 mt-2">Encuentra los mejores centros deportivos cerca de ti usando geolocalización.</p>
       </header>
 
       <div className="flex-grow flex gap-6 relative">
-        {/* Mock Map Container */}
-        <div className="w-2/3 bg-slate-800/50 rounded-3xl border border-white/10 relative overflow-hidden hidden lg:block">
-          <div className="absolute inset-0 pattern-dots opacity-20"></div>
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500">
-             <Navigation className="w-24 h-24 mb-4 text-slate-700 animate-pulse" />
-             <p className="text-xl font-bold">Mapa Interactivo (Módulo de Fase 1)</p>
-             <p className="text-sm mt-2">Aquí se visualizarán los gimnasios que tienen lat/lng usando Google Maps.</p>
-          </div>
-          
-          {/* Simulated Map Pins */}
-          {!loading && gyms.length > 0 && (
-             <div className="absolute top-1/3 left-1/3 flex flex-col items-center group cursor-pointer">
-               <div className="bg-primary text-white p-2 text-xs rounded-lg font-bold shadow-xl absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                 {gyms[0].name}
-               </div>
-               <MapPin className="text-primary-light w-10 h-10 -mt-5" fill="currentColor" />
-             </div>
-          )}
+        {/* Real Map Container */}
+        <div className="w-2/3 bg-slate-800/50 rounded-3xl border border-white/10 relative overflow-hidden hidden lg:block z-0">
+          <MapContainer 
+            key={centerMap.join(',')} // Force re-render on center change
+            center={centerMap}
+            zoom={13} 
+            style={{ width: '100%', height: '100%' }}
+            className="z-0"
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            {gyms.filter(g => g.latitude && g.longitude).map(gym => (
+              <Marker key={gym.id} position={[gym.latitude, gym.longitude]}>
+                <Popup>
+                  <strong>{gym.name}</strong><br/>
+                  {gym.address}
+                </Popup>
+              </Marker>
+            ))}
+            {/* Si no hay coordenadas, mostramos uno de ejemplo */}
+            {gyms.length > 0 && gyms.every(g => !g.latitude) && (
+              <Marker position={[-12.0464, -77.0428]}>
+                <Popup>
+                  <strong>{gyms[0].name}</strong><br/>
+                  {gyms[0].address}
+                </Popup>
+              </Marker>
+            )}
+          </MapContainer>
         </div>
 
         {/* List Container */}
@@ -58,7 +115,11 @@ const MapSearchPage: React.FC = () => {
               <p className="text-white font-bold text-sm">Gimnasios Cercanos</p>
               <p className="text-primary-light text-xs">Basado en tu ubicación</p>
             </div>
-            <button className="bg-primary-dark/50 p-2 rounded-lg text-primary-light hover:bg-primary transition-colors hover:text-white">
+            <button 
+              onClick={handleNearbySearch}
+              className={`p-2 rounded-lg transition-colors hover:text-white ${usingLocation ? 'bg-primary text-white animate-pulse' : 'bg-primary-dark/50 text-primary-light hover:bg-primary'}`}
+              title="Buscar cerca de mí"
+            >
               <Navigation2 className="w-5 h-5" />
             </button>
           </div>
