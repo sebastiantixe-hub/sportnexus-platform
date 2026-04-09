@@ -12,6 +12,7 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { AnyAuthGuard } from './guards/any-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 
 @ApiTags('Authentication')
@@ -32,10 +33,10 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
-  @ApiOperation({ summary: 'Get current user profile' })
+  @ApiOperation({ summary: 'Get current user profile (JWT or Auth0)' })
   @ApiBearerAuth()
   @Get('me')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AnyAuthGuard)
   getMe(@CurrentUser() user: { id: string }) {
     return this.authService.getMe(user.id);
   }
@@ -43,7 +44,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Get dashboard statistics' })
   @ApiBearerAuth()
   @Get('stats')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AnyAuthGuard)
   getDashboardStats(@CurrentUser() user: any) {
     return this.authService.getDashboardStats(user.id, user.role);
   }

@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { GetTokenSilentlyOptions } from '@auth0/auth0-react';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
@@ -8,30 +7,27 @@ const api = axios.create({
   },
 });
 
-// Auth0 token getter — set externally once Auth0 is initialized
-let auth0GetToken: ((options?: GetTokenSilentlyOptions) => Promise<string>) | null = null;
+// ─── Auth0 Token Injector ─────────────────────────────────────────────────────
+// Called once by MainLayout after Auth0 is ready.
+// All subsequent API calls will carry the correct Bearer token automatically.
 
-export const setAuth0TokenGetter = (
-  getter: (options?: GetTokenSilentlyOptions) => Promise<string>,
-) => {
-  auth0GetToken = getter;
+type TokenGetter = () => Promise<string>;
+let _getToken: TokenGetter | null = null;
+
+export const setAuth0TokenGetter = (getter: TokenGetter) => {
+  _getToken = getter;
 };
 
-// Request interceptor: attach Auth0 bearer token automatically
 api.interceptors.request.use(
   async (config) => {
-    if (auth0GetToken) {
+    if (_getToken) {
       try {
-        const token = await auth0GetToken({
-          authorizationParams: {
-            audience: import.meta.env.VITE_AUTH0_AUDIENCE,
-          },
-        });
+        const token = await _getToken();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
       } catch {
-        // token not available yet (user not logged in)
+        // Not authenticated yet — request proceeds without token
       }
     }
     return config;
@@ -39,7 +35,8 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-// Response interceptor for errors
+// ─── Response error handling ──────────────────────────────────────────────────
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
