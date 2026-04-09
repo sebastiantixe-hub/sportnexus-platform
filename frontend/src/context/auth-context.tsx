@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import api from '../api/api-client';
+import React, { createContext, useContext } from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
 
 interface User {
   id: string;
@@ -12,44 +12,57 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (token: string, user: User) => void;
+  login: () => void;
   logout: () => void;
+  getToken: () => Promise<string | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const {
+    user: auth0User,
+    isLoading,
+    isAuthenticated,
+    loginWithRedirect,
+    logout: auth0Logout,
+    getAccessTokenSilently,
+  } = useAuth0();
 
-  useEffect(() => {
-    const initAuth = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const { data } = await api.get('/auth/me');
-          setUser(data);
-        } catch (error) {
-          localStorage.removeItem('token');
-        }
+  // Map Auth0 user to our internal User shape
+  const user: User | null = isAuthenticated && auth0User
+    ? {
+        id: auth0User.sub ?? '',
+        name: auth0User.name ?? auth0User.email ?? 'Usuario',
+        email: auth0User.email ?? '',
+        role: (auth0User['https://sportnexus-api/role'] as string) ?? 'USER',
+        avatarUrl: auth0User.picture,
       }
-      setLoading(false);
-    };
-    initAuth();
-  }, []);
+    : null;
 
-  const login = (token: string, userData: User) => {
-    localStorage.setItem('token', token);
-    setUser(userData);
+  const login = () => {
+    loginWithRedirect();
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
+    auth0Logout({ logoutParams: { returnTo: window.location.origin + '/login' } });
+  };
+
+  const getToken = async (): Promise<string | null> => {
+    try {
+      const token = await getAccessTokenSilently({
+        authorizationParams: {
+          audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+        },
+      });
+      return token;
+    } catch {
+      return null;
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading: isLoading, login, logout, getToken }}>
       {children}
     </AuthContext.Provider>
   );

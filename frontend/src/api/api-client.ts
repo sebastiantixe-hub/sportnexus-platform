@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { GetTokenSilentlyOptions } from '@auth0/auth0-react';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
@@ -7,12 +8,31 @@ const api = axios.create({
   },
 });
 
-// Request interceptor for JWT
+// Auth0 token getter — set externally once Auth0 is initialized
+let auth0GetToken: ((options?: GetTokenSilentlyOptions) => Promise<string>) | null = null;
+
+export const setAuth0TokenGetter = (
+  getter: (options?: GetTokenSilentlyOptions) => Promise<string>,
+) => {
+  auth0GetToken = getter;
+};
+
+// Request interceptor: attach Auth0 bearer token automatically
 api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+  async (config) => {
+    if (auth0GetToken) {
+      try {
+        const token = await auth0GetToken({
+          authorizationParams: {
+            audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+          },
+        });
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      } catch {
+        // token not available yet (user not logged in)
+      }
     }
     return config;
   },
@@ -23,19 +43,9 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Only redirect if it's a 401 and not a login attempt
-    if (error.response?.status === 401 && !error.config.url?.includes('/auth/login')) {
-      console.warn('Sesión expirada o inválida. Redirigiendo a login...');
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login?expired=true';
-    }
-    
-    // Log 403 errors (Forbidden - wrong role)
     if (error.response?.status === 403) {
       console.error('Permiso denegado:', error.response.data?.message);
     }
-
     return Promise.reject(error);
   },
 );
