@@ -18,6 +18,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { MarketingModule } from './marketing/marketing.module';
 import { WearablesModule } from './wearables/wearables.module';
 import { InvoicesModule } from './invoices/invoices.module';
+import { PaymentsModule } from './payments/payments.module';
 
 
 @Module({
@@ -40,6 +41,7 @@ import { InvoicesModule } from './invoices/invoices.module';
     MarketingModule,
     WearablesModule,
     InvoicesModule,
+    PaymentsModule,
   ],
 
 
