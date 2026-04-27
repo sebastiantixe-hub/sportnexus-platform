@@ -43,6 +43,10 @@ services:
         value: dev-6d0mok1v1ohx5iez.us.auth0.com
       - key: AUTH0_AUDIENCE
         value: https://sportnexus-api
+      - key: FITBIT_CLIENT_ID
+        sync: false
+      - key: FITBIT_CLIENT_SECRET
+        sync: false
 
   # ─── Frontend (React/Vite) — Static Site (100% gratis, sin sleep) ─
   - type: web
