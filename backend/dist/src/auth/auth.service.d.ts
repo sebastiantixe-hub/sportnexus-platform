@@ -3,11 +3,13 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { EmailService } from '../notifications/email.service';
 export declare class AuthService {
     private readonly prisma;
     private readonly jwtService;
     private readonly config;
-    constructor(prisma: PrismaService, jwtService: JwtService, config: ConfigService);
+    private readonly emailService;
+    constructor(prisma: PrismaService, jwtService: JwtService, config: ConfigService, emailService: EmailService);
     register(dto: RegisterDto): Promise<{
         accessToken: string;
         refreshToken: string;
@@ -20,6 +22,23 @@ export declare class AuthService {
         };
     }>;
     login(dto: LoginDto): Promise<{
+        accessToken: string;
+        refreshToken: string;
+        user: {
+            id: string;
+            auth0Id: string | null;
+            name: string;
+            email: string;
+            role: import("@prisma/client").$Enums.UserRole;
+            phone: string | null;
+            avatarUrl: string | null;
+            isActive: boolean;
+            emailVerified: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+    }>;
+    refreshTokens(userId: string, refreshToken: string): Promise<{
         accessToken: string;
         refreshToken: string;
         user: {

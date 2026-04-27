@@ -13,8 +13,8 @@ export declare class MarketingController {
         title: string;
         scheduledAt: Date | null;
         type: import("@prisma/client").$Enums.CampaignType;
-        content: string;
         subject: string | null;
+        content: string;
         sentCount: number;
     }>;
     getCampaigns(gymId: string, user: any): Promise<{
@@ -26,8 +26,8 @@ export declare class MarketingController {
         title: string;
         scheduledAt: Date | null;
         type: import("@prisma/client").$Enums.CampaignType;
-        content: string;
         subject: string | null;
+        content: string;
         sentCount: number;
     }[]>;
 }

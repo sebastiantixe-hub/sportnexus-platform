@@ -6,6 +6,12 @@ export declare class PaymentsController {
         amount: number;
         description?: string;
     }): Promise<{
-        clientSecret: any;
+        acquirerId: string;
+        idCommerce: string;
+        purchaseOperationNumber: string;
+        purchaseAmount: string;
+        purchaseCurrencyCode: string;
+        purchaseVerification: string;
+        description: string;
     }>;
 }

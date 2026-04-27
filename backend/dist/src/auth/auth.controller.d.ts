@@ -32,6 +32,26 @@ export declare class AuthController {
             updatedAt: Date;
         };
     }>;
+    refresh(dto: {
+        userId: string;
+        refreshToken: string;
+    }): Promise<{
+        accessToken: string;
+        refreshToken: string;
+        user: {
+            id: string;
+            auth0Id: string | null;
+            name: string;
+            email: string;
+            role: import("@prisma/client").$Enums.UserRole;
+            phone: string | null;
+            avatarUrl: string | null;
+            isActive: boolean;
+            emailVerified: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+    }>;
     getMe(user: {
         id: string;
     }): Promise<{

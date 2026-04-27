@@ -49,14 +49,17 @@ const config_1 = require("@nestjs/config");
 const prisma_service_1 = require("../prisma/prisma.service");
 const bcrypt = __importStar(require("bcrypt"));
 const client_1 = require("@prisma/client");
+const email_service_1 = require("../notifications/email.service");
 let AuthService = class AuthService {
     prisma;
     jwtService;
     config;
-    constructor(prisma, jwtService, config) {
+    emailService;
+    constructor(prisma, jwtService, config, emailService) {
         this.prisma = prisma;
         this.jwtService = jwtService;
         this.config = config;
+        this.emailService = emailService;
     }
     async register(dto) {
         const exists = await this.prisma.user.findUnique({
@@ -84,6 +87,7 @@ let AuthService = class AuthService {
             },
         });
         const tokens = await this.generateTokens(user.id, user.email, user.role);
+        this.emailService.sendWelcome(user.email, user.name).catch(() => { });
         return { user, ...tokens };
     }
     async login(dto) {
@@ -99,6 +103,31 @@ let AuthService = class AuthService {
         }
         if (!user.isActive) {
             throw new common_1.UnauthorizedException('Cuenta desactivada');
+        }
+        const { passwordHash: _pw, ...safeUser } = user;
+        const tokens = await this.generateTokens(user.id, user.email, user.role);
+        return { user: safeUser, ...tokens };
+    }
+    async refreshTokens(userId, refreshToken) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+        if (!user || !user.isActive) {
+            throw new common_1.UnauthorizedException('Acceso denegado o usuario inactivo');
+        }
+        const savedTokens = await this.prisma.refreshToken.findMany({
+            where: { userId, expiresAt: { gt: new Date() } }
+        });
+        let tokenValid = false;
+        for (const token of savedTokens) {
+            const isValid = await bcrypt.compare(refreshToken, token.tokenHash);
+            if (isValid) {
+                tokenValid = true;
+                break;
+            }
+        }
+        if (!tokenValid) {
+            throw new common_1.UnauthorizedException('Refresh token inválido o expirado');
         }
         const { passwordHash: _pw, ...safeUser } = user;
         const tokens = await this.generateTokens(user.id, user.email, user.role);
@@ -230,6 +259,7 @@ let AuthService = class AuthService {
             },
             select: { id: true, name: true, email: true, role: true, isActive: true, avatarUrl: true },
         });
+        this.emailService.sendWelcome(email, name).catch(() => { });
         return user;
     }
     async generateTokens(userId, email, role) {
@@ -258,6 +288,7 @@ exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         jwt_1.JwtService,
-        config_1.ConfigService])
+        config_1.ConfigService,
+        email_service_1.EmailService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

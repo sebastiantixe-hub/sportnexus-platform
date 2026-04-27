@@ -22,7 +22,7 @@ let PaymentsController = class PaymentsController {
         this.paymentsService = paymentsService;
     }
     async createIntent(data) {
-        return this.paymentsService.createPaymentIntent(data.amount, data.description);
+        return this.paymentsService.createPaymeSignature(data.amount, data.description);
     }
 };
 exports.PaymentsController = PaymentsController;

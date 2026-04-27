@@ -31,6 +31,12 @@ let AuthController = class AuthController {
     login(dto) {
         return this.authService.login(dto);
     }
+    refresh(dto) {
+        if (!dto.userId || !dto.refreshToken) {
+            throw new Error('Missing userId or refreshToken');
+        }
+        return this.authService.refreshTokens(dto.userId, dto.refreshToken);
+    }
     getMe(user) {
         return this.authService.getMe(user.id);
     }
@@ -56,6 +62,15 @@ __decorate([
     __metadata("design:paramtypes", [login_dto_1.LoginDto]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "login", null);
+__decorate([
+    (0, swagger_1.ApiOperation)({ summary: 'Refresh JWT tokens' }),
+    (0, common_1.Post)('refresh'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "refresh", null);
 __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Get current user profile (JWT or Auth0)' }),
     (0, swagger_1.ApiBearerAuth)(),
