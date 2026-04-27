@@ -19,19 +19,94 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 // Response interceptor for errors
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    // Only redirect if it's a 401 and not a login attempt
-    if (error.response?.status === 401 && !error.config.url?.includes('/auth/login')) {
-      console.warn('Sesión expirada o inválida. Redirigiendo a login...');
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login?expired=true';
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Si es 401 y no es auth/login o auth/refresh
+    if (error.response?.status === 401 && !originalRequest.url?.includes('/auth/login') && !originalRequest.url?.includes('/auth/refresh') && !originalRequest._retry) {
+      
+      originalRequest._retry = true;
+      const refreshToken = localStorage.getItem('refreshToken');
+      
+      // Necesitamos el userId, podemos decodificar el JWT o hacer que el servidor devuelva solo accessToken, pero el endpoint actual pide userId
+      // Si decodificamos el JWT:
+      const accessTokenStr = localStorage.getItem('token');
+      let userId = '';
+      if (accessTokenStr) {
+        try {
+          const payload = JSON.parse(atob(accessTokenStr.split('.')[1]));
+          userId = payload.sub;
+        } catch (e) {}
+      }
+
+      if (refreshToken && userId) {
+        if (isRefreshing) {
+          return new Promise(function(resolve, reject) {
+            failedQueue.push({resolve, reject});
+          }).then(token => {
+            originalRequest.headers.Authorization = 'Bearer ' + token;
+            return api(originalRequest);
+          }).catch(err => Promise.reject(err));
+        }
+
+        isRefreshing = true;
+
+        try {
+          // Intentamos refrescar
+          const res = await axios.post(`${api.defaults.baseURL}/auth/refresh`, {
+            userId,
+            refreshToken
+          });
+          
+          const newAccessToken = res.data.accessToken;
+          const newRefreshToken = res.data.refreshToken;
+          
+          localStorage.setItem('token', newAccessToken);
+          localStorage.setItem('refreshToken', newRefreshToken);
+          
+          api.defaults.headers.common['Authorization'] = 'Bearer ' + newAccessToken;
+          originalRequest.headers.Authorization = 'Bearer ' + newAccessToken;
+          
+          processQueue(null, newAccessToken);
+          isRefreshing = false;
+          
+          return api(originalRequest);
+        } catch (refreshError) {
+          processQueue(refreshError, null);
+          isRefreshing = false;
+          // Si falla el refresh, forzamos logout
+          console.warn('Refresh falló. Redirigiendo a login...');
+          localStorage.removeItem('token');
+          localStorage.removeItem('refreshToken');
+          window.location.href = '/login?expired=true';
+          return Promise.reject(refreshError);
+        }
+      } else {
+          // No hay refresh token
+          console.warn('Sesión expirada sin token. Redirigiendo a login...');
+          localStorage.removeItem('token');
+          localStorage.removeItem('refreshToken');
+          window.location.href = '/login?expired=true';
+      }
     }
 
-    // Log 403 errors (Forbidden - wrong role)
     if (error.response?.status === 403) {
       console.error('Permiso denegado:', error.response.data?.message);
     }

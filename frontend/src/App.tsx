@@ -15,7 +15,7 @@ import MapSearchPage from './pages/discovery/MapSearchPage';
 import EventsPage from './pages/events/EventsPage';
 import AnalyticsView from './pages/dashboard/AnalyticsView';
 import CRMView from './pages/dashboard/CRMView';
-import WearablesView from './pages/dashboard/WearablesView';
+import WearablesView, { FitbitCallbackHandler } from './pages/dashboard/WearablesView';
 import InvoicesView from './pages/dashboard/InvoicesView';
 import { Toaster } from 'sonner';
 
@@ -35,6 +35,7 @@ function App() {
             <Route element={<MainLayout><AnalyticsView /></MainLayout>} path="/dashboard/analytics" />
             <Route element={<MainLayout><CRMView /></MainLayout>} path="/dashboard/crm" />
             <Route element={<MainLayout><WearablesView /></MainLayout>} path="/dashboard/wearables" />
+            <Route element={<FitbitCallbackHandler />} path="/dashboard/wearables/fitbit-callback" />
             <Route element={<MainLayout><InvoicesView /></MainLayout>} path="/dashboard/invoices" />
             <Route element={<MainLayout><GymsPage /></MainLayout>} path="/gyms" />
             <Route element={<MainLayout><GymShowroom /></MainLayout>} path="/gyms/:id" />

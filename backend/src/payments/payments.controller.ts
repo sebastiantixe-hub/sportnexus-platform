@@ -9,6 +9,6 @@ export class PaymentsController {
 
   @Post('create-intent')
   async createIntent(@Body() data: { amount: number; description?: string }) {
-    return this.paymentsService.createPaymentIntent(data.amount, data.description);
+    return this.paymentsService.createPaymeSignature(data.amount, data.description);
   }
 }

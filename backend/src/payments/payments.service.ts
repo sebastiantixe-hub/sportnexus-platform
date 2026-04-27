@@ -1,36 +1,35 @@
 import { Injectable } from '@nestjs/common';
-import Stripe from 'stripe';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class PaymentsService {
-  private stripe: any;
 
-  constructor() {
-    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_mock', {
-      apiVersion: '2026-03-25.dahlia' as any,
-    });
-  }
+  async createPaymeSignature(amount: number, description?: string) {
+    const acquirerId = process.env.PAYME_ACQUIRER_ID || '148';
+    const idCommerce = process.env.PAYME_COMMERCE_ID || '8259';
+    const purchaseCurrencyCode = '604'; // Moneda COP/PEN, 604 es Soles (prueba)
+    const apiKey = process.env.PAYME_API_KEY || '123456789';
+    
+    // Pay-me requiere monto en entero (ej. 10.00 = 1000)
+    const purchaseAmount = Math.round(amount * 100).toString();
+    
+    // Número random de operación de 6 dígitos
+    const purchaseOperationNumber = Math.floor(Math.random() * 999999).toString().padStart(6, '0');
 
-  async createPaymentIntent(amount: number, description?: string) {
-    if (!process.env.STRIPE_SECRET_KEY) {
-      // Si no hay key de Stripe en producción, evitamos que crashe y permitimos mock local
-      console.warn('STRIPE_SECRET_KEY no configurado, simulando client_secret dummy');
-      return { clientSecret: 'pi_dummy_secret_dummy' };
-    }
+    // CONCATENAR EN ESTE ORDEN EXACTO (Según docs Pay-me)
+    const dataToSign = `${acquirerId}${idCommerce}${purchaseOperationNumber}${purchaseAmount}${purchaseCurrencyCode}${apiKey}`;
+    
+    // ENCRIPTACION SHA512
+    const purchaseVerification = crypto.createHash('sha512').update(dataToSign).digest('hex');
 
-    try {
-      const paymentIntent = await this.stripe.paymentIntents.create({
-        amount: Math.round(amount * 100), // Stripe usa centavos
-        currency: 'cop', // Peso Colombiano (o la moneda preferida)
-        description: description || 'Compra en SportNexus Marketplace',
-        automatic_payment_methods: {
-          enabled: true,
-        },
-      });
-      return { clientSecret: paymentIntent.client_secret };
-    } catch (error) {
-      console.error('Error al crear Payment Intent en Stripe:', error);
-      throw error;
-    }
+    return {
+      acquirerId,
+      idCommerce,
+      purchaseOperationNumber,
+      purchaseAmount,
+      purchaseCurrencyCode,
+      purchaseVerification,
+      description: description || 'Compra en SportNexus'
+    };
   }
 }

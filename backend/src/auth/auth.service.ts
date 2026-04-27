@@ -10,6 +10,8 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from '@prisma/client';
+import { EmailService } from '../notifications/email.service';
+
 
 @Injectable()
 export class AuthService {
@@ -17,6 +19,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
+    private readonly emailService: EmailService,
   ) {}
 
   // ── Register ─────────────────────────────────────────────────────────────
@@ -55,6 +58,9 @@ export class AuthService {
 
     const tokens = await this.generateTokens(user.id, user.email, user.role);
 
+    // Send welcome email (non-blocking)
+    this.emailService.sendWelcome(user.email, user.name).catch(() => {});
+
     return { user, ...tokens };
   }
 
@@ -82,6 +88,41 @@ export class AuthService {
 
     const tokens = await this.generateTokens(user.id, user.email, user.role);
 
+    return { user: safeUser, ...tokens };
+  }
+
+  // ── Refresh Tokens ────────────────────────────────────────────────────────
+
+  async refreshTokens(userId: string, refreshToken: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException('Acceso denegado o usuario inactivo');
+    }
+
+    // Find valid refresh token
+    const savedTokens = await this.prisma.refreshToken.findMany({
+      where: { userId, expiresAt: { gt: new Date() } }
+    });
+
+    let tokenValid = false;
+    for (const token of savedTokens) {
+      const isValid = await bcrypt.compare(refreshToken, token.tokenHash);
+      if (isValid) {
+        tokenValid = true;
+        break;
+      }
+    }
+
+    if (!tokenValid) {
+      throw new UnauthorizedException('Refresh token inválido o expirado');
+    }
+
+    const { passwordHash: _pw, ...safeUser } = user;
+    const tokens = await this.generateTokens(user.id, user.email, user.role);
+    
     return { user: safeUser, ...tokens };
   }
 
@@ -246,6 +287,9 @@ export class AuthService {
       },
       select: { id: true, name: true, email: true, role: true, isActive: true, avatarUrl: true },
     });
+
+    // Send welcome email to new Auth0 users (non-blocking)
+    this.emailService.sendWelcome(email, name).catch(() => {});
 
     return user;
   }

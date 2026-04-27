@@ -20,7 +20,7 @@ const LoginPage: React.FC = () => {
 
     try {
       const { data } = await api.post('/auth/login', { email, password });
-      login(data.accessToken, data.user);
+      login(data.accessToken, data.refreshToken, data.user);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al iniciar sesión');

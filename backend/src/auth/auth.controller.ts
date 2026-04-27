@@ -33,6 +33,16 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
+  @ApiOperation({ summary: 'Refresh JWT tokens' })
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  refresh(@Body() dto: { userId: string; refreshToken: string }) {
+    if (!dto.userId || !dto.refreshToken) {
+      throw new Error('Missing userId or refreshToken');
+    }
+    return this.authService.refreshTokens(dto.userId, dto.refreshToken);
+  }
+
   @ApiOperation({ summary: 'Get current user profile (JWT or Auth0)' })
   @ApiBearerAuth()
   @Get('me')
