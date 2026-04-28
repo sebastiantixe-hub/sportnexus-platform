@@ -25,4 +25,10 @@ export class AnalyticsController {
     }
     return this.analyticsService.getDashboardStats(gymId);
   }
+
+  @Get('platform/overview')
+  @Roles('ADMIN')
+  async getPlatformStats() {
+    return this.analyticsService.getPlatformStats();
+  }
 }

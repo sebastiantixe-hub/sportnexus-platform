@@ -17,6 +17,7 @@ import AnalyticsView from './pages/dashboard/AnalyticsView';
 import CRMView from './pages/dashboard/CRMView';
 import WearablesView, { FitbitCallbackHandler } from './pages/dashboard/WearablesView';
 import InvoicesView from './pages/dashboard/InvoicesView';
+import PlatformOverviewView from './pages/dashboard/PlatformOverviewView';
 import { Toaster } from 'sonner';
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<MainLayout><Dashboard /></MainLayout>} path="/dashboard" />
             <Route element={<MainLayout><AnalyticsView /></MainLayout>} path="/dashboard/analytics" />
+            <Route element={<MainLayout><PlatformOverviewView /></MainLayout>} path="/dashboard/platform-overview" />
             <Route element={<MainLayout><CRMView /></MainLayout>} path="/dashboard/crm" />
             <Route element={<MainLayout><WearablesView /></MainLayout>} path="/dashboard/wearables" />
             <Route element={<FitbitCallbackHandler />} path="/dashboard/wearables/fitbit-callback" />

@@ -285,6 +285,13 @@ const Dashboard: React.FC = () => {
                   <QuickAction label="Mis Gimnasios" icon={Dumbbell} to="/gyms" desc="Administrar establecimientos" />
                 </>
               )}
+
+              {user?.role === 'ADMIN' && (
+                <>
+                  <div className="my-4 border-t border-white/10" />
+                  <QuickAction label="Resumen SaaS (SuperAdmin)" icon={TrendingUp} to="/dashboard/platform-overview" desc="Métricas globales de la plataforma" />
+                </>
+              )}
             </div>
           </div>
         </section>

@@ -108,4 +108,39 @@ export class AnalyticsService {
       chartData
     };
   }
+
+  async getPlatformStats() {
+    const totalUsers = await this.prisma.user.count();
+    
+    const usersByRole = await this.prisma.user.groupBy({
+      by: ['role'],
+      _count: {
+        _all: true,
+      },
+    });
+
+    const totalGyms = await this.prisma.gym.count();
+    
+    const totalRevenueResult = await this.prisma.payment.aggregate({
+      where: { status: 'COMPLETED' },
+      _sum: { amount: true },
+    });
+    
+    const totalRevenue = totalRevenueResult._sum.amount || 0;
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const newUsersLast30Days = await this.prisma.user.count({
+      where: { createdAt: { gte: thirtyDaysAgo } }
+    });
+
+    return {
+      totalUsers,
+      usersByRole: usersByRole.map(r => ({ role: r.role, count: r._count._all })),
+      totalGyms,
+      totalRevenue: Number(totalRevenue),
+      newUsersLast30Days
+    };
+  }
 }
