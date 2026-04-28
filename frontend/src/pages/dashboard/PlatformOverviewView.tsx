@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
 import { ArrowLeft, Users, Building, TrendingUp, UserPlus, Loader2, ShieldCheck, Dumbbell, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/api-client';
