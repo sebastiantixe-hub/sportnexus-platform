@@ -5,8 +5,8 @@ export declare class GymsService {
     constructor(prisma: PrismaService);
     create(ownerId: string, createGymDto: CreateGymDto): Promise<{
         id: string;
-        name: string;
         email: string | null;
+        name: string;
         phone: string | null;
         createdAt: Date;
         updatedAt: Date;
@@ -24,14 +24,14 @@ export declare class GymsService {
     findAll(): Promise<({
         owner: {
             id: string;
-            name: string;
             email: string;
+            name: string;
             avatarUrl: string | null;
         };
     } & {
         id: string;
-        name: string;
         email: string | null;
+        name: string;
         phone: string | null;
         createdAt: Date;
         updatedAt: Date;
@@ -49,14 +49,14 @@ export declare class GymsService {
     findNearby(lat: number, lng: number, radiusKm: number): Promise<({
         owner: {
             id: string;
-            name: string;
             email: string;
+            name: string;
             avatarUrl: string | null;
         };
     } & {
         id: string;
-        name: string;
         email: string | null;
+        name: string;
         phone: string | null;
         createdAt: Date;
         updatedAt: Date;
@@ -113,8 +113,8 @@ export declare class GymsService {
         }[];
     } & {
         id: string;
-        name: string;
         email: string | null;
+        name: string;
         phone: string | null;
         createdAt: Date;
         updatedAt: Date;
@@ -131,8 +131,8 @@ export declare class GymsService {
     }>;
     update(id: string, currentUserId: string, updateGymDto: UpdateGymDto, isAdmin: boolean): Promise<{
         id: string;
-        name: string;
         email: string | null;
+        name: string;
         phone: string | null;
         createdAt: Date;
         updatedAt: Date;
@@ -149,8 +149,8 @@ export declare class GymsService {
     }>;
     remove(id: string, currentUserId: string, isAdmin: boolean): Promise<{
         id: string;
-        name: string;
         email: string | null;
+        name: string;
         phone: string | null;
         createdAt: Date;
         updatedAt: Date;
@@ -167,8 +167,8 @@ export declare class GymsService {
     }>;
     findMembers(gymId: string): Promise<{
         id: string;
-        name: string;
         email: string;
+        name: string;
         phone: string | null;
         avatarUrl: string | null;
     }[]>;

@@ -1,5 +1,5 @@
 import { PrismaService } from '../prisma/prisma.service';
-export declare class FitbitOAuthService {
+export declare class GoogleHealthService {
     private readonly prisma;
     private readonly logger;
     constructor(prisma: PrismaService);
@@ -11,33 +11,20 @@ export declare class FitbitOAuthService {
     }>;
     refreshAccessToken(userId: string): Promise<string>;
     getValidAccessToken(userId: string): Promise<string>;
-    syncFitbitData(userId: string): Promise<{
+    syncGoogleHealthData(userId: string): Promise<{
         steps: number;
         calories: number;
-        heartRateAvg: number | null;
-        distance: number;
-        activeMinutes: number;
-        sleepMinutes: number | null;
+        heartRateAvg: number;
         date: string;
     }>;
     getConnectionStatus(userId: string): Promise<{
         connected: boolean;
         provider: string;
-        fitbitUserId?: undefined;
-        tokenExpiry?: undefined;
         isExpired?: undefined;
-        scope?: undefined;
-        connectedSince?: undefined;
-        lastSync?: undefined;
     } | {
         connected: boolean;
         provider: string;
-        fitbitUserId: string | null;
-        tokenExpiry: Date | null;
         isExpired: boolean;
-        scope: string | null;
-        connectedSince: Date;
-        lastSync: Date;
     }>;
     disconnect(userId: string): Promise<void>;
 }

@@ -17,8 +17,8 @@ export declare class ProfessionalsController {
     findAll(): Promise<({
         provider: {
             id: string;
-            name: string;
             email: string;
+            name: string;
             avatarUrl: string | null;
         };
     } & {
@@ -96,8 +96,8 @@ export declare class ProfessionalsController {
             provider: {
                 id: string;
                 auth0Id: string | null;
-                name: string;
                 email: string;
+                name: string;
                 passwordHash: string | null;
                 role: import("@prisma/client").$Enums.UserRole;
                 phone: string | null;

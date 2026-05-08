@@ -88,6 +88,10 @@ export class WearablesController {
   @Post('fitbit/sync')
   async syncFitbitData(@Request() req) {
     const data = await this.googleHealthService.syncGoogleHealthData(req.user.id);
+    
+    // Save the real data to the database!
+    await this.wearablesService.syncData(req.user.id, data);
+
     return {
       success: true,
       message: 'Datos de Google Health sincronizados desde la API oficial',

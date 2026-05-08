@@ -15,14 +15,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.WearablesController = void 0;
 const common_1 = require("@nestjs/common");
 const wearables_service_1 = require("./wearables.service");
-const fitbit_oauth_service_1 = require("./fitbit-oauth.service");
+const google_health_service_1 = require("./google-health.service");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 let WearablesController = class WearablesController {
     wearablesService;
-    fitbitOAuthService;
-    constructor(wearablesService, fitbitOAuthService) {
+    googleHealthService;
+    constructor(wearablesService, googleHealthService) {
         this.wearablesService = wearablesService;
-        this.fitbitOAuthService = fitbitOAuthService;
+        this.googleHealthService = googleHealthService;
     }
     async syncData(req, data) {
         return this.wearablesService.syncData(req.user.id, data);
@@ -31,39 +31,39 @@ let WearablesController = class WearablesController {
         return this.wearablesService.getMetrics(req.user.id);
     }
     async getConnections(req) {
-        return this.fitbitOAuthService.getConnectionStatus(req.user.id);
+        return this.googleHealthService.getConnectionStatus(req.user.id);
     }
     async getFitbitAuthUrl(req, redirectUri) {
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
         const callbackUri = redirectUri || `${frontendUrl}/dashboard/wearables/fitbit-callback`;
-        const url = this.fitbitOAuthService.getAuthorizationUrl(callbackUri);
+        const url = this.googleHealthService.getAuthorizationUrl(callbackUri);
         return { url, callbackUri };
     }
     async fitbitCallback(req, body) {
         if (!body.code) {
             return { success: false, message: 'Código de autorización faltante' };
         }
-        const tokens = await this.fitbitOAuthService.exchangeCodeForTokens(req.user.id, body.code, body.redirect_uri);
+        const tokens = await this.googleHealthService.exchangeCodeForTokens(req.user.id, body.code, body.redirect_uri);
         return {
             success: true,
-            message: '¡Fitbit conectado exitosamente! Sincronizando datos...',
+            message: '¡Google Health conectado exitosamente! Sincronizando datos...',
             expiresIn: tokens.expiresIn,
         };
     }
     async syncFitbitData(req) {
-        const data = await this.fitbitOAuthService.syncFitbitData(req.user.id);
+        const data = await this.googleHealthService.syncGoogleHealthData(req.user.id);
         return {
             success: true,
-            message: 'Datos de Fitbit sincronizados desde la API oficial',
+            message: 'Datos de Google Health sincronizados desde la API oficial',
             data,
         };
     }
     async getFitbitStatus(req) {
-        return this.fitbitOAuthService.getConnectionStatus(req.user.id);
+        return this.googleHealthService.getConnectionStatus(req.user.id);
     }
     async disconnectFitbit(req) {
-        await this.fitbitOAuthService.disconnect(req.user.id);
-        return { success: true, message: 'Fitbit desconectado correctamente' };
+        await this.googleHealthService.disconnect(req.user.id);
+        return { success: true, message: 'Desconectado correctamente' };
     }
 };
 exports.WearablesController = WearablesController;
@@ -131,6 +131,6 @@ exports.WearablesController = WearablesController = __decorate([
     (0, common_1.Controller)('wearables'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __metadata("design:paramtypes", [wearables_service_1.WearablesService,
-        fitbit_oauth_service_1.FitbitOAuthService])
+        google_health_service_1.GoogleHealthService])
 ], WearablesController);
 //# sourceMappingURL=wearables.controller.js.map

@@ -1,9 +1,9 @@
 import { WearablesService } from './wearables.service';
-import { FitbitOAuthService } from './fitbit-oauth.service';
+import { GoogleHealthService } from './google-health.service';
 export declare class WearablesController {
     private readonly wearablesService;
-    private readonly fitbitOAuthService;
-    constructor(wearablesService: WearablesService, fitbitOAuthService: FitbitOAuthService);
+    private readonly googleHealthService;
+    constructor(wearablesService: WearablesService, googleHealthService: GoogleHealthService);
     syncData(req: any, data: any): Promise<{
         id: string;
         createdAt: Date;
@@ -27,21 +27,11 @@ export declare class WearablesController {
     getConnections(req: any): Promise<{
         connected: boolean;
         provider: string;
-        fitbitUserId?: undefined;
-        tokenExpiry?: undefined;
         isExpired?: undefined;
-        scope?: undefined;
-        connectedSince?: undefined;
-        lastSync?: undefined;
     } | {
         connected: boolean;
         provider: string;
-        fitbitUserId: string | null;
-        tokenExpiry: Date | null;
         isExpired: boolean;
-        scope: string | null;
-        connectedSince: Date;
-        lastSync: Date;
     }>;
     getFitbitAuthUrl(req: any, redirectUri?: string): Promise<{
         url: string;
@@ -65,31 +55,18 @@ export declare class WearablesController {
         data: {
             steps: number;
             calories: number;
-            heartRateAvg: number | null;
-            distance: number;
-            activeMinutes: number;
-            sleepMinutes: number | null;
+            heartRateAvg: number;
             date: string;
         };
     }>;
     getFitbitStatus(req: any): Promise<{
         connected: boolean;
         provider: string;
-        fitbitUserId?: undefined;
-        tokenExpiry?: undefined;
         isExpired?: undefined;
-        scope?: undefined;
-        connectedSince?: undefined;
-        lastSync?: undefined;
     } | {
         connected: boolean;
         provider: string;
-        fitbitUserId: string | null;
-        tokenExpiry: Date | null;
         isExpired: boolean;
-        scope: string | null;
-        connectedSince: Date;
-        lastSync: Date;
     }>;
     disconnectFitbit(req: any): Promise<{
         success: boolean;

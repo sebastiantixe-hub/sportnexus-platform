@@ -5,8 +5,8 @@ export declare class GymsController {
     constructor(gymsService: GymsService);
     create(user: any, createGymDto: CreateGymDto): Promise<{
         id: string;
-        name: string;
         email: string | null;
+        name: string;
         phone: string | null;
         createdAt: Date;
         updatedAt: Date;
@@ -24,14 +24,14 @@ export declare class GymsController {
     findAll(): Promise<({
         owner: {
             id: string;
-            name: string;
             email: string;
+            name: string;
             avatarUrl: string | null;
         };
     } & {
         id: string;
-        name: string;
         email: string | null;
+        name: string;
         phone: string | null;
         createdAt: Date;
         updatedAt: Date;
@@ -49,14 +49,14 @@ export declare class GymsController {
     findNearby(lat: string, lng: string, radius?: string): Promise<({
         owner: {
             id: string;
-            name: string;
             email: string;
+            name: string;
             avatarUrl: string | null;
         };
     } & {
         id: string;
-        name: string;
         email: string | null;
+        name: string;
         phone: string | null;
         createdAt: Date;
         updatedAt: Date;
@@ -113,8 +113,8 @@ export declare class GymsController {
         }[];
     } & {
         id: string;
-        name: string;
         email: string | null;
+        name: string;
         phone: string | null;
         createdAt: Date;
         updatedAt: Date;
@@ -131,15 +131,15 @@ export declare class GymsController {
     }>;
     findMembers(id: string): Promise<{
         id: string;
-        name: string;
         email: string;
+        name: string;
         phone: string | null;
         avatarUrl: string | null;
     }[]>;
     update(id: string, user: any, updateGymDto: UpdateGymDto): Promise<{
         id: string;
-        name: string;
         email: string | null;
+        name: string;
         phone: string | null;
         createdAt: Date;
         updatedAt: Date;
@@ -156,8 +156,8 @@ export declare class GymsController {
     }>;
     remove(id: string, user: any): Promise<{
         id: string;
-        name: string;
         email: string | null;
+        name: string;
         phone: string | null;
         createdAt: Date;
         updatedAt: Date;

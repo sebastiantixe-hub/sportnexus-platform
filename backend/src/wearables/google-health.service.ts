@@ -151,10 +151,70 @@ export class GoogleHealthService {
   }
 
   async syncGoogleHealthData(userId: string) {
-    // This is a stub for Google Fit REST API implementation
-    // Requires verified Health Scopes to fetch actual datasets
-    this.logger.log(`Google Health synced for ${userId}`);
-    return { steps: 5000, calories: 300, heartRateAvg: 75, date: new Date().toISOString() };
+    const accessToken = await this.getValidAccessToken(userId);
+    
+    // Set time range for TODAY
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    const startTimeMillis = startOfDay.getTime();
+    const endTimeMillis = now.getTime();
+
+    const body = {
+      aggregateBy: [
+        { dataTypeName: 'com.google.step_count.delta' },
+        { dataTypeName: 'com.google.calories.expended' },
+        { dataTypeName: 'com.google.heart_rate.bpm' }
+      ],
+      bucketByTime: { durationMillis: 86400000 },
+      startTimeMillis,
+      endTimeMillis
+    };
+
+    const response = await fetch('https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      this.logger.error(`Failed to fetch from Google Fit: ${errorText}`);
+      throw new BadRequestException('Error al extraer datos de Google Fit de la cuenta');
+    }
+
+    const data: any = await response.json();
+    
+    let steps = 0;
+    let calories = 0;
+    let heartRateAvg = 0;
+
+    // Google Fit returns an array of "buckets"
+    if (data.bucket && data.bucket.length > 0) {
+      const bucket = data.bucket[0]; 
+      
+      for (const dataset of bucket.dataset) {
+        if (dataset.point && dataset.point.length > 0) {
+          // Google places the aggregated result in the first point
+          const point = dataset.point[0];
+          const value = point.value[0];
+          
+          if (dataset.dataSourceId.includes('step_count')) {
+            steps = value.intVal || 0;
+          } else if (dataset.dataSourceId.includes('calories')) {
+            calories = Math.round(value.fpVal || 0);
+          } else if (dataset.dataSourceId.includes('heart_rate')) {
+            heartRateAvg = Math.round(value.fpVal || 0);
+          }
+        }
+      }
+    }
+
+    this.logger.log(`Google Health synced real data for ${userId}: ${steps} steps`);
+    return { steps, calories, heartRateAvg, deviceType: 'GOOGLE_HEALTH', date: new Date().toISOString() };
   }
 
   async getConnectionStatus(userId: string) {

@@ -6,8 +6,8 @@ export declare class TrainersController {
     upsertProfile(user: any, updateTrainerProfileDto: UpdateTrainerProfileDto): Promise<{
         user: {
             id: string;
-            name: string;
             email: string;
+            name: string;
         };
     } & {
         id: string;

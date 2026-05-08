@@ -18,4 +18,14 @@ export declare class AnalyticsController {
             newMembers: number;
         }[];
     }>;
+    getPlatformStats(): Promise<{
+        totalUsers: number;
+        usersByRole: {
+            role: import("@prisma/client").$Enums.UserRole;
+            count: number;
+        }[];
+        totalGyms: number;
+        totalRevenue: number;
+        newUsersLast30Days: number;
+    }>;
 }

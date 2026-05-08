@@ -90,8 +90,8 @@ export declare class ClassesService {
         })[];
         gym: {
             id: string;
-            name: string;
             email: string | null;
+            name: string;
             phone: string | null;
             createdAt: Date;
             updatedAt: Date;
@@ -147,8 +147,8 @@ export declare class ClassesService {
         class: {
             gym: {
                 id: string;
-                name: string;
                 email: string | null;
+                name: string;
                 phone: string | null;
                 createdAt: Date;
                 updatedAt: Date;

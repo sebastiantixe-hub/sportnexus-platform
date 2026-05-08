@@ -10,7 +10,7 @@ exports.WearablesModule = void 0;
 const common_1 = require("@nestjs/common");
 const wearables_controller_1 = require("./wearables.controller");
 const wearables_service_1 = require("./wearables.service");
-const fitbit_oauth_service_1 = require("./fitbit-oauth.service");
+const google_health_service_1 = require("./google-health.service");
 const prisma_module_1 = require("../prisma/prisma.module");
 let WearablesModule = class WearablesModule {
 };
@@ -19,8 +19,8 @@ exports.WearablesModule = WearablesModule = __decorate([
     (0, common_1.Module)({
         imports: [prisma_module_1.PrismaModule],
         controllers: [wearables_controller_1.WearablesController],
-        providers: [wearables_service_1.WearablesService, fitbit_oauth_service_1.FitbitOAuthService],
-        exports: [fitbit_oauth_service_1.FitbitOAuthService, wearables_service_1.WearablesService],
+        providers: [wearables_service_1.WearablesService, google_health_service_1.GoogleHealthService],
+        exports: [google_health_service_1.GoogleHealthService, wearables_service_1.WearablesService],
     })
 ], WearablesModule);
 //# sourceMappingURL=wearables.module.js.map

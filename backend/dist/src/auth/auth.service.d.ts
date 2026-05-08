@@ -15,8 +15,8 @@ export declare class AuthService {
         refreshToken: string;
         user: {
             id: string;
-            name: string;
             email: string;
+            name: string;
             role: import("@prisma/client").$Enums.UserRole;
             createdAt: Date;
         };
@@ -27,8 +27,8 @@ export declare class AuthService {
         user: {
             id: string;
             auth0Id: string | null;
-            name: string;
             email: string;
+            name: string;
             role: import("@prisma/client").$Enums.UserRole;
             phone: string | null;
             avatarUrl: string | null;
@@ -44,8 +44,8 @@ export declare class AuthService {
         user: {
             id: string;
             auth0Id: string | null;
-            name: string;
             email: string;
+            name: string;
             role: import("@prisma/client").$Enums.UserRole;
             phone: string | null;
             avatarUrl: string | null;
@@ -57,8 +57,8 @@ export declare class AuthService {
     }>;
     getMe(userId: string): Promise<{
         id: string;
-        name: string;
         email: string;
+        name: string;
         role: import("@prisma/client").$Enums.UserRole;
         phone: string | null;
         avatarUrl: string | null;
@@ -98,8 +98,8 @@ export declare class AuthService {
         avatarUrl?: string;
     }): Promise<{
         id: string;
-        name: string;
         email: string;
+        name: string;
         role: import("@prisma/client").$Enums.UserRole;
         avatarUrl: string | null;
         isActive: boolean;

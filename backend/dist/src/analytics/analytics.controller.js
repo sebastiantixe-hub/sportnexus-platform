@@ -35,6 +35,9 @@ let AnalyticsController = class AnalyticsController {
         }
         return this.analyticsService.getDashboardStats(gymId);
     }
+    async getPlatformStats() {
+        return this.analyticsService.getPlatformStats();
+    }
 };
 exports.AnalyticsController = AnalyticsController;
 __decorate([
@@ -46,6 +49,13 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], AnalyticsController.prototype, "getDashboardStats", null);
+__decorate([
+    (0, common_1.Get)('platform/overview'),
+    (0, roles_decorator_1.Roles)('ADMIN'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], AnalyticsController.prototype, "getPlatformStats", null);
 exports.AnalyticsController = AnalyticsController = __decorate([
     (0, common_1.Controller)('analytics'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),

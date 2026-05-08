@@ -15,8 +15,8 @@ export declare class JwtStrategy extends JwtStrategy_base {
     constructor(config: ConfigService, prisma: PrismaService);
     validate(payload: JwtPayload): Promise<{
         id: string;
-        name: string;
         email: string;
+        name: string;
         role: import("@prisma/client").$Enums.UserRole;
         isActive: boolean;
     } | null>;

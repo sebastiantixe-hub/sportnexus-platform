@@ -23,8 +23,8 @@ export declare class InvoicesController {
     })[]>;
     getGymInvoices(gymId: string): Promise<({
         user: {
-            name: string;
             email: string;
+            name: string;
         };
     } & {
         id: string;
@@ -43,8 +43,8 @@ export declare class InvoicesController {
     })[]>;
     getInvoiceDetails(id: string): Promise<({
         user: {
-            name: string;
             email: string;
+            name: string;
         };
         gym: {
             name: string;
