@@ -43,7 +43,7 @@ interface WearableMetric {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Fitbit Callback Handler Component
+// Google Health Callback Handler Component
 // ─────────────────────────────────────────────────────────────────────────────
 export const FitbitCallbackHandler: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -57,14 +57,14 @@ export const FitbitCallbackHandler: React.FC = () => {
 
       if (error) {
         setStatus('error');
-        toast.error(`Fitbit rechazó la autorización: ${error}`);
+        toast.error(`Google rechazó la autorización: ${error}`);
         setTimeout(() => navigate('/dashboard/wearables'), 2500);
         return;
       }
 
       if (!code) {
         setStatus('error');
-        toast.error('No se recibió el código de autorización de Fitbit');
+        toast.error('No se recibió el código de autorización de Google');
         setTimeout(() => navigate('/dashboard/wearables'), 2500);
         return;
       }
@@ -77,11 +77,11 @@ export const FitbitCallbackHandler: React.FC = () => {
         await api.post('/wearables/fitbit/sync');
 
         setStatus('success');
-        toast.success('¡Fitbit conectado! Datos sincronizados correctamente.');
+        toast.success('¡Google Health conectado! Datos sincronizados correctamente.');
         setTimeout(() => navigate('/dashboard/wearables'), 2000);
       } catch (err: any) {
         setStatus('error');
-        toast.error(err.response?.data?.message || 'Error conectando Fitbit');
+        toast.error(err.response?.data?.message || 'Error conectando a Google Health');
         setTimeout(() => navigate('/dashboard/wearables'), 3000);
       }
     };
@@ -97,7 +97,7 @@ export const FitbitCallbackHandler: React.FC = () => {
             <div className="w-20 h-20 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto">
               <Loader2 className="w-10 h-10 text-primary-light animate-spin" />
             </div>
-            <h2 className="text-2xl font-bold text-white">Conectando Fitbit...</h2>
+            <h2 className="text-2xl font-bold text-white">Conectando Google Health...</h2>
             <p className="text-slate-400">Procesando tu autorización y sincronizando datos.</p>
           </>
         )}
@@ -106,7 +106,7 @@ export const FitbitCallbackHandler: React.FC = () => {
             <div className="w-20 h-20 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-10 h-10 text-green-400" />
             </div>
-            <h2 className="text-2xl font-bold text-white">¡Fitbit Conectado!</h2>
+            <h2 className="text-2xl font-bold text-white">¡Google Health Conectado!</h2>
             <p className="text-slate-400">Redirigiendo a tu dashboard...</p>
           </>
         )}
@@ -172,10 +172,10 @@ const WearablesView: React.FC = () => {
     try {
       const redirectUri = `${window.location.origin}/dashboard/wearables/fitbit-callback`;
       const { data } = await api.get(`/wearables/fitbit/auth-url?redirect_uri=${encodeURIComponent(redirectUri)}`);
-      // Redirect the browser to Fitbit authorization page
+      // Redirect the browser to Google authorization page
       window.location.href = data.url;
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Error iniciando conexión con Fitbit');
+      toast.error(err.response?.data?.message || 'Error iniciando conexión con Google Health');
       setConnecting(false);
     }
   };
@@ -183,14 +183,14 @@ const WearablesView: React.FC = () => {
   // ── Sync now ─────────────────────────────────────────────────────────────
   const handleSync = async () => {
     if (!fitbitStatus.connected) {
-      toast.error('Conecta tu Fitbit primero');
+      toast.error('Conecta tu cuenta de Google Health primero');
       return;
     }
     setSyncing(true);
     try {
       const { data } = await api.post('/wearables/fitbit/sync');
       setLatestSync(data.data);
-      toast.success('¡Datos sincronizados desde Fitbit API en tiempo real!');
+      toast.success('¡Datos sincronizados desde Google Health API en tiempo real!');
       await loadAll();
     } catch (err: any) {
       const msg = err.response?.data?.message || 'Error sincronizando';
@@ -205,13 +205,13 @@ const WearablesView: React.FC = () => {
 
   // ── Disconnect ───────────────────────────────────────────────────────────
   const handleDisconnect = async () => {
-    if (!window.confirm('¿Desconectar Fitbit? Se revocarán los tokens de acceso.')) return;
+    if (!window.confirm('¿Desconectar Google Health? Se revocarán los tokens de acceso.')) return;
     setDisconnecting(true);
     try {
       await api.delete('/wearables/fitbit/disconnect');
       setFitbitStatus({ connected: false });
       setLatestSync(null);
-      toast.success('Fitbit desconectado correctamente');
+      toast.success('Google Health desconectado correctamente');
     } catch {
       toast.error('Error al desconectar');
     } finally {
@@ -289,11 +289,11 @@ const WearablesView: React.FC = () => {
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             Wearables
             <span className="bg-green-500/20 text-green-400 text-[10px] px-2 py-0.5 rounded-full border border-green-500/20 tracking-wider font-bold">
-              OAUTH2 REAL
+              GOOGLE HEALTH API
             </span>
           </h1>
           <p className="text-slate-400 text-sm">
-            Conecta tu Fitbit con OAuth2 oficial y sincroniza datos reales de actividad.
+            Conecta tu cuenta con Google Health Connect y sincroniza datos de actividad diarios.
           </p>
         </div>
       </div>
@@ -328,7 +328,7 @@ const WearablesView: React.FC = () => {
           <div className="flex-grow">
             <div className="flex items-center gap-2 mb-1">
               <h2 className="text-xl font-bold text-white">
-                {fitbitStatus.connected ? 'Fitbit Conectado' : 'Sin Dispositivo Conectado'}
+                {fitbitStatus.connected ? 'Google Health Conectado' : 'Sin Dispositivo Conectado'}
               </h2>
               {fitbitStatus.connected && (
                 <span className="flex items-center gap-1">
@@ -341,7 +341,7 @@ const WearablesView: React.FC = () => {
             {fitbitStatus.connected ? (
               <div className="space-y-0.5">
                 <p className="text-slate-400 text-sm">
-                  ID Fitbit: <span className="text-white font-mono">{fitbitStatus.fitbitUserId || '—'}</span>
+                  Google ID: <span className="text-white font-mono">{fitbitStatus.fitbitUserId || 'Conectado'}</span>
                 </p>
                 <div>{tokenExpiryLabel()}</div>
                 {fitbitStatus.lastSync && (
@@ -352,7 +352,7 @@ const WearablesView: React.FC = () => {
               </div>
             ) : (
               <p className="text-slate-400 text-sm">
-                Conecta tu cuenta Fitbit con OAuth2 oficial para sincronizar pasos, calorías y ritmo cardíaco reales.
+                Conecta tu cuenta de Google Health con OAuth2 para sincronizar pasos, calorías y ritmo cardíaco de cualquier dispositivo Android.
               </p>
             )}
           </div>
@@ -392,7 +392,7 @@ const WearablesView: React.FC = () => {
                   ) : (
                     <ExternalLink className="w-5 h-5" />
                   )}
-                  {connecting ? 'Abriendo Fitbit...' : 'Conectar con Fitbit'}
+                  {connecting ? 'Abriendo Google...' : 'Conectar con Google Health'}
                 </button>
                 <button
                   onClick={handleBluetooth}
@@ -410,8 +410,8 @@ const WearablesView: React.FC = () => {
         {!fitbitStatus.connected && !loadingStatus && (
           <div className="mt-6 pt-6 border-t border-white/5 grid grid-cols-3 gap-4 text-center">
             {[
-              { step: '1', label: 'Haz click en "Conectar con Fitbit"' },
-              { step: '2', label: 'Autoriza SportNexus en la página de Fitbit' },
+              { step: '1', label: 'Haz click en "Conectar con Google"' },
+              { step: '2', label: 'Autoriza SportNexus en Google' },
               { step: '3', label: 'Tus datos se sincronizan automáticamente' },
             ].map(({ step, label }) => (
               <div key={step} className="space-y-2">
@@ -438,7 +438,7 @@ const WearablesView: React.FC = () => {
                 </span>
               </h3>
               <span className="text-[10px] text-primary-light bg-primary/10 px-2 py-1 rounded-full border border-primary/20 font-bold">
-                FITBIT API OFICIAL
+                GOOGLE HEALTH
               </span>
             </div>
 
@@ -566,7 +566,7 @@ const WearablesView: React.FC = () => {
           <p className="text-slate-400 text-sm">
             {fitbitStatus.connected
               ? 'Haz click en "Sincronizar Ahora" para obtener tus métricas de hoy.'
-              : 'Conecta tu Fitbit para empezar a registrar tu actividad diaria.'}
+              : 'Conecta tu cuenta de Google Health para empezar a registrar tu actividad.'}
           </p>
         </div>
       )}

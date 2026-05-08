@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { WearablesService } from './wearables.service';
-import { FitbitOAuthService } from './fitbit-oauth.service';
+import { GoogleHealthService } from './google-health.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('wearables')
@@ -22,7 +22,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 export class WearablesController {
   constructor(
     private readonly wearablesService: WearablesService,
-    private readonly fitbitOAuthService: FitbitOAuthService,
+    private readonly googleHealthService: GoogleHealthService,
   ) {}
 
   // ── Manual sync (BLE / webhook) ────────────────────────────────────────────
@@ -40,26 +40,25 @@ export class WearablesController {
   // ── Get all wearable connections ───────────────────────────────────────────
   @Get('connections')
   async getConnections(@Request() req) {
-    return this.fitbitOAuthService.getConnectionStatus(req.user.id);
+    return this.googleHealthService.getConnectionStatus(req.user.id);
   }
 
   // ── FITBIT OAUTH2 FLOW ─────────────────────────────────────────────────────
 
   /**
-   * Step 1: Get the Fitbit authorization URL
-   * Frontend redirects user to this URL
+   * Step 1: Get the Google Health authorization URL
    */
   @Get('fitbit/auth-url')
   async getFitbitAuthUrl(@Request() req, @Query('redirect_uri') redirectUri?: string) {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const callbackUri = redirectUri || `${frontendUrl}/dashboard/wearables/fitbit-callback`;
 
-    const url = this.fitbitOAuthService.getAuthorizationUrl(callbackUri);
+    const url = this.googleHealthService.getAuthorizationUrl(callbackUri);
     return { url, callbackUri };
   }
 
   /**
-   * Step 2: Exchange code for tokens (called by frontend after Fitbit redirects back)
+   * Step 2: Exchange code for tokens (called by frontend)
    */
   @Post('fitbit/callback')
   async fitbitCallback(
@@ -70,7 +69,7 @@ export class WearablesController {
       return { success: false, message: 'Código de autorización faltante' };
     }
 
-    const tokens = await this.fitbitOAuthService.exchangeCodeForTokens(
+    const tokens = await this.googleHealthService.exchangeCodeForTokens(
       req.user.id,
       body.code,
       body.redirect_uri,
@@ -78,39 +77,39 @@ export class WearablesController {
 
     return {
       success: true,
-      message: '¡Fitbit conectado exitosamente! Sincronizando datos...',
+      message: '¡Google Health conectado exitosamente! Sincronizando datos...',
       expiresIn: tokens.expiresIn,
     };
   }
 
   /**
-   * Step 3: Force sync Fitbit data now
+   * Step 3: Force sync Google Health data now
    */
   @Post('fitbit/sync')
   async syncFitbitData(@Request() req) {
-    const data = await this.fitbitOAuthService.syncFitbitData(req.user.id);
+    const data = await this.googleHealthService.syncGoogleHealthData(req.user.id);
     return {
       success: true,
-      message: 'Datos de Fitbit sincronizados desde la API oficial',
+      message: 'Datos de Google Health sincronizados desde la API oficial',
       data,
     };
   }
 
   /**
-   * Step 4: Get Fitbit connection status
+   * Step 4: Get connection status
    */
   @Get('fitbit/status')
   async getFitbitStatus(@Request() req) {
-    return this.fitbitOAuthService.getConnectionStatus(req.user.id);
+    return this.googleHealthService.getConnectionStatus(req.user.id);
   }
 
   /**
-   * Step 5: Disconnect Fitbit (revoke tokens)
+   * Step 5: Disconnect
    */
   @Delete('fitbit/disconnect')
   @HttpCode(HttpStatus.OK)
   async disconnectFitbit(@Request() req) {
-    await this.fitbitOAuthService.disconnect(req.user.id);
-    return { success: true, message: 'Fitbit desconectado correctamente' };
+    await this.googleHealthService.disconnect(req.user.id);
+    return { success: true, message: 'Desconectado correctamente' };
   }
 }
