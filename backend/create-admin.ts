@@ -4,32 +4,17 @@ import * as bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = 'admin@sportnexus.com';
-  const password = 'password123';
+  // Buscar el primer usuario que exista en la base de datos
+  const firstUser = await prisma.user.findFirst();
   
-  // Check if admin exists
-  const existingUser = await prisma.user.findUnique({ where: { email } });
-  if (existingUser) {
-    const passwordHash = await bcrypt.hash(password, 10);
+  if (firstUser) {
     await prisma.user.update({ 
-      where: { email }, 
-      data: { 
-        role: UserRole.ADMIN,
-        passwordHash
-      } 
+      where: { id: firstUser.id }, 
+      data: { role: UserRole.ADMIN } 
     });
-    console.log('Role updated to ADMIN and password reset to password123.');
+    console.log(`¡Éxito! La cuenta principal (${firstUser.email || firstUser.id}) ahora es SUPER ADMIN.`);
   } else {
-    const passwordHash = await bcrypt.hash(password, 10);
-    await prisma.user.create({
-      data: {
-        email,
-        passwordHash,
-        name: 'Super Admin',
-        role: UserRole.ADMIN,
-      },
-    });
-    console.log('Admin user created successfully.');
+    console.log('Error: Aún no hay usuarios registrados en la base de datos.');
   }
 }
 
