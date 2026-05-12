@@ -42,11 +42,20 @@ export class ClassesController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Listar todas las clases activas' })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Listar clases. Si myReservations=true, solo las del usuario.' })
   @ApiQuery({ name: 'gymId', required: false })
-  findAll(@Query('gymId') gymId?: string) {
-    return this.classesService.findAll(gymId);
+  @ApiQuery({ name: 'myReservations', required: false })
+  findAll(
+    @Query('gymId') gymId?: string,
+    @Query('myReservations') myReservations?: string,
+    @CurrentUser() user?: any,
+  ) {
+    const userId = myReservations === 'true' && user ? user.id : undefined;
+    return this.classesService.findAll(gymId, userId);
   }
+
 
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalles de una clase' })

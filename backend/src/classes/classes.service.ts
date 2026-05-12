@@ -45,13 +45,35 @@ export class ClassesService {
     });
   }
 
-  async findAll(gymId?: string) {
+  async findAll(gymId?: string, userId?: string) {
+    // If userId passed, return only classes where this user has a reservation
+    if (userId) {
+      const reservations = await this.prisma.reservation.findMany({
+        where: { userId, status: { in: [ReservationStatus.CONFIRMED, ReservationStatus.ATTENDED] } },
+        select: { classId: true },
+      });
+      const classIds = reservations.map(r => r.classId);
+      if (classIds.length === 0) return [];
+      return this.prisma.class.findMany({
+        where: { id: { in: classIds }, isActive: true },
+        include: {
+          gym: { select: { name: true, city: true, ownerId: true } },
+          trainer: { include: { user: { select: { name: true, avatarUrl: true } } } },
+          reservations: {
+            where: { status: { in: [ReservationStatus.CONFIRMED, ReservationStatus.ATTENDED] } },
+            select: { id: true, userId: true, status: true, user: { select: { name: true } } }
+          },
+          _count: { select: { reservations: { where: { status: ReservationStatus.CONFIRMED } } } },
+        },
+        orderBy: { scheduledAt: 'asc' },
+      });
+    }
+
     return this.prisma.class.findMany({
       where: {
         ...(gymId ? { gymId } : {}),
         isActive: true,
       },
-
       include: {
         gym: { select: { name: true, city: true, ownerId: true } },
         trainer: {
@@ -70,6 +92,7 @@ export class ClassesService {
       orderBy: { scheduledAt: 'asc' },
     });
   }
+
 
   async findOne(id: string) {
     const classItem = await this.prisma.class.findUnique({

@@ -20,6 +20,7 @@ import InvoicesView from './pages/dashboard/InvoicesView';
 import PlatformOverviewView from './pages/dashboard/PlatformOverviewView';
 import UsersManagementView from './pages/dashboard/UsersManagementView';
 import TicketsPage from './pages/tickets/TicketsPage';
+import SportStorePage from './pages/store/SportStorePage';
 import { Toaster } from 'sonner';
 
 function App() {
@@ -43,6 +44,7 @@ function App() {
             <Route element={<MainLayout><InvoicesView /></MainLayout>} path="/dashboard/invoices" />
             <Route element={<MainLayout><UsersManagementView /></MainLayout>} path="/dashboard/users" />
             <Route element={<MainLayout><TicketsPage /></MainLayout>} path="/dashboard/tickets" />
+            <Route element={<MainLayout><SportStorePage /></MainLayout>} path="/sport-store" />
             <Route element={<MainLayout><GymsPage /></MainLayout>} path="/gyms" />
             <Route element={<MainLayout><GymShowroom /></MainLayout>} path="/gyms/:id" />
             <Route element={<MainLayout><ClassesPage /></MainLayout>} path="/classes" />

@@ -146,8 +146,15 @@ const ClassesPage: React.FC = () => {
 
   const fetchClasses = async () => {
     try {
-      const { data } = await api.get('/classes');
-      setClasses(data);
+      if (user?.role === 'USER') {
+        // Atleta: solo sus reservas
+        const { data } = await api.get('/classes?myReservations=true');
+        setClasses(data);
+      } else {
+        // Admin, Owner, Trainer: todas las clases
+        const { data } = await api.get('/classes');
+        setClasses(data);
+      }
     } catch (err) {
       console.error('Error fetching classes:', err);
     } finally {
@@ -203,8 +210,17 @@ const ClassesPage: React.FC = () => {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white">Horario de Clases</h1>
-          <p className="text-slate-400 mt-1">Explora las sesiones disponibles y reserva tu lugar.</p>
+          {user?.role === 'USER' ? (
+            <>
+              <h1 className="text-3xl font-bold text-white">Mis Reservas 🎟️</h1>
+              <p className="text-slate-400 mt-1">Clases que tienes reservadas. ¿Buscas más? <a href="/discovery" className="text-primary-light underline">Explorar academias →</a></p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-3xl font-bold text-white">Horario de Clases</h1>
+              <p className="text-slate-400 mt-1">Gestiona las sesiones y reservas.</p>
+            </>
+          )}
         </div>
         {(user?.role === 'TRAINER' || user?.role === 'GYM_OWNER' || user?.role === 'ADMIN') && (
           <button 
@@ -283,8 +299,20 @@ const ClassesPage: React.FC = () => {
       ) : (
         <div className="glass-card p-20 flex flex-col items-center justify-center text-center">
           <Calendar className="text-slate-700 w-16 h-16 mb-4" />
-          <h2 className="text-white font-bold text-xl">No hay clases disponibles hoy</h2>
-          <p className="text-slate-500 mt-2">Vuelve más tarde o revisa otros horarios.</p>
+          {user?.role === 'USER' ? (
+            <>
+              <h2 className="text-white font-bold text-xl">Aún no tienes clases reservadas</h2>
+              <p className="text-slate-500 mt-2">Busca una academia y reserva tu primera clase.</p>
+              <a href="/discovery" className="btn-primary mt-6 inline-flex items-center gap-2">
+                🔍 Buscar Academias
+              </a>
+            </>
+          ) : (
+            <>
+              <h2 className="text-white font-bold text-xl">No hay clases disponibles</h2>
+              <p className="text-slate-500 mt-2">Crea la primera clase para empezar.</p>
+            </>
+          )}
         </div>
       )}
 

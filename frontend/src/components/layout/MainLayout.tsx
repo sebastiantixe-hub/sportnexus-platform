@@ -3,13 +3,13 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import api from '../../api/api-client';
 import { useAuth } from '../../context/auth-context';
 import { toast } from 'sonner';
-import { 
-  LayoutDashboard, 
-  Dumbbell, 
-  Calendar, 
-  ShoppingBag, 
-  LogOut, 
-  Menu, 
+import {
+  LayoutDashboard,
+  Dumbbell,
+  Calendar,
+  ShoppingBag,
+  LogOut,
+  Menu,
   X,
   CreditCard,
   Users,
@@ -32,14 +32,13 @@ interface SidebarItemProps {
 }
 
 const SidebarItem: React.FC<SidebarItemProps> = ({ to, icon: Icon, label, active, onClick }) => (
-  <Link 
-    to={to} 
+  <Link
+    to={to}
     onClick={onClick}
-    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-      active 
-        ? 'bg-primary text-white shadow-lg shadow-primary/20' 
+    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${active
+        ? 'bg-primary text-white shadow-lg shadow-primary/20'
         : 'text-slate-400 hover:bg-white/5 hover:text-white'
-    }`}
+      }`}
   >
     <Icon className="w-5 h-5" />
     <span className="font-medium">{label}</span>
@@ -52,14 +51,14 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  
+
   const [notifications, setNotifications] = useState<any[]>([]);
   const prevNotificationsCount = useRef(0);
 
   const fetchNotifications = async (isInitial = false) => {
     try {
       const { data } = await api.get('/notifications');
-      
+
       // Si hay más notificaciones de las que había antes y no es la carga inicial
       if (!isInitial && data.length > prevNotificationsCount.current) {
         const newOnes = data.filter((n: any) => !n.isRead).slice(0, data.length - prevNotificationsCount.current);
@@ -70,7 +69,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           });
         });
       }
-      
+
       setNotifications(data);
       prevNotificationsCount.current = data.length;
     } catch (err) {
@@ -112,18 +111,42 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   };
 
   const navItems = [
-    { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['USER', 'GYM_OWNER', 'TRAINER', 'ADMIN'] },
-    { to: '/dashboard/users', icon: Users, label: 'Cuentas', roles: ['ADMIN'] },
-    { to: '/dashboard/tickets', icon: MessageSquare, label: 'Soporte / Quejas', roles: ['ADMIN'] },
-    { to: '/gyms', icon: Building2, label: 'Mis Negocios', roles: ['USER', 'GYM_OWNER', 'TRAINER', 'ADMIN'] },
-    { to: '/classes', icon: Calendar, label: 'Clases', roles: ['USER', 'TRAINER', 'GYM_OWNER', 'ADMIN'] },
-    { to: '/events', icon: Trophy, label: 'Eventos', roles: ['USER', 'GYM_OWNER', 'TRAINER', 'ADMIN'] },
-    { to: '/marketplace', icon: ShoppingBag, label: 'Tienda', roles: ['USER', 'GYM_OWNER', 'ADMIN'] },
-    { to: '/professionals', icon: Users, label: 'Servicios', roles: ['USER', 'GYM_OWNER', 'ADMIN'] },
-    { to: '/dashboard/wearables', icon: Activity, label: 'Salud', roles: ['USER', 'ADMIN', 'TRAINER', 'GYM_OWNER'] },
-    { to: '/discovery', icon: Map, label: 'Descubrir', roles: ['USER', 'GYM_OWNER', 'TRAINER', 'ADMIN'] },
-    { to: '/memberships', icon: CreditCard, label: 'Membresías', roles: ['USER', 'GYM_OWNER', 'ADMIN'] },
-    { to: '/dashboard/tickets', icon: MessageSquare, label: 'Mis Solicitudes', roles: ['USER', 'TRAINER', 'GYM_OWNER'] },
+    // ── Todos ────────────────────────────────────────────────────
+    { to: '/dashboard',          icon: LayoutDashboard, label: 'Dashboard',          roles: ['USER', 'GYM_OWNER', 'TRAINER', 'ADMIN'] },
+
+    // ── ADMIN exclusivo ───────────────────────────────────────────
+    { to: '/dashboard/users',    icon: Users,           label: 'Cuentas',             roles: ['ADMIN'] },
+    { to: '/dashboard/tickets',  icon: MessageSquare,   label: 'Soporte / Quejas',    roles: ['ADMIN'] },
+    { to: '/gyms',               icon: Building2,       label: 'Todos los Negocios',  roles: ['ADMIN'] },
+    { to: '/classes',            icon: Calendar,        label: 'Todas las Clases',    roles: ['ADMIN'] },
+    { to: '/discovery',          icon: Map,             label: 'Descubrir',           roles: ['ADMIN'] },
+    { to: '/sport-store',        icon: ShoppingBag,     label: 'Tienda Deportiva',    roles: ['ADMIN'] },
+    { to: '/events',             icon: Trophy,          label: 'Eventos',             roles: ['ADMIN'] },
+    { to: '/memberships',        icon: CreditCard,      label: 'Membresías',          roles: ['ADMIN'] },
+
+    // ── GYM_OWNER ─────────────────────────────────────────────────
+    { to: '/gyms',               icon: Building2,       label: 'Mis Negocios',        roles: ['GYM_OWNER'] },
+    { to: '/classes',            icon: Calendar,        label: 'Clases',              roles: ['GYM_OWNER'] },
+    { to: '/events',             icon: Trophy,          label: 'Eventos',             roles: ['GYM_OWNER'] },
+    { to: '/sport-store',        icon: ShoppingBag,     label: 'Tienda Deportiva',    roles: ['GYM_OWNER'] },
+    { to: '/memberships',        icon: CreditCard,      label: 'Membresías',          roles: ['GYM_OWNER'] },
+    { to: '/dashboard/wearables',icon: Activity,        label: 'Salud',               roles: ['GYM_OWNER'] },
+    { to: '/dashboard/tickets',  icon: MessageSquare,   label: 'Mis Solicitudes',     roles: ['GYM_OWNER'] },
+
+    // ── TRAINER ───────────────────────────────────────────────────
+    { to: '/classes',            icon: Calendar,        label: 'Mis Clases',          roles: ['TRAINER'] },
+    { to: '/sport-store',        icon: ShoppingBag,     label: 'Tienda Deportiva',    roles: ['TRAINER'] },
+    { to: '/dashboard/wearables',icon: Activity,        label: 'Salud',               roles: ['TRAINER'] },
+    { to: '/dashboard/tickets',  icon: MessageSquare,   label: 'Mis Solicitudes',     roles: ['TRAINER'] },
+
+    // ── ATLETA (USER) — NO accede a Mis Negocios ──────────────────
+    { to: '/discovery',          icon: Map,             label: 'Buscar Academias',    roles: ['USER'] },
+    { to: '/classes',            icon: Calendar,        label: 'Mis Reservas',        roles: ['USER'] },
+    { to: '/sport-store',        icon: ShoppingBag,     label: 'Tienda Deportiva',    roles: ['USER'] },
+    { to: '/events',             icon: Trophy,          label: 'Eventos',             roles: ['USER'] },
+    { to: '/memberships',        icon: CreditCard,      label: 'Membresías',          roles: ['USER'] },
+    { to: '/dashboard/wearables',icon: Activity,        label: 'Salud',               roles: ['USER'] },
+    { to: '/dashboard/tickets',  icon: MessageSquare,   label: 'Mis Solicitudes',     roles: ['USER'] },
   ];
 
   const filteredNavItems = navItems.filter(item => user && item.roles.includes(user.role));
@@ -131,7 +154,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="bg-background-darker min-h-screen text-slate-100 flex">
       {/* Mobile Sidebar Toggle */}
-      <button 
+      <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         className="lg:hidden fixed top-4 right-4 z-50 p-2 bg-primary rounded-lg shadow-lg"
       >
@@ -152,7 +175,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
         <nav className="space-y-2 flex-grow">
           {filteredNavItems.map((item) => (
-            <SidebarItem 
+            <SidebarItem
               key={item.to}
               to={item.to}
               icon={item.icon}
@@ -173,8 +196,8 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               <p className="text-slate-500 text-xs truncate capitalize">{user?.role.toLowerCase().replace('_', ' ')}</p>
             </div>
           </div>
-          
-          <button 
+
+          <button
             onClick={handleLogout}
             className="flex items-center gap-3 w-full px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
           >
@@ -188,9 +211,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <main className="flex-grow flex flex-col relative overflow-hidden">
         {/* Header Superior con Campanita */}
         <header className="h-20 border-b border-white/5 flex items-center justify-end px-4 lg:px-8 bg-slate-900/50 backdrop-blur-md sticky top-0 z-20">
-          
+
           <div className="relative">
-            <button 
+            <button
               onClick={() => setShowNotifications(!showNotifications)}
               className="p-3 bg-white/5 hover:bg-white/10 rounded-full transition-colors relative border border-white/5 active:scale-95"
             >
@@ -207,7 +230,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               {showNotifications && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -215,8 +238,8 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     className="absolute right-0 mt-3 w-80 bg-slate-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 ring-1 ring-black/5"
                   >
                     <div className="p-4 border-b border-white/10 bg-slate-800/50 flex justify-between items-center">
-                      <h3 className="font-bold text-white flex items-center gap-2"><Bell className="w-4 h-4 text-secondary-light"/> Mis Notificaciones</h3>
-                      <button 
+                      <h3 className="font-bold text-white flex items-center gap-2"><Bell className="w-4 h-4 text-secondary-light" /> Mis Notificaciones</h3>
+                      <button
                         onClick={markAllAsRead}
                         className="text-[11px] font-bold text-primary-light hover:underline"
                       >
@@ -228,8 +251,8 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                         <div className="p-6 text-center text-slate-500 text-sm">No tienes notificaciones.</div>
                       ) : (
                         notifications.map(n => (
-                          <div 
-                            key={n.id} 
+                          <div
+                            key={n.id}
                             onClick={() => !n.isRead && markAsRead(n.id)}
                             className={`p-4 border-b border-white/5 hover:bg-white/5 cursor-pointer transition-colors ${!n.isRead ? 'bg-primary/5' : ''}`}
                           >
@@ -259,7 +282,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
-          
+
           <footer className="mt-20 py-8 border-t border-white/5 text-center">
             <p className="text-slate-500 text-[10px] uppercase font-bold tracking-[0.3em]">
               © 2026 QORIBEX | TODOS LOS DERECHOS RESERVADOS
@@ -274,7 +297,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       {/* Overlay for mobile sidebar */}
       <AnimatePresence>
         {isSidebarOpen && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
