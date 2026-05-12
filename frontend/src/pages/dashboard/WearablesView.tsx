@@ -571,16 +571,6 @@ const WearablesView: React.FC = () => {
         </div>
       )}
 
-      {/* Webhook reference */}
-      <div className="bg-black/40 rounded-2xl border border-white/5 p-5">
-        <p className="text-slate-500 text-xs font-mono mb-2 font-bold">// Webhook manual (sin Fitbit):</p>
-        <code className="text-green-400 text-xs font-mono break-all">
-          curl -X POST {window.location.origin.replace('5173', '3000')}/api/wearables/sync \<br />
-          {'  '}-H "Authorization: Bearer TU_JWT" \<br />
-          {'  '}-H "Content-Type: application/json" \<br />
-          {'  '}-d '{"{ \"deviceType\": \"WEBHOOK\", \"steps\": 9400, \"calories\": 520, \"heartRateAvg\": 88 }"}'
-        </code>
-      </div>
     </div>
   );
 };
