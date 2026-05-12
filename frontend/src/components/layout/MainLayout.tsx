@@ -112,6 +112,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const navItems = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['USER', 'GYM_OWNER', 'TRAINER', 'ADMIN'] },
+    { to: '/dashboard/users', icon: Users, label: 'Cuentas', roles: ['ADMIN'] },
     { to: '/gyms', icon: Building2, label: 'Mis Negocios', roles: ['USER', 'GYM_OWNER', 'TRAINER', 'ADMIN'] },
     { to: '/classes', icon: Calendar, label: 'Clases', roles: ['USER', 'TRAINER', 'GYM_OWNER', 'ADMIN'] },
     { to: '/events', icon: Trophy, label: 'Eventos', roles: ['USER', 'GYM_OWNER', 'TRAINER', 'ADMIN'] },

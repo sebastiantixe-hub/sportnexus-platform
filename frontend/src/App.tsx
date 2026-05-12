@@ -18,6 +18,7 @@ import CRMView from './pages/dashboard/CRMView';
 import WearablesView, { FitbitCallbackHandler } from './pages/dashboard/WearablesView';
 import InvoicesView from './pages/dashboard/InvoicesView';
 import PlatformOverviewView from './pages/dashboard/PlatformOverviewView';
+import UsersManagementView from './pages/dashboard/UsersManagementView';
 import { Toaster } from 'sonner';
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
             <Route element={<MainLayout><WearablesView /></MainLayout>} path="/dashboard/wearables" />
             <Route element={<FitbitCallbackHandler />} path="/dashboard/wearables/fitbit-callback" />
             <Route element={<MainLayout><InvoicesView /></MainLayout>} path="/dashboard/invoices" />
+            <Route element={<MainLayout><UsersManagementView /></MainLayout>} path="/dashboard/users" />
             <Route element={<MainLayout><GymsPage /></MainLayout>} path="/gyms" />
             <Route element={<MainLayout><GymShowroom /></MainLayout>} path="/gyms/:id" />
             <Route element={<MainLayout><ClassesPage /></MainLayout>} path="/classes" />
