@@ -11,8 +11,7 @@ import {
   Video, 
   CheckCircle2, 
   Loader2,
-  Plus,
-  QrCode
+  Plus
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import CreateClassModal from './CreateClassModal';
@@ -112,10 +111,14 @@ const ClassCard: React.FC<{
           ) : userReservation ? (
             <button 
               onClick={() => onViewTicket(userReservation, classItem)}
-              className={`${userReservation.status === 'ATTENDED' ? 'bg-slate-700/50 text-slate-400' : 'bg-[#00a3ff] hover:bg-[#0082cc] text-white shadow-[#00a3ff]/20 shadow-lg'} py-2 px-4 rounded-xl text-sm transition-all active:scale-95 flex items-center gap-1 font-bold`}
+              className={`${
+                userReservation.status === 'ATTENDED' 
+                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' 
+                  : 'bg-green-500/20 hover:bg-green-500/30 text-green-300 border border-green-500/30'
+              } py-2 px-4 rounded-xl text-sm transition-all active:scale-95 flex items-center gap-1.5 font-bold`}
             >
-              <QrCode className="w-4 h-4" /> 
-              {userReservation.status === 'ATTENDED' ? 'Ticket Usado' : 'Ver Ticket'}
+              <CheckCircle2 className="w-4 h-4" /> 
+              {userReservation.status === 'ATTENDED' ? '🏆 Asististe' : '✅ Ver Reserva'}
             </button>
           ) : (
             <button 
