@@ -118,9 +118,9 @@ const ProfessionalsPage: React.FC = () => {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>
           <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-            <Users className="text-accent" /> Servicios y Entrenadores
+            <Users className="text-accent" /> Servicios Profesionales
           </h1>
-          <p className="text-slate-400 mt-2">Contrata a los mejores nutricionistas, fisioterapeutas y personal trainers.</p>
+          <p className="text-slate-400 mt-2">Fisioterapeutas, nutricionistas y personal trainers certificados.</p>
         </div>
         {(user?.role === 'ADMIN' || user?.role === 'TRAINER') && (
           <button 
