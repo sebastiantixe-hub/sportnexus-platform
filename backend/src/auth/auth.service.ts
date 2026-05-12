@@ -150,10 +150,11 @@ export class AuthService {
 
     // ── ADMIN: show platform-wide statistics ──────────────────────────────
     if (userRole === 'ADMIN') {
-      const [totalGyms, totalClasses, totalUsers, recentReservations] = await Promise.all([
+      const [totalGyms, totalClasses, totalUsers, totalReservations, recentReservations] = await Promise.all([
         this.prisma.gym.count({ where: { status: 'ACTIVE' } }),
         this.prisma.class.count({ where: { isActive: true } }),
         this.prisma.user.count(),
+        this.prisma.reservation.count({ where: { status: 'CONFIRMED' } }),
         this.prisma.reservation.findMany({
           where: { status: 'CONFIRMED' },
           orderBy: { bookedAt: 'desc' },
@@ -164,8 +165,6 @@ export class AuthService {
           },
         }),
       ]);
-
-      const totalRevenue = await this.prisma.reservation.count({ where: { status: 'CONFIRMED' } });
 
       const activities = recentReservations.map(res => ({
         id: res.id,
@@ -179,7 +178,7 @@ export class AuthService {
         gyms: totalGyms,
         classes: totalClasses,
         members: totalUsers,
-        revenue: totalRevenue * 25, // estimated platform revenue
+        revenue: totalReservations, // real confirmed reservations count, no simulation
         activities,
         isAdmin: true,
       };
