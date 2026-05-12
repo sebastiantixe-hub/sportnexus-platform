@@ -17,7 +17,8 @@ import {
   Trophy,
   Activity,
   Bell,
-  Building2
+  Building2,
+  MessageSquare
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AIChatWidget from '../ai/AIChatWidget';
@@ -113,6 +114,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navItems = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['USER', 'GYM_OWNER', 'TRAINER', 'ADMIN'] },
     { to: '/dashboard/users', icon: Users, label: 'Cuentas', roles: ['ADMIN'] },
+    { to: '/dashboard/tickets', icon: MessageSquare, label: 'Soporte / Quejas', roles: ['ADMIN'] },
     { to: '/gyms', icon: Building2, label: 'Mis Negocios', roles: ['USER', 'GYM_OWNER', 'TRAINER', 'ADMIN'] },
     { to: '/classes', icon: Calendar, label: 'Clases', roles: ['USER', 'TRAINER', 'GYM_OWNER', 'ADMIN'] },
     { to: '/events', icon: Trophy, label: 'Eventos', roles: ['USER', 'GYM_OWNER', 'TRAINER', 'ADMIN'] },
@@ -121,6 +123,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { to: '/dashboard/wearables', icon: Activity, label: 'Salud', roles: ['USER', 'ADMIN', 'TRAINER', 'GYM_OWNER'] },
     { to: '/discovery', icon: Map, label: 'Descubrir', roles: ['USER', 'GYM_OWNER', 'TRAINER', 'ADMIN'] },
     { to: '/memberships', icon: CreditCard, label: 'Membresías', roles: ['USER', 'GYM_OWNER', 'ADMIN'] },
+    { to: '/dashboard/tickets', icon: MessageSquare, label: 'Mis Solicitudes', roles: ['USER', 'TRAINER', 'GYM_OWNER'] },
   ];
 
   const filteredNavItems = navItems.filter(item => user && item.roles.includes(user.role));

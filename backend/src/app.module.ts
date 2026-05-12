@@ -21,6 +21,7 @@ import { InvoicesModule } from './invoices/invoices.module';
 import { PaymentsModule } from './payments/payments.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { UsersModule } from './users/users.module';
+import { TicketsModule } from './tickets/tickets.module';
 
 
 @Module({
@@ -46,6 +47,7 @@ import { UsersModule } from './users/users.module';
     PaymentsModule,
     NotificationsModule,
     UsersModule,
+    TicketsModule,
   ],
 
 
