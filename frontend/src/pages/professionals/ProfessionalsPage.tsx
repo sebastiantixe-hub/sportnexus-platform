@@ -31,7 +31,12 @@ const ProfessionalCard: React.FC<{ professional: any; onBook: (p: any) => void; 
     </div>
     
     <span className="bg-accent/20 text-accent text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2">
-      {professional.serviceType.replace('_', ' ')}
+      {({
+        PERSONAL_TRAINING: '💪 Personal Training',
+        NUTRITION_PLAN: '🥗 Nutrición',
+        PHYSIOTHERAPY: '🏥 Fisioterapia',
+        CONSULTATION: '📋 Consulta',
+      } as any)[professional.serviceType] || professional.serviceType}
     </span>
 
     <h3 className="text-lg font-bold text-white mb-1 line-clamp-1">{professional.title}</h3>
@@ -136,7 +141,7 @@ const ProfessionalsPage: React.FC = () => {
         <Search className="absolute top-1/2 left-4 -translate-y-1/2 text-slate-500 w-5 h-5" />
         <input 
           type="text"
-          placeholder="Buscar por servicio (ej: NUTRITION_PLAN)..."
+          placeholder="Buscar: Fisioterapia, Nutrición, Personal Training..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="bg-white/5 border-white/10 focus:border-accent w-full py-4 pr-4 pl-12 border rounded-2xl text-white outline-none transition-all"
