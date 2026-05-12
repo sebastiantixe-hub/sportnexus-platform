@@ -12,27 +12,28 @@ import {
   CheckCircle2, 
   Loader2,
   Plus,
-  QrCode,
-  Scan
+  QrCode
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import CreateClassModal from './CreateClassModal';
-import { QrTicketModal, ScannerModal } from '../../components/classes/QrTicketModal';
+import { QrTicketModal } from '../../components/classes/QrTicketModal';
+import AttendanceListModal from '../../components/classes/AttendanceListModal';
 
 const ClassCard: React.FC<{ 
   classItem: any; 
   onBook: (id: string) => void;
   onViewTicket: (res: any, classItem: any) => void;
-  onScanModal: (classItem: any) => void;
+  onAttendanceModal: (classItem: any) => void;
   onEdit: (classItem: any) => void;
   onDelete: (id: string) => void;
   user: any;
-}> = ({ classItem, onBook, onViewTicket, onScanModal, onEdit, onDelete, user }) => {
+}> = ({ classItem, onBook, onViewTicket, onAttendanceModal, onEdit, onDelete, user }) => {
   const isOnline = classItem.classType === 'ONLINE';
   
   const userReservation = classItem.reservations?.find((r: any) => r.userId === user?.id);
-  const isTrainerAssigned = user?.role === 'TRAINER' && classItem.trainer?.user?.name === user?.name; // Simple check for demo
+  const isTrainerAssigned = user?.role === 'TRAINER' && classItem.trainer?.user?.name === user?.name;
   const isOwnerClass = user?.role === 'ADMIN' || (user?.role === 'GYM_OWNER' && classItem.gym?.ownerId === user?.id);
+  const canManageAttendance = isOwnerClass || isTrainerAssigned;
   
   return (
     <motion.div 
@@ -100,12 +101,13 @@ const ClassCard: React.FC<{
             </>
           )}
 
-          {isTrainerAssigned || isOwnerClass ? (
+          {canManageAttendance ? (
             <button 
-              onClick={() => onScanModal(classItem)}
-              className="bg-accent hover:bg-accent-light text-white py-2 px-4 rounded-xl text-sm transition-all shadow-lg active:scale-95 flex items-center gap-1"
+              onClick={() => onAttendanceModal(classItem)}
+              className="bg-slate-700 hover:bg-slate-600 text-white py-2 px-4 rounded-xl text-sm transition-all shadow-lg active:scale-95 flex items-center gap-1.5 font-medium border border-white/10"
             >
-              <Scan className="w-4 h-4" /> Escanear Asistencia
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              Tomar Asistencia
             </button>
           ) : userReservation ? (
             <button 
@@ -140,7 +142,7 @@ const ClassesPage: React.FC = () => {
 
   // Modal states
   const [ticketModalConfig, setTicketModalConfig] = useState<any>(null);
-  const [scanModalConfig, setScanModalConfig] = useState<any>(null);
+  const [attendanceClass, setAttendanceClass] = useState<any>(null);
 
   const fetchClasses = async () => {
     try {
@@ -194,14 +196,7 @@ const ClassesPage: React.FC = () => {
   };
 
   const handleOpenScanner = (classItem: any) => {
-    // For demo purposes, we automatically pick the first CONFIRMED reservation to scan
-    const firstUnscannedUser = classItem.reservations?.find((r: any) => r.status === 'CONFIRMED');
-    if (!firstUnscannedUser) {
-      setMessage({ type: 'error', text: 'No hay entradas pendientes por escanear en esta clase.' });
-      setTimeout(() => setMessage(null), 3000);
-      return;
-    }
-    setScanModalConfig(firstUnscannedUser);
+    setAttendanceClass(classItem);
   };
 
   return (
@@ -278,7 +273,7 @@ const ClassesPage: React.FC = () => {
               classItem={c} 
               onBook={handleBook} 
               onViewTicket={handleOpenTicket}
-              onScanModal={handleOpenScanner}
+              onAttendanceModal={handleOpenScanner}
               onEdit={setEditingClass}
               onDelete={handleDelete}
               user={user}
@@ -293,17 +288,18 @@ const ClassesPage: React.FC = () => {
         </div>
       )}
 
-      {/* Modals for QR System */}
+      {/* QR Ticket Modal - solo para atletas */}
       <QrTicketModal
         isOpen={!!ticketModalConfig}
         onClose={() => setTicketModalConfig(null)}
         {...(ticketModalConfig || {})}
       />
 
-      <ScannerModal
-        isOpen={!!scanModalConfig}
-        onClose={() => setScanModalConfig(null)}
-        reservationInfo={scanModalConfig}
+      {/* Attendance List Modal - para Dueño, Trainer y Admin */}
+      <AttendanceListModal
+        isOpen={!!attendanceClass}
+        onClose={() => setAttendanceClass(null)}
+        classItem={attendanceClass}
         onSuccess={fetchClasses}
       />
     </div>
