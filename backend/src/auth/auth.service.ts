@@ -147,7 +147,46 @@ export class AuthService {
 
   async getDashboardStats(userId: string, role: string) {
     const userRole = role.toUpperCase();
-    if (userRole === 'GYM_OWNER' || userRole === 'ADMIN') {
+
+    // ── ADMIN: show platform-wide statistics ──────────────────────────────
+    if (userRole === 'ADMIN') {
+      const [totalGyms, totalClasses, totalUsers, recentReservations] = await Promise.all([
+        this.prisma.gym.count({ where: { status: 'ACTIVE' } }),
+        this.prisma.class.count({ where: { isActive: true } }),
+        this.prisma.user.count(),
+        this.prisma.reservation.findMany({
+          where: { status: 'CONFIRMED' },
+          orderBy: { bookedAt: 'desc' },
+          take: 5,
+          include: {
+            user: { select: { name: true } },
+            class: { select: { title: true, gym: { select: { name: true } } } },
+          },
+        }),
+      ]);
+
+      const totalRevenue = await this.prisma.reservation.count({ where: { status: 'CONFIRMED' } });
+
+      const activities = recentReservations.map(res => ({
+        id: res.id,
+        type: 'RESERVATION',
+        title: `Reserva: ${res.class.title}`,
+        description: `${res.user.name} → ${res.class.gym.name}`,
+        date: res.bookedAt,
+      }));
+
+      return {
+        gyms: totalGyms,
+        classes: totalClasses,
+        members: totalUsers,
+        revenue: totalRevenue * 25, // estimated platform revenue
+        activities,
+        isAdmin: true,
+      };
+    }
+
+    // ── GYM_OWNER: show their own gyms ────────────────────────────────────
+    if (userRole === 'GYM_OWNER') {
       const gyms = await this.prisma.gym.findMany({
         where: { ownerId: userId },
         include: {
@@ -173,7 +212,6 @@ export class AuthService {
           activeClassesCount++;
           const confirmedCount = Number(cls._count.reservations);
           totalRevenue += confirmedCount * Number(cls.price);
-
           cls.reservations.forEach((res) => uniqueMembers.add(res.userId));
         });
       });
@@ -193,7 +231,6 @@ export class AuthService {
         });
       });
 
-      // Sort and take top 5
       const sortedActivities = recentActivities
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 5);

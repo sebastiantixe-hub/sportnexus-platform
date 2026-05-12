@@ -150,7 +150,14 @@ const Dashboard: React.FC = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {isOwner ? (
+        {user?.role === 'ADMIN' ? (
+          <>
+            <StatCard label="Total Gimnasios" value={stats?.gyms ?? 0} icon={Dumbbell} color="primary" trend="🌎 Nacional" delay={0.05} />
+            <StatCard label="Total Usuarios" value={stats?.members ?? 0} icon={Users} color="secondary" trend="+Activos" delay={0.1} />
+            <StatCard label="Clases en Plataforma" value={stats?.classes ?? 0} icon={Calendar} color="accent" delay={0.15} />
+            <StatCard label="Reservas Totales" value={`$${(stats?.revenue ?? 0).toLocaleString('es-CO')}`} icon={TrendingUp} color="green" trend="💰 SaaS" delay={0.2} />
+          </>
+        ) : isOwner ? (
           <>
             <StatCard label="Mis Gimnasios" value={stats?.gyms ?? 0} icon={Dumbbell} color="primary" trend="+Activos" delay={0.05} />
             <StatCard label="Miembros Totales" value={stats?.members ?? 0} icon={Users} color="secondary" delay={0.1} />
