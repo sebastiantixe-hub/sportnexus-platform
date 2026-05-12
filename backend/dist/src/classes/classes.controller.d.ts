@@ -20,7 +20,7 @@ export declare class ClassesController {
         location: string | null;
         meetingUrl: string | null;
     }>;
-    findAll(gymId?: string): Promise<({
+    findAll(gymId?: string, myReservations?: string, user?: any): Promise<({
         reservations: {
             id: string;
             userId: string;

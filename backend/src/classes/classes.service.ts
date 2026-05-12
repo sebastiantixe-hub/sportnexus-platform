@@ -45,7 +45,7 @@ export class ClassesService {
     });
   }
 
-  async findAll(gymId?: string, userId?: string) {
+  async findAll(gymId?: string, userId?: string, ownerId?: string, trainerUserId?: string) {
     // If userId passed, return only classes where this user has a reservation
     if (userId) {
       const reservations = await this.prisma.reservation.findMany({
@@ -72,6 +72,8 @@ export class ClassesService {
     return this.prisma.class.findMany({
       where: {
         ...(gymId ? { gymId } : {}),
+        ...(ownerId ? { gym: { ownerId } } : {}),
+        ...(trainerUserId ? { trainer: { userId: trainerUserId } } : {}),
         isActive: true,
       },
       include: {

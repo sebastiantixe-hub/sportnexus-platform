@@ -53,7 +53,9 @@ export class ClassesController {
     @CurrentUser() user?: any,
   ) {
     const userId = myReservations === 'true' && user ? user.id : undefined;
-    return this.classesService.findAll(gymId, userId);
+    const ownerId = user?.role === 'GYM_OWNER' ? user.id : undefined;
+    const trainerUserId = user?.role === 'TRAINER' ? user.id : undefined;
+    return this.classesService.findAll(gymId, userId, ownerId, trainerUserId);
   }
 
 

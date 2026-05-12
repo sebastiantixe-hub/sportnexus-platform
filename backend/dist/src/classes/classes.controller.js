@@ -30,8 +30,11 @@ let ClassesController = class ClassesController {
     create(gymId, user, createClassDto) {
         return this.classesService.create(gymId, user.id, createClassDto);
     }
-    findAll(gymId) {
-        return this.classesService.findAll(gymId);
+    findAll(gymId, myReservations, user) {
+        const userId = myReservations === 'true' && user ? user.id : undefined;
+        const ownerId = user?.role === 'GYM_OWNER' ? user.id : undefined;
+        const trainerUserId = user?.role === 'TRAINER' ? user.id : undefined;
+        return this.classesService.findAll(gymId, userId, ownerId, trainerUserId);
     }
     findOne(id) {
         return this.classesService.findOne(id);
@@ -68,11 +71,16 @@ __decorate([
 ], ClassesController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Listar todas las clases activas' }),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Listar clases. Si myReservations=true, solo las del usuario.' }),
     (0, swagger_1.ApiQuery)({ name: 'gymId', required: false }),
+    (0, swagger_1.ApiQuery)({ name: 'myReservations', required: false }),
     __param(0, (0, common_1.Query)('gymId')),
+    __param(1, (0, common_1.Query)('myReservations')),
+    __param(2, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", void 0)
 ], ClassesController.prototype, "findAll", null);
 __decorate([

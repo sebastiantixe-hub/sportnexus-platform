@@ -22,7 +22,7 @@ export declare class ClassesService {
         location: string | null;
         meetingUrl: string | null;
     }>;
-    findAll(gymId?: string): Promise<({
+    findAll(gymId?: string, userId?: string, ownerId?: string, trainerUserId?: string): Promise<({
         reservations: {
             id: string;
             userId: string;

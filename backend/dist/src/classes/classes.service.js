@@ -42,10 +42,34 @@ let ClassesService = class ClassesService {
             },
         });
     }
-    async findAll(gymId) {
+    async findAll(gymId, userId, ownerId, trainerUserId) {
+        if (userId) {
+            const reservations = await this.prisma.reservation.findMany({
+                where: { userId, status: { in: [client_1.ReservationStatus.CONFIRMED, client_1.ReservationStatus.ATTENDED] } },
+                select: { classId: true },
+            });
+            const classIds = reservations.map(r => r.classId);
+            if (classIds.length === 0)
+                return [];
+            return this.prisma.class.findMany({
+                where: { id: { in: classIds }, isActive: true },
+                include: {
+                    gym: { select: { name: true, city: true, ownerId: true } },
+                    trainer: { include: { user: { select: { name: true, avatarUrl: true } } } },
+                    reservations: {
+                        where: { status: { in: [client_1.ReservationStatus.CONFIRMED, client_1.ReservationStatus.ATTENDED] } },
+                        select: { id: true, userId: true, status: true, user: { select: { name: true } } }
+                    },
+                    _count: { select: { reservations: { where: { status: client_1.ReservationStatus.CONFIRMED } } } },
+                },
+                orderBy: { scheduledAt: 'asc' },
+            });
+        }
         return this.prisma.class.findMany({
             where: {
                 ...(gymId ? { gymId } : {}),
+                ...(ownerId ? { gym: { ownerId } } : {}),
+                ...(trainerUserId ? { trainer: { userId: trainerUserId } } : {}),
                 isActive: true,
             },
             include: {
