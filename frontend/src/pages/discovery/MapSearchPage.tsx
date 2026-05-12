@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/api-client';
-import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MapPin, Map as MapIcon, Navigation2, Search, X, 
@@ -30,7 +30,6 @@ const SPORT_FILTERS = [
 ];
 
 const MapSearchPage: React.FC = () => {
-  const navigate = useNavigate();
   const [gyms, setGyms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [usingLocation, setUsingLocation] = useState(false);
@@ -58,6 +57,25 @@ const MapSearchPage: React.FC = () => {
     );
   };
 
+  const [bookingId, setBookingId] = useState<string | null>(null);
+
+  const handleBook = async (classId: string, classTitle: string) => {
+    setBookingId(classId);
+    try {
+      await api.post(`/classes/${classId}/book`);
+      toast.success(`✅ ¡Reserva confirmada! "${classTitle}" está en Mis Reservas.`);
+      if (selectedGym) {
+        const { data } = await api.get(`/classes?gymId=${selectedGym.id}`);
+        setGymClasses(data);
+      }
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al reservar';
+      toast.error(`❌ ${msg}`);
+    } finally {
+      setBookingId(null);
+    }
+  };
+
   const handleSelectGym = async (gym: any) => {
     setSelectedGym(gym);
     setLoadingClasses(true);
@@ -67,6 +85,7 @@ const MapSearchPage: React.FC = () => {
     } catch { setGymClasses([]); }
     finally { setLoadingClasses(false); }
   };
+
 
   // Filter gyms by search text and sport type
   const filtered = gyms.filter(g => {
@@ -221,9 +240,12 @@ const MapSearchPage: React.FC = () => {
                           <div className="text-right shrink-0">
                             <p className="text-green-400 font-bold">${Number(cls.price).toFixed(0)}</p>
                             <button
-                              onClick={() => { setSelectedGym(null); navigate('/classes'); }}
-                              className="mt-2 bg-primary hover:bg-primary-dark text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95">
-                              Reservar
+                              onClick={() => handleBook(cls.id, cls.title)}
+                              disabled={bookingId === cls.id}
+                              className="mt-2 bg-primary hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 flex items-center gap-1">
+                              {bookingId === cls.id ? (
+                                <><Loader2 className="w-3 h-3 animate-spin" /> Reservando...</>
+                              ) : '✅ Reservar'}
                             </button>
                           </div>
                         </div>
