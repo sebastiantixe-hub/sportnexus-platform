@@ -9,10 +9,10 @@ export declare class AuthController {
         refreshToken: string;
         user: {
             id: string;
-            email: string;
-            name: string;
-            role: import("@prisma/client").$Enums.UserRole;
             createdAt: Date;
+            name: string;
+            email: string;
+            role: import("@prisma/client").$Enums.UserRole;
         };
     }>;
     login(dto: LoginDto): Promise<{
@@ -20,15 +20,15 @@ export declare class AuthController {
         refreshToken: string;
         user: {
             id: string;
+            createdAt: Date;
+            name: string;
             auth0Id: string | null;
             email: string;
-            name: string;
             role: import("@prisma/client").$Enums.UserRole;
             phone: string | null;
             avatarUrl: string | null;
             isActive: boolean;
             emailVerified: boolean;
-            createdAt: Date;
             updatedAt: Date;
         };
     }>;
@@ -40,15 +40,15 @@ export declare class AuthController {
         refreshToken: string;
         user: {
             id: string;
+            createdAt: Date;
+            name: string;
             auth0Id: string | null;
             email: string;
-            name: string;
             role: import("@prisma/client").$Enums.UserRole;
             phone: string | null;
             avatarUrl: string | null;
             isActive: boolean;
             emailVerified: boolean;
-            createdAt: Date;
             updatedAt: Date;
         };
     }>;
@@ -56,21 +56,38 @@ export declare class AuthController {
         id: string;
     }): Promise<{
         id: string;
-        email: string;
+        createdAt: Date;
         name: string;
+        email: string;
         role: import("@prisma/client").$Enums.UserRole;
         phone: string | null;
         avatarUrl: string | null;
         isActive: boolean;
         emailVerified: boolean;
-        createdAt: Date;
     } | null>;
     getDashboardStats(user: any): Promise<{
         gyms: number;
         classes: number;
         members: number;
         revenue: number;
+        activities: {
+            id: string;
+            type: string;
+            title: string;
+            description: string;
+            date: Date;
+        }[];
+        isAdmin: boolean;
+        reservations?: undefined;
+        points?: undefined;
+        months?: undefined;
+    } | {
+        gyms: number;
+        classes: number;
+        members: number;
+        revenue: number;
         activities: any[];
+        isAdmin?: undefined;
         reservations?: undefined;
         points?: undefined;
         months?: undefined;
@@ -89,5 +106,6 @@ export declare class AuthController {
         classes?: undefined;
         members?: undefined;
         revenue?: undefined;
+        isAdmin?: undefined;
     }>;
 }

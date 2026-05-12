@@ -8,11 +8,11 @@ export declare class InvoicesController {
         } | null;
     } & {
         id: string;
+        userId: string;
         createdAt: Date;
         updatedAt: Date;
         status: import("@prisma/client").$Enums.InvoiceStatus;
         gymId: string | null;
-        userId: string;
         amount: import("@prisma/client/runtime/library").Decimal;
         paymentId: string;
         invoiceNum: string;
@@ -23,16 +23,16 @@ export declare class InvoicesController {
     })[]>;
     getGymInvoices(gymId: string): Promise<({
         user: {
-            email: string;
             name: string;
+            email: string;
         };
     } & {
         id: string;
+        userId: string;
         createdAt: Date;
         updatedAt: Date;
         status: import("@prisma/client").$Enums.InvoiceStatus;
         gymId: string | null;
-        userId: string;
         amount: import("@prisma/client/runtime/library").Decimal;
         paymentId: string;
         invoiceNum: string;
@@ -43,8 +43,8 @@ export declare class InvoicesController {
     })[]>;
     getInvoiceDetails(id: string): Promise<({
         user: {
-            email: string;
             name: string;
+            email: string;
         };
         gym: {
             name: string;
@@ -53,11 +53,11 @@ export declare class InvoicesController {
         } | null;
     } & {
         id: string;
+        userId: string;
         createdAt: Date;
         updatedAt: Date;
         status: import("@prisma/client").$Enums.InvoiceStatus;
         gymId: string | null;
-        userId: string;
         amount: import("@prisma/client/runtime/library").Decimal;
         paymentId: string;
         invoiceNum: string;

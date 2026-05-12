@@ -52,6 +52,7 @@ let WearablesController = class WearablesController {
     }
     async syncFitbitData(req) {
         const data = await this.googleHealthService.syncGoogleHealthData(req.user.id);
+        await this.wearablesService.syncData(req.user.id, data);
         return {
             success: true,
             message: 'Datos de Google Health sincronizados desde la API oficial',

@@ -18,8 +18,8 @@ export declare class Auth0JwtStrategy extends Auth0JwtStrategy_base {
     constructor(config: ConfigService, authService: AuthService);
     validate(payload: Auth0JwtPayload): Promise<{
         id: string;
-        email: string;
         name: string;
+        email: string;
         role: import("@prisma/client").$Enums.UserRole;
         avatarUrl: string | null;
         isActive: boolean;

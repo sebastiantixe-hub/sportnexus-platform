@@ -5,13 +5,13 @@ export declare class MarketplaceController {
     constructor(marketplaceService: MarketplaceService);
     createProduct(gymId: string, user: any, dto: CreateProductDto): Promise<{
         id: string;
+        createdAt: Date;
         name: string;
         isActive: boolean;
-        createdAt: Date;
         updatedAt: Date;
         description: string | null;
-        price: import("@prisma/client/runtime/library").Decimal;
         gymId: string;
+        price: import("@prisma/client/runtime/library").Decimal;
         stock: number;
         category: string | null;
         imageUrl: string | null;
@@ -24,39 +24,39 @@ export declare class MarketplaceController {
         };
     } & {
         id: string;
+        createdAt: Date;
         name: string;
         isActive: boolean;
-        createdAt: Date;
         updatedAt: Date;
         description: string | null;
-        price: import("@prisma/client/runtime/library").Decimal;
         gymId: string;
+        price: import("@prisma/client/runtime/library").Decimal;
         stock: number;
         category: string | null;
         imageUrl: string | null;
     })[]>;
     deleteProduct(id: string, user: any): Promise<{
         id: string;
+        createdAt: Date;
         name: string;
         isActive: boolean;
-        createdAt: Date;
         updatedAt: Date;
         description: string | null;
-        price: import("@prisma/client/runtime/library").Decimal;
         gymId: string;
+        price: import("@prisma/client/runtime/library").Decimal;
         stock: number;
         category: string | null;
         imageUrl: string | null;
     }>;
     updateProduct(id: string, user: any, dto: any): Promise<{
         id: string;
+        createdAt: Date;
         name: string;
         isActive: boolean;
-        createdAt: Date;
         updatedAt: Date;
         description: string | null;
-        price: import("@prisma/client/runtime/library").Decimal;
         gymId: string;
+        price: import("@prisma/client/runtime/library").Decimal;
         stock: number;
         category: string | null;
         imageUrl: string | null;
@@ -65,13 +65,13 @@ export declare class MarketplaceController {
         orderItems: ({
             product: {
                 id: string;
+                createdAt: Date;
                 name: string;
                 isActive: boolean;
-                createdAt: Date;
                 updatedAt: Date;
                 description: string | null;
-                price: import("@prisma/client/runtime/library").Decimal;
                 gymId: string;
+                price: import("@prisma/client/runtime/library").Decimal;
                 stock: number;
                 category: string | null;
                 imageUrl: string | null;
@@ -85,14 +85,14 @@ export declare class MarketplaceController {
         })[];
     } & {
         id: string;
+        userId: string;
         createdAt: Date;
         updatedAt: Date;
         status: import("@prisma/client").$Enums.OrderStatus;
         gymId: string;
+        notes: string | null;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
         shippingAddress: string | null;
-        notes: string | null;
-        userId: string;
     }>;
     getMyOrders(user: any): Promise<({
         gym: {
@@ -101,13 +101,13 @@ export declare class MarketplaceController {
         orderItems: ({
             product: {
                 id: string;
+                createdAt: Date;
                 name: string;
                 isActive: boolean;
-                createdAt: Date;
                 updatedAt: Date;
                 description: string | null;
-                price: import("@prisma/client/runtime/library").Decimal;
                 gymId: string;
+                price: import("@prisma/client/runtime/library").Decimal;
                 stock: number;
                 category: string | null;
                 imageUrl: string | null;
@@ -121,13 +121,13 @@ export declare class MarketplaceController {
         })[];
     } & {
         id: string;
+        userId: string;
         createdAt: Date;
         updatedAt: Date;
         status: import("@prisma/client").$Enums.OrderStatus;
         gymId: string;
+        notes: string | null;
         totalAmount: import("@prisma/client/runtime/library").Decimal;
         shippingAddress: string | null;
-        notes: string | null;
-        userId: string;
     })[]>;
 }

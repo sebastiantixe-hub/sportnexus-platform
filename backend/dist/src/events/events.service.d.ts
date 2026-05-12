@@ -5,15 +5,15 @@ export declare class EventsService {
     constructor(prisma: PrismaService);
     create(organizerId: string, createDto: CreateEventDto): Promise<{
         id: string;
-        isActive: boolean;
+        date: Date;
         createdAt: Date;
+        isActive: boolean;
         description: string | null;
-        price: import("@prisma/client/runtime/library").Decimal;
         title: string;
         capacity: number | null;
+        price: import("@prisma/client/runtime/library").Decimal;
         location: string | null;
         eventType: import("@prisma/client").$Enums.EventType;
-        date: Date;
         organizerId: string;
     }>;
     findAll(): Promise<({
@@ -24,15 +24,15 @@ export declare class EventsService {
         };
     } & {
         id: string;
-        isActive: boolean;
+        date: Date;
         createdAt: Date;
+        isActive: boolean;
         description: string | null;
-        price: import("@prisma/client/runtime/library").Decimal;
         title: string;
         capacity: number | null;
+        price: import("@prisma/client/runtime/library").Decimal;
         location: string | null;
         eventType: import("@prisma/client").$Enums.EventType;
-        date: Date;
         organizerId: string;
     })[]>;
     findOne(id: string): Promise<{
@@ -43,41 +43,41 @@ export declare class EventsService {
         };
     } & {
         id: string;
-        isActive: boolean;
+        date: Date;
         createdAt: Date;
+        isActive: boolean;
         description: string | null;
-        price: import("@prisma/client/runtime/library").Decimal;
         title: string;
         capacity: number | null;
+        price: import("@prisma/client/runtime/library").Decimal;
         location: string | null;
         eventType: import("@prisma/client").$Enums.EventType;
-        date: Date;
         organizerId: string;
     }>;
     update(id: string, currentUserId: string, updateDto: UpdateEventDto, isAdmin: boolean): Promise<{
         id: string;
-        isActive: boolean;
+        date: Date;
         createdAt: Date;
+        isActive: boolean;
         description: string | null;
-        price: import("@prisma/client/runtime/library").Decimal;
         title: string;
         capacity: number | null;
+        price: import("@prisma/client/runtime/library").Decimal;
         location: string | null;
         eventType: import("@prisma/client").$Enums.EventType;
-        date: Date;
         organizerId: string;
     }>;
     remove(id: string): Promise<{
         id: string;
-        isActive: boolean;
+        date: Date;
         createdAt: Date;
+        isActive: boolean;
         description: string | null;
-        price: import("@prisma/client/runtime/library").Decimal;
         title: string;
         capacity: number | null;
+        price: import("@prisma/client/runtime/library").Decimal;
         location: string | null;
         eventType: import("@prisma/client").$Enums.EventType;
-        date: Date;
         organizerId: string;
     }>;
 }

@@ -6,14 +6,14 @@ export declare class TrainersController {
     upsertProfile(user: any, updateTrainerProfileDto: UpdateTrainerProfileDto): Promise<{
         user: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         };
     } & {
         id: string;
+        userId: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
         bio: string | null;
         specialties: string[];
         certifications: string[];
@@ -23,10 +23,10 @@ export declare class TrainersController {
     }>;
     assignToGym(gymId: string, user: any, assignTrainerDto: AssignTrainerDto): Promise<{
         id: string;
-        gymId: string;
-        trainerId: string;
         canCreateClasses: boolean;
         joinedAt: Date;
+        gymId: string;
+        trainerId: string;
     }>;
     findAll(): Promise<({
         user: {
@@ -36,9 +36,9 @@ export declare class TrainersController {
         };
     } & {
         id: string;
+        userId: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
         bio: string | null;
         specialties: string[];
         certifications: string[];
@@ -55,9 +55,9 @@ export declare class TrainersController {
             };
         } & {
             id: string;
+            userId: string;
             createdAt: Date;
             updatedAt: Date;
-            userId: string;
             bio: string | null;
             specialties: string[];
             certifications: string[];
@@ -67,9 +67,9 @@ export declare class TrainersController {
         };
     } & {
         id: string;
-        gymId: string;
-        trainerId: string;
         canCreateClasses: boolean;
         joinedAt: Date;
+        gymId: string;
+        trainerId: string;
     })[]>;
 }

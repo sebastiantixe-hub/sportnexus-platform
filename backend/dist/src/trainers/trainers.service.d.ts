@@ -6,14 +6,14 @@ export declare class TrainersService {
     upsertProfile(userId: string, dto: UpdateTrainerProfileDto): Promise<{
         user: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         };
     } & {
         id: string;
+        userId: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
         bio: string | null;
         specialties: string[];
         certifications: string[];
@@ -29,9 +29,9 @@ export declare class TrainersService {
         };
     } & {
         id: string;
+        userId: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
         bio: string | null;
         specialties: string[];
         certifications: string[];
@@ -41,10 +41,10 @@ export declare class TrainersService {
     })[]>;
     assignToGym(gymId: string, currentOwnerId: string, trainerUserId: string, canCreateClasses: boolean): Promise<{
         id: string;
-        gymId: string;
-        trainerId: string;
         canCreateClasses: boolean;
         joinedAt: Date;
+        gymId: string;
+        trainerId: string;
     }>;
     getGymTrainers(gymId: string): Promise<({
         trainer: {
@@ -55,9 +55,9 @@ export declare class TrainersService {
             };
         } & {
             id: string;
+            userId: string;
             createdAt: Date;
             updatedAt: Date;
-            userId: string;
             bio: string | null;
             specialties: string[];
             certifications: string[];
@@ -67,9 +67,9 @@ export declare class TrainersService {
         };
     } & {
         id: string;
-        gymId: string;
-        trainerId: string;
         canCreateClasses: boolean;
         joinedAt: Date;
+        gymId: string;
+        trainerId: string;
     })[]>;
 }

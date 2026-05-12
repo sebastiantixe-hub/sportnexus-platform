@@ -6,23 +6,23 @@ export declare class WearablesController {
     constructor(wearablesService: WearablesService, googleHealthService: GoogleHealthService);
     syncData(req: any, data: any): Promise<{
         id: string;
-        createdAt: Date;
         userId: string;
-        date: Date;
         deviceType: string;
         steps: number;
         heartRateAvg: number | null;
         calories: number;
+        date: Date;
+        createdAt: Date;
     }>;
     getMetrics(req: any): Promise<{
         id: string;
-        createdAt: Date;
         userId: string;
-        date: Date;
         deviceType: string;
         steps: number;
         heartRateAvg: number | null;
         calories: number;
+        date: Date;
+        createdAt: Date;
     }[]>;
     getConnections(req: any): Promise<{
         connected: boolean;
@@ -56,6 +56,7 @@ export declare class WearablesController {
             steps: number;
             calories: number;
             heartRateAvg: number;
+            deviceType: string;
             date: string;
         };
     }>;

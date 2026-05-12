@@ -26,6 +26,8 @@ const wearables_module_1 = require("./wearables/wearables.module");
 const invoices_module_1 = require("./invoices/invoices.module");
 const payments_module_1 = require("./payments/payments.module");
 const notifications_module_1 = require("./notifications/notifications.module");
+const users_module_1 = require("./users/users.module");
+const tickets_module_1 = require("./tickets/tickets.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -52,6 +54,8 @@ exports.AppModule = AppModule = __decorate([
             invoices_module_1.InvoicesModule,
             payments_module_1.PaymentsModule,
             notifications_module_1.NotificationsModule,
+            users_module_1.UsersModule,
+            tickets_module_1.TicketsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [],

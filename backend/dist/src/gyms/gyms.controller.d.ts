@@ -5,10 +5,10 @@ export declare class GymsController {
     constructor(gymsService: GymsService);
     create(user: any, createGymDto: CreateGymDto): Promise<{
         id: string;
-        email: string | null;
-        name: string;
-        phone: string | null;
         createdAt: Date;
+        name: string;
+        email: string | null;
+        phone: string | null;
         updatedAt: Date;
         description: string | null;
         address: string | null;
@@ -24,16 +24,16 @@ export declare class GymsController {
     findAll(): Promise<({
         owner: {
             id: string;
-            email: string;
             name: string;
+            email: string;
             avatarUrl: string | null;
         };
     } & {
         id: string;
-        email: string | null;
-        name: string;
-        phone: string | null;
         createdAt: Date;
+        name: string;
+        email: string | null;
+        phone: string | null;
         updatedAt: Date;
         description: string | null;
         address: string | null;
@@ -49,16 +49,16 @@ export declare class GymsController {
     findNearby(lat: string, lng: string, radius?: string): Promise<({
         owner: {
             id: string;
-            email: string;
             name: string;
+            email: string;
             avatarUrl: string | null;
         };
     } & {
         id: string;
-        email: string | null;
-        name: string;
-        phone: string | null;
         createdAt: Date;
+        name: string;
+        email: string | null;
+        phone: string | null;
         updatedAt: Date;
         description: string | null;
         address: string | null;
@@ -81,9 +81,9 @@ export declare class GymsController {
                 };
             } & {
                 id: string;
+                userId: string;
                 createdAt: Date;
                 updatedAt: Date;
-                userId: string;
                 bio: string | null;
                 specialties: string[];
                 certifications: string[];
@@ -93,30 +93,30 @@ export declare class GymsController {
             };
         } & {
             id: string;
-            gymId: string;
-            trainerId: string;
             canCreateClasses: boolean;
             joinedAt: Date;
+            gymId: string;
+            trainerId: string;
         })[];
         membershipPlans: {
             id: string;
+            createdAt: Date;
             name: string;
             isActive: boolean;
-            createdAt: Date;
             updatedAt: Date;
             description: string | null;
+            gymId: string;
             price: import("@prisma/client/runtime/library").Decimal;
             durationDays: number;
             maxClasses: number | null;
             includesMarketplace: boolean;
-            gymId: string;
         }[];
     } & {
         id: string;
-        email: string | null;
-        name: string;
-        phone: string | null;
         createdAt: Date;
+        name: string;
+        email: string | null;
+        phone: string | null;
         updatedAt: Date;
         description: string | null;
         address: string | null;
@@ -131,17 +131,17 @@ export declare class GymsController {
     }>;
     findMembers(id: string): Promise<{
         id: string;
-        email: string;
         name: string;
+        email: string;
         phone: string | null;
         avatarUrl: string | null;
     }[]>;
     update(id: string, user: any, updateGymDto: UpdateGymDto): Promise<{
         id: string;
-        email: string | null;
-        name: string;
-        phone: string | null;
         createdAt: Date;
+        name: string;
+        email: string | null;
+        phone: string | null;
         updatedAt: Date;
         description: string | null;
         address: string | null;
@@ -156,10 +156,10 @@ export declare class GymsController {
     }>;
     remove(id: string, user: any): Promise<{
         id: string;
-        email: string | null;
-        name: string;
-        phone: string | null;
         createdAt: Date;
+        name: string;
+        email: string | null;
+        phone: string | null;
         updatedAt: Date;
         description: string | null;
         address: string | null;

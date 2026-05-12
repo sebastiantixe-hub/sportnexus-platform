@@ -15,6 +15,7 @@ export declare class GoogleHealthService {
         steps: number;
         calories: number;
         heartRateAvg: number;
+        deviceType: string;
         date: string;
     }>;
     getConnectionStatus(userId: string): Promise<{

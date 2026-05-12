@@ -8,28 +8,28 @@ export declare class NotificationsService {
         type?: string;
     }): Promise<{
         id: string;
+        userId: string;
         createdAt: Date;
         description: string;
         title: string;
-        userId: string;
         type: string;
         isRead: boolean;
     }>;
     findAllByUser(userId: string): Promise<{
         id: string;
+        userId: string;
         createdAt: Date;
         description: string;
         title: string;
-        userId: string;
         type: string;
         isRead: boolean;
     }[]>;
     markAsRead(id: string): Promise<{
         id: string;
+        userId: string;
         createdAt: Date;
         description: string;
         title: string;
-        userId: string;
         type: string;
         isRead: boolean;
     }>;

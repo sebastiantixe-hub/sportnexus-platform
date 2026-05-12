@@ -151,7 +151,39 @@ let AuthService = class AuthService {
     }
     async getDashboardStats(userId, role) {
         const userRole = role.toUpperCase();
-        if (userRole === 'GYM_OWNER' || userRole === 'ADMIN') {
+        if (userRole === 'ADMIN') {
+            const [totalGyms, totalClasses, totalUsers, totalReservations, recentReservations] = await Promise.all([
+                this.prisma.gym.count({ where: { status: 'ACTIVE' } }),
+                this.prisma.class.count({ where: { isActive: true } }),
+                this.prisma.user.count(),
+                this.prisma.reservation.count({ where: { status: 'CONFIRMED' } }),
+                this.prisma.reservation.findMany({
+                    where: { status: 'CONFIRMED' },
+                    orderBy: { bookedAt: 'desc' },
+                    take: 5,
+                    include: {
+                        user: { select: { name: true } },
+                        class: { select: { title: true, gym: { select: { name: true } } } },
+                    },
+                }),
+            ]);
+            const activities = recentReservations.map(res => ({
+                id: res.id,
+                type: 'RESERVATION',
+                title: `Reserva: ${res.class.title}`,
+                description: `${res.user.name} → ${res.class.gym.name}`,
+                date: res.bookedAt,
+            }));
+            return {
+                gyms: totalGyms,
+                classes: totalClasses,
+                members: totalUsers,
+                revenue: totalReservations,
+                activities,
+                isAdmin: true,
+            };
+        }
+        if (userRole === 'GYM_OWNER') {
             const gyms = await this.prisma.gym.findMany({
                 where: { ownerId: userId },
                 include: {

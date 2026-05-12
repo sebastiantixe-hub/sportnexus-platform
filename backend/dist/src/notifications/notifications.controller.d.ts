@@ -4,19 +4,19 @@ export declare class NotificationsController {
     constructor(notificationsService: NotificationsService);
     findAll(req: any): Promise<{
         id: string;
+        userId: string;
         createdAt: Date;
         description: string;
         title: string;
-        userId: string;
         type: string;
         isRead: boolean;
     }[]>;
     markAsRead(id: string): Promise<{
         id: string;
+        userId: string;
         createdAt: Date;
         description: string;
         title: string;
-        userId: string;
         type: string;
         isRead: boolean;
     }>;

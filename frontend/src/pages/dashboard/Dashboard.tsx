@@ -6,7 +6,7 @@ import {
   Users, Dumbbell, Calendar, TrendingUp, Clock, AlertCircle,
   ShoppingBag, Trophy, CreditCard, ArrowRight, Star, Activity,
   CheckCircle2, BarChart, Mail, Watch, Receipt, ShieldCheck,
-  Building2, UserCheck, ClipboardList, Settings
+  Building2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import RecommendationsPanel from '../../components/ai/RecommendationsPanel';

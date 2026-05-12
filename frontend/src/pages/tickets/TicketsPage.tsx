@@ -4,9 +4,9 @@ import { useAuth } from '../../context/auth-context';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
-  MessageSquare, Plus, X, Loader2, Clock, CheckCircle2,
-  AlertCircle, Search, RefreshCw, ChevronDown, Shield,
-  Building2, Trash2
+  MessageSquare, Plus, X, Loader2,
+  Search, RefreshCw, Shield,
+  Trash2
 } from 'lucide-react';
 
 const STATUS_CONFIG: Record<string, any> = {
