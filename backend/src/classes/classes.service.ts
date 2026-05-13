@@ -139,6 +139,19 @@ export class ClassesService {
       throw new BadRequestException('La clase está llena');
     }
 
+    // 1.5. Validate User Membership (Modelo SaaS Corporativo)
+    const activeMembership = await this.prisma.userMembership.findFirst({
+      where: {
+        userId,
+        status: 'ACTIVE',
+        endDate: { gt: new Date() }
+      }
+    });
+
+    if (!activeMembership) {
+      throw new BadRequestException('Necesitas comprar un Plan de Membresía para reservar clases.');
+    }
+
     // 2. Check if already booked
     const existing = await this.prisma.reservation.findUnique({
       where: {
