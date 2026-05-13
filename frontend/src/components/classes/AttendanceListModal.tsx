@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import api from '../../api/api-client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, UserCheck, Clock, Users, CheckCircle, Loader2, ClipboardList } from 'lucide-react';
+import { X, UserCheck, Clock, Users, CheckCircle, Loader2, ClipboardList, RotateCcw, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface AttendanceListModalProps {
@@ -40,6 +40,35 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({ isOpen, onClo
       onSuccess(); // Refresh parent
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Error al marcar asistencia');
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
+  const handleUnmarkPresent = async (reservationId: string) => {
+    try {
+      setLoadingId(reservationId);
+      await api.patch(`/classes/reservations/${reservationId}/unattend`);
+      setLocalReservations(prev => prev.map(r => r.id === reservationId ? { ...r, status: 'CONFIRMED' } : r));
+      toast.success('Asistencia revertida');
+      onSuccess();
+    } catch (err: any) {
+      toast.error('Error al revertir asistencia');
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
+  const handleRemoveReservation = async (reservationId: string) => {
+    if (!window.confirm('¿Seguro que deseas eliminar esta reserva? El cupo quedará libre.')) return;
+    try {
+      setLoadingId(reservationId);
+      await api.delete(`/classes/reservations/${reservationId}`);
+      setLocalReservations(prev => prev.filter(r => r.id !== reservationId));
+      toast.success('Reserva eliminada correctamente');
+      onSuccess();
+    } catch (err: any) {
+      toast.error('Error al eliminar reserva');
     } finally {
       setLoadingId(null);
     }
@@ -148,25 +177,39 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({ isOpen, onClo
                       </div>
 
                       {/* Action Button */}
-                      {isAttended ? (
-                        <div className="flex items-center gap-1.5 bg-green-500/10 border border-green-500/20 px-3 py-1.5 rounded-lg">
-                          <CheckCircle className="w-4 h-4 text-green-400" />
-                          <span className="text-green-400 text-xs font-bold">Presente</span>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => handleMarkPresent(reservation.id)}
-                          disabled={isLoading}
-                          className="flex items-center gap-1.5 bg-primary hover:bg-primary-dark text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 disabled:opacity-50"
-                        >
-                          {isLoading ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <UserCheck className="w-3.5 h-3.5" />
-                          )}
-                          {isLoading ? 'Guardando...' : 'Marcar Presente'}
-                        </button>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {isAttended ? (
+                          <div className="flex items-center gap-1.5 bg-green-500/10 border border-green-500/20 px-3 py-1.5 rounded-lg group cursor-pointer" onClick={() => handleUnmarkPresent(reservation.id)} title="Clic para deshacer">
+                            {isLoading ? <Loader2 className="w-4 h-4 animate-spin text-green-400" /> : <CheckCircle className="w-4 h-4 text-green-400 group-hover:hidden" />}
+                            {!isLoading && <RotateCcw className="w-4 h-4 text-green-400 hidden group-hover:block" />}
+                            <span className="text-green-400 text-xs font-bold group-hover:hidden">Presente</span>
+                            <span className="text-green-400 text-xs font-bold hidden group-hover:block">Deshacer</span>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => handleMarkPresent(reservation.id)}
+                            disabled={isLoading}
+                            className="flex items-center gap-1.5 bg-primary hover:bg-primary-dark text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 disabled:opacity-50"
+                          >
+                            {isLoading ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <UserCheck className="w-3.5 h-3.5" />
+                            )}
+                            {isLoading ? 'Guardando...' : 'Presente'}
+                          </button>
+                        )}
+                        {!isAttended && (
+                          <button
+                            onClick={() => handleRemoveReservation(reservation.id)}
+                            disabled={isLoading}
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                            title="Eliminar reserva"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   );
                 })
