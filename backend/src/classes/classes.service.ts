@@ -144,7 +144,7 @@ export class ClassesService {
       where: {
         userId,
         status: 'ACTIVE',
-        endDate: { gt: new Date() }
+        expiresAt: { gt: new Date() }
       }
     });
 
