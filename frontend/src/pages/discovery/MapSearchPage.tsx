@@ -9,6 +9,7 @@ import {
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { PayMeModal } from '../../components/payment/PayMeModal';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -58,12 +59,21 @@ const MapSearchPage: React.FC = () => {
   };
 
   const [bookingId, setBookingId] = useState<string | null>(null);
+  const [showPayment, setShowPayment] = useState(false);
+  const [classToBook, setClassToBook] = useState<{id: string, title: string, price: number} | null>(null);
 
-  const handleBook = async (classId: string, classTitle: string) => {
-    setBookingId(classId);
+  const initiateBooking = (classId: string, classTitle: string, price: number) => {
+    setClassToBook({ id: classId, title: classTitle, price });
+    setShowPayment(true);
+  };
+
+  const handleBookSuccess = async () => {
+    if (!classToBook) return;
+    setBookingId(classToBook.id);
+    setShowPayment(false);
     try {
-      await api.post(`/classes/${classId}/book`);
-      toast.success(`✅ ¡Reserva confirmada! "${classTitle}" está en Mis Reservas.`);
+      await api.post(`/classes/${classToBook.id}/book`);
+      toast.success(`✅ ¡Reserva confirmada! "${classToBook.title}" está en Mis Reservas.`);
       if (selectedGym) {
         const { data } = await api.get(`/classes?gymId=${selectedGym.id}`);
         setGymClasses(data);
@@ -240,7 +250,7 @@ const MapSearchPage: React.FC = () => {
                           <div className="text-right shrink-0">
                             <p className="text-green-400 font-bold">${Number(cls.price).toFixed(0)}</p>
                             <button
-                              onClick={() => handleBook(cls.id, cls.title)}
+                              onClick={() => initiateBooking(cls.id, cls.title, Number(cls.price))}
                               disabled={bookingId === cls.id}
                               className="mt-2 bg-primary hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 flex items-center gap-1">
                               {bookingId === cls.id ? (
@@ -258,6 +268,14 @@ const MapSearchPage: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
+
+      <PayMeModal 
+        isOpen={showPayment}
+        onClose={() => setShowPayment(false)}
+        onSuccess={handleBookSuccess}
+        amount={classToBook?.price || 0}
+        description={`Clase: ${classToBook?.title || ''}`}
+      />
     </div>
   );
 };
