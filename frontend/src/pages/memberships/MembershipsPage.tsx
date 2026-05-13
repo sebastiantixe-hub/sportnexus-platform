@@ -100,6 +100,7 @@ const MembershipsPage: React.FC = () => {
     try {
       await api.post('/memberships/subscribe', { planId: selectedPlan.id });
       setMessage(`¡Pago procesado con Pay-Me! Suscripción a ${selectedPlan.name} activa.`);
+      window.dispatchEvent(new Event('membershipUpdated'));
       setTimeout(() => setMessage(null), 4000);
       setSelectedPlan(null);
     } catch (err) {

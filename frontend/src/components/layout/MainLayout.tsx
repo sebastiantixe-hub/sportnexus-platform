@@ -54,6 +54,18 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const [notifications, setNotifications] = useState<any[]>([]);
   const prevNotificationsCount = useRef(0);
+  const [activePlan, setActivePlan] = useState<any | null>(null);
+
+  const fetchActivePlan = async () => {
+    if (user?.role === 'USER') {
+      try {
+        const { data } = await api.get('/memberships/me');
+        if (data && data.length > 0) {
+          setActivePlan(data[0].plan);
+        }
+      } catch (err) {}
+    }
+  };
 
   const fetchNotifications = async (isInitial = false) => {
     try {
@@ -80,8 +92,16 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   useEffect(() => {
     if (user) {
       fetchNotifications(true);
+      fetchActivePlan();
       const interval = setInterval(() => fetchNotifications(false), 30000); // Poll cada 30s para mayor dinamismo
-      return () => clearInterval(interval);
+      
+      const handleMembershipUpdate = () => fetchActivePlan();
+      window.addEventListener('membershipUpdated', handleMembershipUpdate);
+
+      return () => {
+        clearInterval(interval);
+        window.removeEventListener('membershipUpdated', handleMembershipUpdate);
+      };
     }
   }, [user]);
 
@@ -197,7 +217,14 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </div>
             <div className="overflow-hidden">
               <p className="font-medium text-sm truncate">{user?.name}</p>
-              <p className="text-slate-500 text-xs truncate capitalize">{user?.role.toLowerCase().replace('_', ' ')}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-slate-500 text-xs truncate capitalize">{user?.role.toLowerCase().replace('_', ' ')}</p>
+                {activePlan && (
+                  <span className="text-[9px] font-bold bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded flex items-center gap-1 uppercase tracking-wider">
+                    <Trophy className="w-3 h-3" /> {activePlan.name}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 

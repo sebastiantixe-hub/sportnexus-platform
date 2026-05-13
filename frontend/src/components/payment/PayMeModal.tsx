@@ -46,20 +46,15 @@ export const PayMeModal: React.FC<PayMeModalProps> = ({ isOpen, onClose, onSucce
     e.preventDefault();
     if (!paymeData) return;
     
-    // Alignet Pay-me usa una libreria global que lee el form con clase "alignet-form-vpos2"
-    if (window.AlignetVPOS2) {
-       window.AlignetVPOS2.openModal('https://integracion.alignetsac.com/');
-    } else {
-       console.error("Pay-me Modal script no está cargado");
-    }
+    // Para la demo, NO abrimos el VPOS2 real ya que tirará error sin llaves de producción.
+    // Simulamos el procesamiento interno visualmente.
+    setLoading(true);
     
-    // NOTA: En ambiente local / sin ngrok, el webhook de Pay-me no nos va a notificar.
-    // Para esta presentación simularé el Success después de 4 segundos.
     setTimeout(() => {
-      // Si el modal VPOS2 devuelve evento de cierre o success se manejaria aca, simulamos exito para la demo local
+      setLoading(false);
       setSuccess(true);
       setTimeout(() => onSuccess(), 2000);
-    }, 4500);
+    }, 2500);
   };
 
   return (
