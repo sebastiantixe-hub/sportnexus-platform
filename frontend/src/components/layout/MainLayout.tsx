@@ -57,14 +57,12 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activePlan, setActivePlan] = useState<any | null>(null);
 
   const fetchActivePlan = async () => {
-    if (user?.role === 'USER') {
-      try {
-        const { data } = await api.get('/memberships/me');
-        if (data && data.length > 0) {
-          setActivePlan(data[0].plan);
-        }
-      } catch (err) {}
-    }
+    try {
+      const { data } = await api.get('/memberships/me');
+      if (data && data.length > 0) {
+        setActivePlan(data[0].plan);
+      }
+    } catch (err) {}
   };
 
   const fetchNotifications = async (isInitial = false) => {
