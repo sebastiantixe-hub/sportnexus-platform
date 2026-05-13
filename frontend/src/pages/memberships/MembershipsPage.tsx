@@ -47,7 +47,7 @@ const PlanCard: React.FC<{ plan: any; onSubscribe: (id: string) => void }> = ({ 
       </li>
       <li className="flex items-center gap-3 text-slate-300 text-sm">
         <CheckCircle2 className="w-4 h-4 text-primary-light" />
-        <span>Gimnasio: {plan.gym?.name || 'Varios'}</span>
+        <span>Gimnasio: Toda la red SportNexus</span>
       </li>
       {plan.includesMarketplace && (
         <li className="flex items-center gap-3 text-slate-300 text-sm">
