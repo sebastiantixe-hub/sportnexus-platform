@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import api from '../../api/api-client';
-import { X, Loader2, Dumbbell, MapPin, Phone, Globe, Plus } from 'lucide-react';
+import { X, Loader2, Dumbbell, MapPin, Phone, Globe, Plus, Clock, CalendarDays } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface CreateGymModalProps {
@@ -9,6 +9,20 @@ interface CreateGymModalProps {
   initialData?: any;
 }
 
+const DAYS_OPTIONS = [
+  'Lunes a Viernes',
+  'Lunes a Sábado',
+  'Lunes a Domingo',
+  'Martes a Domingo',
+  'Solo Fines de Semana',
+];
+
+const TIME_OPTIONS = [
+  '04:00 AM', '05:00 AM', '06:00 AM', '07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
+  '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM', '06:00 PM', '07:00 PM', '08:00 PM',
+  '09:00 PM', '10:00 PM', '11:00 PM', '12:00 AM',
+];
+
 const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, initialData }) => {
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
@@ -16,6 +30,9 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
     address: initialData?.address || '',
     phone: initialData?.phone || '',
     website: initialData?.website || '',
+    openDays: initialData?.openDays || 'Lunes a Sábado',
+    openTime: initialData?.openTime || '06:00 AM',
+    closeTime: initialData?.closeTime || '10:00 PM',
   });
 
   const [loading, setLoading] = useState(false);
@@ -35,7 +52,7 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
       onCreated();
       onClose();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al crear el gimnasio');
+      setError(err.response?.data?.message || 'Error al guardar el gimnasio');
     } finally {
       setLoading(false);
     }
@@ -46,7 +63,7 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="glass-card w-full max-w-lg bg-slate-900 border-white/10 p-8 relative"
+        className="glass-card w-full max-w-lg bg-slate-900 border-white/10 p-8 relative max-h-[90vh] overflow-y-auto"
       >
         <button onClick={onClose} className="absolute top-6 right-6 text-slate-500 hover:text-white transition-colors">
           <X />
@@ -63,6 +80,7 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Nombre */}
           <div className="space-y-2">
             <label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Nombre del Gimnasio / Academia</label>
             <input
@@ -74,6 +92,7 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
             />
           </div>
 
+          {/* Descripción */}
           <div className="space-y-2">
             <label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Descripción</label>
             <textarea
@@ -84,6 +103,7 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
             />
           </div>
 
+          {/* Dirección */}
           <div className="space-y-2">
             <label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Dirección Física</label>
             <div className="relative">
@@ -98,6 +118,7 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
             </div>
           </div>
 
+          {/* Teléfono y Web */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Teléfono</label>
@@ -125,12 +146,58 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
             </div>
           </div>
 
+          {/* Horario */}
+          <div className="space-y-3 border-t border-white/10 pt-5">
+            <label className="text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+              <Clock className="w-4 h-4 text-primary-light" /> Horario de Atención
+            </label>
+
+            {/* Días */}
+            <div className="space-y-2">
+              <label className="text-slate-500 text-xs">Días de apertura</label>
+              <div className="relative">
+                <CalendarDays className="absolute left-4 top-1/2 -translate-y-1/2 text-primary-light w-4 h-4" />
+                <select
+                  value={formData.openDays}
+                  onChange={e => setFormData({ ...formData, openDays: e.target.value })}
+                  className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 pl-12 pr-4 border rounded-xl text-white outline-none appearance-none"
+                >
+                  {DAYS_OPTIONS.map(d => <option key={d} value={d} className="bg-slate-900">{d}</option>)}
+                </select>
+              </div>
+            </div>
+
+            {/* Apertura y Cierre */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-slate-500 text-xs">Hora de apertura</label>
+                <select
+                  value={formData.openTime}
+                  onChange={e => setFormData({ ...formData, openTime: e.target.value })}
+                  className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 px-4 border rounded-xl text-white outline-none appearance-none"
+                >
+                  {TIME_OPTIONS.map(t => <option key={t} value={t} className="bg-slate-900">{t}</option>)}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-slate-500 text-xs">Hora de cierre</label>
+                <select
+                  value={formData.closeTime}
+                  onChange={e => setFormData({ ...formData, closeTime: e.target.value })}
+                  className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 px-4 border rounded-xl text-white outline-none appearance-none"
+                >
+                  {TIME_OPTIONS.map(t => <option key={t} value={t} className="bg-slate-900">{t}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
+
           <button
             type="submit"
             disabled={loading}
             className="btn-primary w-full py-4 mt-6 flex items-center justify-center gap-2 relative overflow-hidden active:scale-[0.98]"
           >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <> <Plus className="w-5 h-5" /> <span>{initialData ? 'Guardar Cambios' : 'Crear Gimnasio'}</span> </>}
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Plus className="w-5 h-5" /> <span>{initialData ? 'Guardar Cambios' : 'Crear Gimnasio'}</span></>}
           </button>
         </form>
       </motion.div>

@@ -17,7 +17,10 @@ import {
   Plus,
   Pencil,
   Trash2,
-  Settings
+  Settings,
+  ShoppingCart,
+  X,
+  Minus
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -34,6 +37,10 @@ const GymShowroom: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'products' | 'plans' | 'classes'>('products');
   const [bookingId, setBookingId] = useState<string | null>(null);
+
+  // Shopping cart state
+  const [cart, setCart] = useState<any[]>([]);
+  const [showCart, setShowCart] = useState(false);
 
   // Owner product management state
   const [showProductModal, setShowProductModal] = useState(false);
@@ -111,10 +118,26 @@ const GymShowroom: React.FC = () => {
 
   const handleProductSuccess = async () => {
     toast.success(editingProduct ? 'Producto actualizado ✅' : '¡Producto añadido a tu tienda! ✅');
-    // Refresh products
     const { data } = await api.get(`/marketplace/products?gymId=${id}`);
     setProducts(data);
   };
+
+  // Cart functions
+  const addToCart = (product: any) => {
+    setCart(prev => {
+      const exists = prev.find(i => i.id === product.id);
+      if (exists) return prev.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i);
+      return [...prev, { ...product, qty: 1 }];
+    });
+    toast.success(`${product.name} agregado al carrito 🛒`);
+  };
+
+  const removeFromCart = (id: string) => setCart(prev => prev.filter(i => i.id !== id));
+  const changeQty = (id: string, delta: number) => setCart(prev =>
+    prev.map(i => i.id === id ? { ...i, qty: Math.max(1, i.qty + delta) } : i)
+  );
+  const cartTotal = cart.reduce((s, i) => s + Number(i.price) * i.qty, 0);
+  const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
   if (loading) {
     return (
@@ -183,9 +206,21 @@ const GymShowroom: React.FC = () => {
                 <Plus className="w-4 h-4" /> Añadir Producto
               </button>
             ) : (
-              <button className="bg-white text-slate-900 font-black px-8 py-3 rounded-2xl shadow-xl hover:scale-105 transition-all text-sm">
-                Seguir Negocio
-              </button>
+              <>
+                {cartCount > 0 && (
+                  <button
+                    onClick={() => setShowCart(true)}
+                    className="relative bg-white/10 text-white font-black px-5 py-3 rounded-2xl shadow-xl hover:bg-white/20 transition-all text-sm flex items-center gap-2 border border-white/20"
+                  >
+                    <ShoppingCart className="w-4 h-4" />
+                    Carrito
+                    <span className="absolute -top-2 -right-2 bg-primary text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">{cartCount}</span>
+                  </button>
+                )}
+                <button className="bg-white text-slate-900 font-black px-8 py-3 rounded-2xl shadow-xl hover:scale-105 transition-all text-sm">
+                  Seguir Negocio
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -213,8 +248,8 @@ const GymShowroom: React.FC = () => {
                <span className="text-xs text-slate-500 font-bold uppercase tracking-widest">Estado</span>
                <span className="bg-green-500/10 text-green-400 text-[10px] px-2 py-0.5 rounded border border-green-500/20 font-black">OPEN</span>
              </div>
-             <p className="text-white text-sm font-bold">Lunes a Sábado</p>
-             <p className="text-slate-500 text-xs mt-1">05:00 AM - 10:00 PM</p>
+             <p className="text-white text-sm font-bold">{gym.openDays || 'Lunes a Sábado'}</p>
+             <p className="text-slate-500 text-xs mt-1">{gym.openTime || '06:00 AM'} - {gym.closeTime || '10:00 PM'}</p>
           </div>
         </div>
 
@@ -267,30 +302,17 @@ const GymShowroom: React.FC = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {products.length > 0 ? products.map(p => (
                       <div key={p.id} className="glass-card p-4 border-white/5 hover:border-primary/20 transition-all group relative">
-                        {/* Owner Controls overlay */}
+                        {/* Owner Controls */}
                         {isMyGym && (
                           <div className="absolute top-3 right-3 flex gap-1.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
-                              onClick={() => handleEditProduct(p)}
-                              className="p-1.5 bg-slate-700 hover:bg-primary rounded-lg text-white transition-colors"
-                              title="Editar producto"
-                            >
+                            <button onClick={() => handleEditProduct(p)} className="p-1.5 bg-slate-700 hover:bg-primary rounded-lg text-white transition-colors" title="Editar">
                               <Pencil className="w-3.5 h-3.5" />
                             </button>
-                            <button
-                              onClick={() => handleDeleteProduct(p.id, p.name)}
-                              disabled={deletingProductId === p.id}
-                              className="p-1.5 bg-slate-700 hover:bg-red-500 rounded-lg text-white transition-colors disabled:opacity-50"
-                              title="Eliminar producto"
-                            >
-                              {deletingProductId === p.id
-                                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                : <Trash2 className="w-3.5 h-3.5" />
-                              }
+                            <button onClick={() => handleDeleteProduct(p.id, p.name)} disabled={deletingProductId === p.id} className="p-1.5 bg-slate-700 hover:bg-red-500 rounded-lg text-white transition-colors disabled:opacity-50" title="Eliminar">
+                              {deletingProductId === p.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                             </button>
                           </div>
                         )}
-
                         <div className="h-40 bg-slate-800 rounded-xl mb-4 overflow-hidden flex items-center justify-center">
                           {p.imageUrl ? (
                             <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
@@ -303,12 +325,14 @@ const GymShowroom: React.FC = () => {
                         <p className="text-slate-500 text-xs mt-1 line-clamp-1">{p.description}</p>
                         <div className="mt-4 flex justify-between items-center">
                           <span className="text-xl font-black text-white">${Number(p.price).toFixed(2)}</span>
-                          {!isMyGym && (
-                            <button className="p-2 bg-primary/20 text-primary-light rounded-lg hover:bg-primary transition-colors hover:text-white">
-                              <Plus className="w-5 h-5" />
+                          {!isMyGym ? (
+                            <button
+                              onClick={() => addToCart(p)}
+                              className="flex items-center gap-1.5 bg-primary/20 hover:bg-primary text-primary-light hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-primary/20 hover:border-primary active:scale-95"
+                            >
+                              <ShoppingCart className="w-3.5 h-3.5" /> Añadir
                             </button>
-                          )}
-                          {isMyGym && (
+                          ) : (
                             <span className="text-xs text-slate-500 bg-white/5 px-2 py-1 rounded-lg">Stock: {p.stock ?? '—'}</span>
                           )}
                         </div>
@@ -407,6 +431,69 @@ const GymShowroom: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Cart Drawer - Athletes only */}
+      {showCart && !isMyGym && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          <div onClick={() => setShowCart(false)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <motion.div
+            initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+            className="relative w-full max-w-sm bg-slate-900 border-l border-white/10 h-full flex flex-col shadow-2xl z-10"
+          >
+            <div className="p-5 border-b border-white/10 flex justify-between items-center">
+              <h2 className="text-white font-bold text-lg flex items-center gap-2"><ShoppingCart className="w-5 h-5 text-primary-light" /> Mi Carrito</h2>
+              <button onClick={() => setShowCart(false)} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="flex-grow overflow-y-auto p-5 space-y-3">
+              {cart.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <ShoppingCart className="w-12 h-12 text-slate-700 mb-3" />
+                  <p className="text-slate-500">Tu carrito está vacío.</p>
+                  <p className="text-slate-600 text-xs mt-1">Agrega productos de la tienda.</p>
+                </div>
+              ) : cart.map(item => (
+                <div key={item.id} className="glass-card p-3 border-white/5 flex items-center gap-3">
+                  <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center flex-shrink-0">
+                    {item.imageUrl
+                      ? <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover rounded-xl" />
+                      : <ShoppingBag className="w-6 h-6 text-slate-600" />}
+                  </div>
+                  <div className="flex-grow min-w-0">
+                    <p className="text-white text-sm font-bold truncate">{item.name}</p>
+                    <p className="text-primary-light text-xs font-bold">${Number(item.price).toFixed(2)}</p>
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button onClick={() => changeQty(item.id, -1)} className="w-6 h-6 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors">
+                      <Minus className="w-3 h-3" />
+                    </button>
+                    <span className="text-white text-sm font-bold w-5 text-center">{item.qty}</span>
+                    <button onClick={() => changeQty(item.id, 1)} className="w-6 h-6 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors">
+                      <Plus className="w-3 h-3" />
+                    </button>
+                    <button onClick={() => removeFromCart(item.id)} className="ml-1 text-slate-600 hover:text-red-400 transition-colors">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {cart.length > 0 && (
+              <div className="p-5 border-t border-white/10 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 text-sm">{cartCount} artículo(s)</span>
+                  <span className="text-white font-black text-xl">${cartTotal.toFixed(2)}</span>
+                </div>
+                <button
+                  onClick={() => { toast.success('¡Pedido confirmado! Te contactaremos pronto. 🎉'); setCart([]); setShowCart(false); }}
+                  className="btn-primary w-full py-3 text-center font-black flex items-center justify-center gap-2"
+                >
+                  <ShoppingCart className="w-4 h-4" /> Confirmar Pedido
+                </button>
+              </div>
+            )}
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
