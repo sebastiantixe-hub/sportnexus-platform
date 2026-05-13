@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/api-client';
+import { useAuth } from '../../context/auth-context';
 import { 
   ArrowLeft, 
   ShoppingBag, 
@@ -13,14 +14,19 @@ import {
   CheckCircle2,
   Star,
   Activity,
-  Plus
+  Plus,
+  Pencil,
+  Trash2,
+  Settings
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AddProductModal } from '../../components/marketplace/AddProductModal';
 
 const GymShowroom: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [gym, setGym] = useState<any>(null);
   const [products, setProducts] = useState<any[]>([]);
   const [plans, setPlans] = useState<any[]>([]);
@@ -29,34 +35,41 @@ const GymShowroom: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'products' | 'plans' | 'classes'>('products');
   const [bookingId, setBookingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        // Carga paralela de todo el contexto del negocio
-        const [gymRes, productsRes, plansRes, classesRes] = await Promise.all([
-          api.get(`/gyms/${id}`),
-          api.get(`/marketplace/products?gymId=${id}`),
-          api.get(`/memberships/plans?gymId=${id}`),
-          api.get(`/classes?gymId=${id}`)
-        ]);
+  // Owner product management state
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
 
-        setGym(gymRes.data);
-        setProducts(productsRes.data);
-        setPlans(plansRes.data);
-        setClasses(classesRes.data);
-        
-        // Determinar pestaña inicial basada en disponibilidad
-        if (productsRes.data.length > 0) setActiveTab('products');
-        else if (plansRes.data.length > 0) setActiveTab('plans');
-        else if (classesRes.data.length > 0) setActiveTab('classes');
-        
-      } catch (err) {
-        console.error('Error cargando vitrina:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const isOwner = user?.role === 'GYM_OWNER' || user?.role === 'ADMIN';
+  const isMyGym = isOwner && gym && gym.ownerId === user?.id;
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [gymRes, productsRes, plansRes, classesRes] = await Promise.all([
+        api.get(`/gyms/${id}`),
+        api.get(`/marketplace/products?gymId=${id}`),
+        api.get(`/memberships/plans?gymId=${id}`),
+        api.get(`/classes?gymId=${id}`)
+      ]);
+
+      setGym(gymRes.data);
+      setProducts(productsRes.data);
+      setPlans(plansRes.data);
+      setClasses(classesRes.data);
+      
+      if (productsRes.data.length > 0) setActiveTab('products');
+      else if (plansRes.data.length > 0) setActiveTab('plans');
+      else if (classesRes.data.length > 0) setActiveTab('classes');
+      
+    } catch (err) {
+      console.error('Error cargando vitrina:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, [id]);
 
@@ -72,6 +85,37 @@ const GymShowroom: React.FC = () => {
     }
   };
 
+  const handleDeleteProduct = async (productId: string, productName: string) => {
+    if (!window.confirm(`¿Eliminar el producto "${productName}"? Esta acción no se puede deshacer.`)) return;
+    try {
+      setDeletingProductId(productId);
+      await api.delete(`/marketplace/products/${productId}`);
+      toast.success('Producto eliminado correctamente');
+      setProducts(prev => prev.filter(p => p.id !== productId));
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Error al eliminar producto');
+    } finally {
+      setDeletingProductId(null);
+    }
+  };
+
+  const handleEditProduct = (product: any) => {
+    setEditingProduct(product);
+    setShowProductModal(true);
+  };
+
+  const handleCloseProductModal = () => {
+    setShowProductModal(false);
+    setEditingProduct(null);
+  };
+
+  const handleProductSuccess = async () => {
+    toast.success(editingProduct ? 'Producto actualizado ✅' : '¡Producto añadido a tu tienda! ✅');
+    // Refresh products
+    const { data } = await api.get(`/marketplace/products?gymId=${id}`);
+    setProducts(data);
+  };
+
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -84,11 +128,18 @@ const GymShowroom: React.FC = () => {
 
   return (
     <div className="space-y-8 pb-20 animate-in fade-in duration-700">
+      {/* Owner Product Modal */}
+      <AddProductModal
+        isOpen={showProductModal}
+        onClose={handleCloseProductModal}
+        onSuccess={handleProductSuccess}
+        initialData={editingProduct ? { ...editingProduct, gymId: id } : undefined}
+      />
+
       {/* Hero Section */}
       <div className="relative h-64 md:h-80 rounded-[2.5rem] overflow-hidden group">
         <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/60 to-transparent z-10"></div>
         <div className="absolute inset-0 bg-slate-900 group-hover:scale-105 transition-transform duration-1000">
-           {/* Background abstraction */}
            <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary via-transparent to-transparent"></div>
         </div>
         
@@ -113,15 +164,29 @@ const GymShowroom: React.FC = () => {
                   <span className="flex items-center gap-1.5 text-slate-400 text-sm font-bold bg-white/5 px-3 py-1 rounded-full border border-white/5">
                     <Star className="w-3.5 h-3.5 text-yellow-400 fill-current" /> 4.9 (Verificado)
                   </span>
+                  {isMyGym && (
+                    <span className="flex items-center gap-1.5 text-primary-light text-sm font-bold bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
+                      <Settings className="w-3.5 h-3.5" /> Tu Local
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
           </div>
           
           <div className="flex gap-3">
-             <button className="bg-white text-slate-900 font-black px-8 py-3 rounded-2xl shadow-xl hover:scale-105 transition-all text-sm">
-               Seguir Negocio
-             </button>
+            {isMyGym ? (
+              <button
+                onClick={() => { setEditingProduct(null); setShowProductModal(true); }}
+                className="bg-primary text-white font-black px-6 py-3 rounded-2xl shadow-xl hover:bg-primary-dark transition-all text-sm flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" /> Añadir Producto
+              </button>
+            ) : (
+              <button className="bg-white text-slate-900 font-black px-8 py-3 rounded-2xl shadow-xl hover:scale-105 transition-all text-sm">
+                Seguir Negocio
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -186,26 +251,74 @@ const GymShowroom: React.FC = () => {
                   initial={{ opacity: 0, y: 10 }} 
                   animate={{ opacity: 1, y: 0 }} 
                   exit={{ opacity: 0, y: -10 }}
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                  className="space-y-4"
                 >
-                  {products.length > 0 ? products.map(p => (
-                    <div key={p.id} className="glass-card p-4 border-white/5 hover:border-primary/20 transition-all group">
-                      <div className="h-40 bg-slate-800 rounded-xl mb-4 overflow-hidden flex items-center justify-center">
-                        <ShoppingBag className="w-12 h-12 text-slate-700 opacity-20 group-hover:scale-110 transition-transform" />
-                      </div>
-                      <span className="text-[10px] font-black text-primary-light uppercase tracking-widest">{p.category}</span>
-                      <h4 className="text-white font-bold mt-1">{p.name}</h4>
-                      <p className="text-slate-500 text-xs mt-1 line-clamp-1">{p.description}</p>
-                      <div className="mt-4 flex justify-between items-center">
-                        <span className="text-xl font-black text-white">${Number(p.price).toFixed(2)}</span>
-                        <button className="p-2 bg-primary/20 text-primary-light rounded-lg hover:bg-primary transition-colors hover:text-white">
-                          <Plus className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
-                  )) : (
-                    <div className="col-span-full py-20 text-center text-slate-500 italic">No hay productos disponibles para este local aún.</div>
+                  {/* Owner: Add Product Banner */}
+                  {isMyGym && (
+                    <button
+                      onClick={() => { setEditingProduct(null); setShowProductModal(true); }}
+                      className="w-full border-2 border-dashed border-primary/30 hover:border-primary/60 bg-primary/5 hover:bg-primary/10 rounded-2xl py-5 flex items-center justify-center gap-3 text-primary-light font-bold transition-all group"
+                    >
+                      <Plus className="w-5 h-5 group-hover:scale-125 transition-transform" />
+                      Añadir Nuevo Producto a tu Tienda
+                    </button>
                   )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {products.length > 0 ? products.map(p => (
+                      <div key={p.id} className="glass-card p-4 border-white/5 hover:border-primary/20 transition-all group relative">
+                        {/* Owner Controls overlay */}
+                        {isMyGym && (
+                          <div className="absolute top-3 right-3 flex gap-1.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => handleEditProduct(p)}
+                              className="p-1.5 bg-slate-700 hover:bg-primary rounded-lg text-white transition-colors"
+                              title="Editar producto"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteProduct(p.id, p.name)}
+                              disabled={deletingProductId === p.id}
+                              className="p-1.5 bg-slate-700 hover:bg-red-500 rounded-lg text-white transition-colors disabled:opacity-50"
+                              title="Eliminar producto"
+                            >
+                              {deletingProductId === p.id
+                                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                : <Trash2 className="w-3.5 h-3.5" />
+                              }
+                            </button>
+                          </div>
+                        )}
+
+                        <div className="h-40 bg-slate-800 rounded-xl mb-4 overflow-hidden flex items-center justify-center">
+                          {p.imageUrl ? (
+                            <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <ShoppingBag className="w-12 h-12 text-slate-700 opacity-20 group-hover:scale-110 transition-transform" />
+                          )}
+                        </div>
+                        <span className="text-[10px] font-black text-primary-light uppercase tracking-widest">{p.category}</span>
+                        <h4 className="text-white font-bold mt-1">{p.name}</h4>
+                        <p className="text-slate-500 text-xs mt-1 line-clamp-1">{p.description}</p>
+                        <div className="mt-4 flex justify-between items-center">
+                          <span className="text-xl font-black text-white">${Number(p.price).toFixed(2)}</span>
+                          {!isMyGym && (
+                            <button className="p-2 bg-primary/20 text-primary-light rounded-lg hover:bg-primary transition-colors hover:text-white">
+                              <Plus className="w-5 h-5" />
+                            </button>
+                          )}
+                          {isMyGym && (
+                            <span className="text-xs text-slate-500 bg-white/5 px-2 py-1 rounded-lg">Stock: {p.stock ?? '—'}</span>
+                          )}
+                        </div>
+                      </div>
+                    )) : (
+                      <div className="col-span-full py-20 text-center text-slate-500 italic">
+                        {isMyGym ? 'Aún no has añadido productos. ¡Usa el botón de arriba!' : 'No hay productos disponibles para este local aún.'}
+                      </div>
+                    )}
+                  </div>
                 </motion.div>
               )}
 
