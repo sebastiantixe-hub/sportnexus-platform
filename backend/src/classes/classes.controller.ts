@@ -91,6 +91,24 @@ export class ClassesController {
   markAttendance(@Param('id') reservationId: string, @CurrentUser() user: any) {
     return this.classesService.markAttendance(reservationId, user.id);
   }
+
+  @Patch('reservations/:id/unattend')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.GYM_OWNER, UserRole.TRAINER, UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Desmarcar asistencia' })
+  unmarkAttendance(@Param('id') reservationId: string, @CurrentUser() user: any) {
+    return this.classesService.unmarkAttendance(reservationId, user.id);
+  }
+
+  @Delete('reservations/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.GYM_OWNER, UserRole.TRAINER, UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Eliminar una reserva de la lista' })
+  removeReservation(@Param('id') reservationId: string, @CurrentUser() user: any) {
+    return this.classesService.removeReservation(reservationId, user.id);
+  }
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.GYM_OWNER, UserRole.TRAINER, UserRole.ADMIN)

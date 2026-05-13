@@ -139,18 +139,7 @@ export class ClassesService {
       throw new BadRequestException('La clase está llena');
     }
 
-    // 1.5. Validate User Membership (Modelo SaaS Corporativo)
-    const activeMembership = await this.prisma.userMembership.findFirst({
-      where: {
-        userId,
-        status: 'ACTIVE',
-        expiresAt: { gt: new Date() }
-      }
-    });
-
-    if (!activeMembership) {
-      throw new BadRequestException('Necesitas comprar un Plan de Membresía para reservar clases.');
-    }
+    // El flujo ahora usará Pay-per-class, por lo que no exigimos membresía activa aquí.
 
     // 2. Check if already booked
     const existing = await this.prisma.reservation.findUnique({
@@ -220,6 +209,29 @@ export class ClassesService {
     return this.prisma.reservation.update({
       where: { id: reservationId },
       data: { status: ReservationStatus.ATTENDED },
+    });
+  }
+
+  async unmarkAttendance(reservationId: string, currentUserId: string) {
+    const reservation = await this.prisma.reservation.findUnique({
+      where: { id: reservationId },
+    });
+    if (!reservation) throw new NotFoundException('Reserva no encontrada');
+
+    return this.prisma.reservation.update({
+      where: { id: reservationId },
+      data: { status: ReservationStatus.CONFIRMED },
+    });
+  }
+
+  async removeReservation(reservationId: string, currentUserId: string) {
+    const reservation = await this.prisma.reservation.findUnique({
+      where: { id: reservationId },
+    });
+    if (!reservation) throw new NotFoundException('Reserva no encontrada');
+
+    return this.prisma.reservation.delete({
+      where: { id: reservationId },
     });
   }
   async update(id: string, currentUserId: string, dto: UpdateClassDto) {
