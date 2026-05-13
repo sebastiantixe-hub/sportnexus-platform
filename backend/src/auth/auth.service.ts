@@ -258,16 +258,33 @@ export class AuthService {
         date: res.bookedAt,
       }));
 
+      const profBookings = await this.prisma.professionalBooking.findMany({
+        where: { userId, status: 'CONFIRMED' },
+        include: { service: { include: { provider: true } } },
+        orderBy: { bookedAt: 'desc' },
+        take: 5,
+      });
+
+      const profActivities = profBookings.map(b => ({
+        id: b.id,
+        type: 'PROFESSIONAL_SERVICE',
+        title: `Cita Profesional: ${b.service.title}`,
+        description: `Con ${b.service.provider.name || 'Especialista'}`,
+        date: b.bookedAt,
+      }));
+
+      const allActivities = [...activities, ...profActivities].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 5);
+
       const gymsCount = await this.prisma.gym.count({
         where: { status: 'ACTIVE' },
       });
 
       return {
-        reservations: reservations.length,
+        reservations: reservations.length + profBookings.length,
         gyms: gymsCount,
-        points: Math.floor(reservations.length * 125),
+        points: Math.floor((reservations.length + profBookings.length) * 125),
         months: 1,
-        activities,
+        activities: allActivities,
       };
     }
   }
