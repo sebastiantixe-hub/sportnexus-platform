@@ -15,6 +15,7 @@ import {
   Activity,
   Plus
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const GymShowroom: React.FC = () => {
@@ -26,6 +27,7 @@ const GymShowroom: React.FC = () => {
   const [classes, setClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'products' | 'plans' | 'classes'>('products');
+  const [bookingId, setBookingId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,6 +59,18 @@ const GymShowroom: React.FC = () => {
     };
     fetchData();
   }, [id]);
+
+  const handleBook = async (classId: string) => {
+    try {
+      setBookingId(classId);
+      await api.post(`/classes/${classId}/book`);
+      toast.success('¡Reserva confirmada exitosamente!');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Error al reservar la clase');
+    } finally {
+      setBookingId(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -263,8 +277,11 @@ const GymShowroom: React.FC = () => {
                           <p className="text-white font-black">{new Date(c.scheduledAt).toLocaleDateString()}</p>
                           <p className="text-slate-500 text-xs uppercase font-bold">10:00 AM</p>
                         </div>
-                        <button className="bg-white/5 hover:bg-white/10 text-white px-6 py-2 rounded-xl text-sm font-bold border border-white/10 transition-all">
-                          Reservar
+                        <button 
+                          onClick={() => handleBook(c.id)}
+                          disabled={bookingId === c.id}
+                          className="bg-white/5 hover:bg-white/10 disabled:opacity-50 text-white px-6 py-2 rounded-xl text-sm font-bold border border-white/10 transition-all flex items-center justify-center min-w-[120px]">
+                          {bookingId === c.id ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Reservar'}
                         </button>
                       </div>
                     </div>
