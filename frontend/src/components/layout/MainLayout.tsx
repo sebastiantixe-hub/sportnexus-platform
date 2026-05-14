@@ -5,7 +5,6 @@ import { useAuth } from '../../context/auth-context';
 import { toast } from 'sonner';
 import {
   LayoutDashboard,
-  Dumbbell,
   Calendar,
   ShoppingBag,
   LogOut,
