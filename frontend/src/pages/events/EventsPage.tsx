@@ -30,7 +30,7 @@ const EVENT_TYPE_CONFIG: Record<string, { label: string; icon: any; color: strin
   OTHER: { label: 'Otros', icon: Trophy, color: 'text-slate-400 bg-slate-500/10 border-slate-500/20' },
 };
 
-const EventCard: React.FC<{ event: any; onRegister: (e: any) => void; user: any }> = ({ event, onRegister, user }) => {
+const EventCard: React.FC<{ event: any; onRegister: (e: any) => void; onEdit: (e: any) => void; user: any }> = ({ event, onRegister, onEdit, user }) => {
   const config = EVENT_TYPE_CONFIG[event.eventType] || EVENT_TYPE_CONFIG.TOURNAMENT;
   const Icon = config.icon;
   const eventDate = new Date(event.date);
@@ -112,6 +112,7 @@ const EventCard: React.FC<{ event: any; onRegister: (e: any) => void; user: any 
             </button>
           ) : (user?.role === 'GYM_OWNER' || user?.role === 'ADMIN') && event.organizerId === user?.id ? (
             <button
+              onClick={() => onEdit(event)}
               className="bg-slate-800 text-slate-300 px-4 py-2 text-sm rounded-xl font-bold flex items-center gap-1.5 border border-white/5 hover:bg-slate-700 transition-all"
             >
               <Users className="w-4 h-4" />
@@ -125,15 +126,15 @@ const EventCard: React.FC<{ event: any; onRegister: (e: any) => void; user: any 
 };
 
 // Modal para crear evento
-const CreateEventModal: React.FC<{ onClose: () => void; onCreated: () => void }> = ({ onClose, onCreated }) => {
+const CreateEventModal: React.FC<{ onClose: () => void; onCreated: () => void; initialData?: any }> = ({ onClose, onCreated, initialData }) => {
   const [form, setForm] = useState({
-    title: '',
-    description: '',
-    eventType: 'TOURNAMENT',
-    price: 0,
-    date: '',
-    location: '',
-    capacity: '',
+    title: initialData?.title || '',
+    description: initialData?.description || '',
+    eventType: initialData?.eventType || 'TOURNAMENT',
+    price: initialData?.price || 0,
+    date: initialData?.date ? new Date(initialData.date).toISOString().slice(0, 16) : '',
+    location: initialData?.location || '',
+    capacity: initialData?.capacity || '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -143,16 +144,22 @@ const CreateEventModal: React.FC<{ onClose: () => void; onCreated: () => void }>
     setLoading(true);
     setError('');
     try {
-      await api.post('/events', {
+      const payload = {
         ...form,
         price: Number(form.price),
         capacity: form.capacity ? Number(form.capacity) : undefined,
         date: new Date(form.date).toISOString(),
-      });
+      };
+
+      if (initialData) {
+        await api.patch(`/events/${initialData.id}`, payload);
+      } else {
+        await api.post('/events', payload);
+      }
       onCreated();
       onClose();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al crear el evento');
+      setError(err.response?.data?.message || `Error al ${initialData ? 'actualizar' : 'crear'} el evento`);
     } finally {
       setLoading(false);
     }
@@ -247,6 +254,7 @@ const EventsPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('ALL');
   const [showModal, setShowModal] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<any>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const { user } = useAuth();
 
@@ -271,7 +279,8 @@ const EventsPage: React.FC = () => {
 
   const handleCreated = () => {
     fetchEvents();
-    setSuccessMsg('¡Evento publicado exitosamente!');
+    setSuccessMsg(editingEvent ? '¡Evento actualizado exitosamente!' : '¡Evento publicado exitosamente!');
+    setEditingEvent(null);
     setTimeout(() => setSuccessMsg(null), 4000);
   };
 
@@ -301,8 +310,15 @@ const EventsPage: React.FC = () => {
   return (
     <div className="space-y-8">
       <AnimatePresence>
-        {showModal && (
-          <CreateEventModal onClose={() => setShowModal(false)} onCreated={handleCreated} />
+        {(showModal || editingEvent) && (
+          <CreateEventModal
+            initialData={editingEvent}
+            onClose={() => {
+              setShowModal(false);
+              setEditingEvent(null);
+            }}
+            onCreated={handleCreated}
+          />
         )}
       </AnimatePresence>
 
@@ -356,7 +372,13 @@ const EventsPage: React.FC = () => {
       ) : filtered.length > 0 ? (
         <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map(event => (
-            <EventCard key={event.id} event={event} onRegister={handleRegister} user={user} />
+            <EventCard 
+              key={event.id} 
+              event={event} 
+              onRegister={handleRegister} 
+              onEdit={setEditingEvent} 
+              user={user} 
+            />
           ))}
         </motion.div>
       ) : (
