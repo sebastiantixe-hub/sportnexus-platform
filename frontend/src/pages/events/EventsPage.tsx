@@ -265,9 +265,12 @@ const EventsPage: React.FC = () => {
     setTimeout(() => setSuccessMsg(null), 4000);
   };
 
+  const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
   const filtered = events.filter(e => {
-    const s = search.toLowerCase();
-    const matchSearch = e.title.toLowerCase().includes(s) || e.organizer?.name?.toLowerCase().includes(s);
+    const s = normalize(search);
+    const fields = [e.title, e.description, e.organizer?.name];
+    const matchSearch = !search || fields.some(f => normalize(f || '').includes(s));
     const matchType = filterType === 'ALL' || e.eventType === filterType;
     return matchSearch && matchType;
   });
