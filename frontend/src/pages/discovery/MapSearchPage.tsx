@@ -99,7 +99,7 @@ const MapSearchPage: React.FC = () => {
 
   // Filter gyms by search text and sport type
   const filtered = gyms.filter(g => {
-    const matchSearch = !search || g.name.toLowerCase().includes(search.toLowerCase()) || (g.city || '').toLowerCase().includes(search.toLowerCase());
+    const matchSearch = !search || g.name.toLowerCase().includes(search.toLowerCase()) || (g.address || '').toLowerCase().includes(search.toLowerCase()) || (g.city || '').toLowerCase().includes(search.toLowerCase());
     const matchSport = !sportFilter || g.name.includes(sportFilter);
     return matchSearch && matchSport;
   });
