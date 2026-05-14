@@ -30,7 +30,7 @@ const EVENT_TYPE_CONFIG: Record<string, { label: string; icon: any; color: strin
   OTHER: { label: 'Otros', icon: Trophy, color: 'text-slate-400 bg-slate-500/10 border-slate-500/20' },
 };
 
-const EventCard: React.FC<{ event: any; onRegister: (e: any) => void }> = ({ event, onRegister }) => {
+const EventCard: React.FC<{ event: any; onRegister: (e: any) => void; user: any }> = ({ event, onRegister, user }) => {
   const config = EVENT_TYPE_CONFIG[event.eventType] || EVENT_TYPE_CONFIG.TOURNAMENT;
   const Icon = config.icon;
   const eventDate = new Date(event.date);
@@ -101,14 +101,23 @@ const EventCard: React.FC<{ event: any; onRegister: (e: any) => void }> = ({ eve
             </div>
             <span className="text-slate-500 text-xs truncate max-w-[100px]">{event.organizer?.name || 'Organizador'}</span>
           </div>
-          <button
-            onClick={() => onRegister(event)}
-            disabled={isPast}
-            className={`${isPast ? 'opacity-40 cursor-not-allowed bg-white/5 text-slate-400' : 'btn-primary shadow-lg shadow-primary/20 hover:shadow-primary/40'} px-4 py-2 text-sm rounded-xl font-bold flex items-center gap-1.5 transition-all active:scale-95`}
-          >
-            <Ticket className="w-4 h-4" />
-            {isPast ? 'Cerrado' : 'Inscribirse'}
-          </button>
+          {user?.role === 'USER' ? (
+            <button
+              onClick={() => onRegister(event)}
+              disabled={isPast}
+              className={`${isPast ? 'opacity-40 cursor-not-allowed bg-white/5 text-slate-400' : 'btn-primary shadow-lg shadow-primary/20 hover:shadow-primary/40'} px-4 py-2 text-sm rounded-xl font-bold flex items-center gap-1.5 transition-all active:scale-95`}
+            >
+              <Ticket className="w-4 h-4" />
+              {isPast ? 'Cerrado' : 'Inscribirse'}
+            </button>
+          ) : (user?.role === 'GYM_OWNER' || user?.role === 'ADMIN') && event.organizerId === user?.id ? (
+            <button
+              className="bg-slate-800 text-slate-300 px-4 py-2 text-sm rounded-xl font-bold flex items-center gap-1.5 border border-white/5 hover:bg-slate-700 transition-all"
+            >
+              <Users className="w-4 h-4" />
+              Gestionar
+            </button>
+          ) : null}
         </div>
       </div>
     </motion.div>
@@ -347,7 +356,7 @@ const EventsPage: React.FC = () => {
       ) : filtered.length > 0 ? (
         <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map(event => (
-            <EventCard key={event.id} event={event} onRegister={handleRegister} />
+            <EventCard key={event.id} event={event} onRegister={handleRegister} user={user} />
           ))}
         </motion.div>
       ) : (
