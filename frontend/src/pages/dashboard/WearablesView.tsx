@@ -411,7 +411,7 @@ const WearablesView: React.FC = () => {
           <div className="mt-6 pt-6 border-t border-white/5 grid grid-cols-3 gap-4 text-center">
             {[
               { step: '1', label: 'Haz click en "Conectar con Google"' },
-              { step: '2', label: 'Autoriza SportNexus en Google' },
+              { step: '2', label: 'Autoriza Hercix en Google' },
               { step: '3', label: 'Tus datos se sincronizan automáticamente' },
             ].map(({ step, label }) => (
               <div key={step} className="space-y-2">
@@ -576,3 +576,4 @@ const WearablesView: React.FC = () => {
 };
 
 export default WearablesView;
+

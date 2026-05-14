@@ -111,7 +111,7 @@ const AdminDashboard: React.FC<{ stats: any; user: any }> = ({ stats, user }) =>
           <span className="text-red-400 text-sm font-bold uppercase tracking-widest">Super Admin</span>
         </div>
         <h1 className="text-3xl font-bold text-white">Panel de Control 🛡️</h1>
-        <p className="text-slate-400 mt-1">Vista completa de la plataforma SportNexus.</p>
+        <p className="text-slate-400 mt-1">Vista completa de la plataforma Hercix.</p>
       </div>
       <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 px-4 py-2 rounded-xl">
         <div className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
@@ -381,3 +381,4 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
+

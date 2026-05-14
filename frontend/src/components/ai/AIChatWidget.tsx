@@ -15,7 +15,7 @@ const AIChatWidget: React.FC = () => {
     {
       id: '0',
       role: 'assistant',
-      text: '¡Hola! Soy el asistente de SportNexus 🏆. Puedo ayudarte a encontrar clases, resolver dudas sobre membresías, eventos y mucho más. ¿En qué te puedo asistir?',
+      text: '¡Hola! Soy el asistente de Hercix 🏆. Puedo ayudarte a encontrar clases, resolver dudas sobre membresías, eventos y mucho más. ¿En qué te puedo asistir?',
     },
   ]);
   const [input, setInput] = useState('');
@@ -112,7 +112,7 @@ const AIChatWidget: React.FC = () => {
                 <Sparkles className="w-5 h-5 text-primary-light" />
               </div>
               <div>
-                <h3 className="text-white font-bold text-sm">Asistente SportNexus</h3>
+                <h3 className="text-white font-bold text-sm">Asistente Hercix</h3>
                 <p className="text-slate-400 text-xs flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block" />
                   IA activa · Siempre disponible
@@ -194,3 +194,4 @@ const AIChatWidget: React.FC = () => {
 };
 
 export default AIChatWidget;
+

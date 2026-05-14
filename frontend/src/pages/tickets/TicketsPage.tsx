@@ -245,7 +245,7 @@ const UserTicketsPanel: React.FC = () => {
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             <MessageSquare className="text-primary-light" /> Soporte y Reclamos
           </h1>
-          <p className="text-slate-400 text-sm">Envía una queja o consulta al equipo de SportNexus</p>
+          <p className="text-slate-400 text-sm">Envía una queja o consulta al equipo de Hercix</p>
         </div>
         <button onClick={() => setShowForm(true)} className="btn-primary flex items-center gap-2">
           <Plus className="w-4 h-4" /> Nueva Solicitud
@@ -345,3 +345,4 @@ const TicketsPage: React.FC = () => {
 };
 
 export default TicketsPage;
+

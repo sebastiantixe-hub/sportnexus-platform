@@ -68,7 +68,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ invoice, isOpen, onClose })
               {/* Logo & Status */}
               <div className="flex flex-col md:flex-row justify-between items-start gap-8">
                 <div>
-                  <h1 className="text-3xl font-black text-white tracking-tighter mb-2">SPORTNEXUS <span className="text-primary-light">🏆</span></h1>
+                  <h1 className="text-3xl font-black text-white tracking-tighter mb-2">Hercix <span className="text-primary-light">🏆</span></h1>
                   <p className="text-slate-500 text-xs font-bold uppercase tracking-[0.2em]">SaaS Deportivo & Marketplace</p>
                 </div>
                 <div className="text-right">
@@ -84,19 +84,19 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ invoice, isOpen, onClose })
                 <div className="space-y-4">
                   <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Emisor / Gimnasio</p>
                   <div className="space-y-2">
-                    <p className="text-white font-bold">{invoice.gym?.name || "SportNexus Elite HQ"}</p>
+                    <p className="text-white font-bold">{invoice.gym?.name || "Hercix Elite HQ"}</p>
                     <div className="flex items-center gap-2 text-slate-400 text-xs">
                       <MapPin className="w-3 h-3" /> <span>{invoice.gym?.address || "Av. Fitness 123, Bogotá"}</span>
                     </div>
                     <div className="flex items-center gap-2 text-slate-400 text-xs">
-                      <Globe className="w-3 h-3" /> <span>www.sportnexus.fit</span>
+                      <Globe className="w-3 h-3" /> <span>www.Hercix.fit</span>
                     </div>
                   </div>
                 </div>
                 <div className="space-y-4 text-right md:text-left">
                   <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Cliente / Atleta</p>
                   <div className="space-y-2">
-                    <p className="text-white font-bold">{invoice.user?.name || "Atleta SportNexus"}</p>
+                    <p className="text-white font-bold">{invoice.user?.name || "Atleta Hercix"}</p>
                     <div className="flex items-center gap-2 text-slate-400 text-xs justify-end md:justify-start">
                       <Mail className="w-3 h-3" /> <span>{invoice.user?.email}</span>
                     </div>
@@ -140,7 +140,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ invoice, isOpen, onClose })
             {/* Footer / QR Area */}
             <div className="p-8 border-t border-white/5 bg-black/20 flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="text-[10px] text-slate-500 max-w-xs text-center md:text-left">
-                Esta es una factura electrónica legalmente válida para SportNexus. 
+                Esta es una factura electrónica legalmente válida para Hercix. 
                 Generada automáticamente por el motor de facturación v2.
               </div>
               <div className="w-20 h-20 bg-white p-2 rounded-xl flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity">
@@ -160,3 +160,4 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ invoice, isOpen, onClose })
 };
 
 export default InvoiceModal;
+

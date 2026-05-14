@@ -45,8 +45,8 @@ const RegisterPage: React.FC = () => {
         transition={{ duration: 0.5 }}
         className="glass-card w-full max-w-2xl p-8 relative z-10"
       >
-        <div className="text-center mb-8">
-          <h1 className="font-bold text-3xl text-white">Únete a SportNexus</h1>
+        <div className="text-center mb-8 flex flex-col items-center">
+          <img src="/hercix-logo.png" alt="Hercix" className="h-14 object-contain mb-4" />
           <p className="text-slate-400 mt-2">Crea tu cuenta y empieza a transformar tu vida.</p>
         </div>
 
@@ -159,3 +159,4 @@ const RegisterPage: React.FC = () => {
 };
 
 export default RegisterPage;
+

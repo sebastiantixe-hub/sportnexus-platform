@@ -189,10 +189,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         lg:relative lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="flex items-center gap-3 mb-10 px-2">
-          <div className="bg-primary/20 p-2 rounded-lg">
-            <Dumbbell className="text-primary-light w-6 h-6" />
-          </div>
-          <span className="font-bold text-xl tracking-tight">SportNexus</span>
+          <img src="/hercix-logo.png" alt="Hercix" className="h-8 object-contain" />
         </div>
 
         <nav className="space-y-2 flex-grow">

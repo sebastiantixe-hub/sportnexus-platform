@@ -42,10 +42,7 @@ const LoginPage: React.FC = () => {
         className="glass-card w-full max-w-md p-8 relative z-10"
       >
         <div className="flex flex-col items-center mb-8">
-          <div className="bg-primary/20 p-4 rounded-full mb-4 ring-1 ring-white/10">
-            <Dumbbell className="text-primary-light w-10 h-10" />
-          </div>
-          <h1 className="font-bold text-3xl text-white">SportNexus</h1>
+          <img src="/hercix-logo.png" alt="Hercix" className="h-14 object-contain mb-4" />
           <p className="text-slate-400 mt-2">Bienvenido de nuevo, atleta.</p>
         </div>
 
@@ -117,3 +114,4 @@ const LoginPage: React.FC = () => {
 };
 
 export default LoginPage;
+

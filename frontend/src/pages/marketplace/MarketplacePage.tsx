@@ -300,7 +300,7 @@ export const MarketplacePage: React.FC = () => {
         onClose={() => setIsPayMeOpen(false)}
         onSuccess={processOrderAfterPayment}
         amount={cartTotal}
-        description={`Pago de ${cart.length} producto(s) en Marketplace SportNexus`}
+        description={`Pago de ${cart.length} producto(s) en Marketplace Hercix`}
       />
 
       <AddProductModal 
@@ -319,3 +319,4 @@ export const MarketplacePage: React.FC = () => {
 };
 
 export default MarketplacePage;
+
