@@ -244,6 +244,7 @@ const EventsPage: React.FC = () => {
   const fetchEvents = async () => {
     try {
       const { data } = await api.get('/events');
+      console.log('Fetched events:', data);
       setEvents(data);
     } catch (err) {
       console.error('Error fetching events:', err);

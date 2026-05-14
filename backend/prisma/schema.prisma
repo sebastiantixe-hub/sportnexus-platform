@@ -392,6 +392,9 @@ enum EventType {
   MASTERCLASS
   WORKSHOP
   RETREAT
+  CROSSFIT
+  WEIGHTLIFTING
+  OTHER
 }
 
 enum CampaignType {
