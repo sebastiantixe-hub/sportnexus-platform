@@ -28,6 +28,7 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
     name: initialData?.name || '',
     description: initialData?.description || '',
     address: initialData?.address || '',
+    city: initialData?.city || '',
     district: initialData?.district || '',
     province: initialData?.province || '',
     phone: initialData?.phone || '',
@@ -120,15 +121,15 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
             </div>
           </div>
 
-          {/* Distrito y Provincia */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Departamento, Provincia, Distrito */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Distrito</label>
+              <label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Departamento</label>
               <input
-                value={formData.district}
-                onChange={e => setFormData({ ...formData, district: e.target.value })}
+                value={formData.city}
+                onChange={e => setFormData({ ...formData, city: e.target.value })}
                 className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 px-4 border rounded-xl text-white outline-none"
-                placeholder="Ej: Chorrillos"
+                placeholder="Ej: Lima"
               />
             </div>
             <div className="space-y-2">
@@ -138,6 +139,15 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
                 onChange={e => setFormData({ ...formData, province: e.target.value })}
                 className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 px-4 border rounded-xl text-white outline-none"
                 placeholder="Ej: Lima"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Distrito</label>
+              <input
+                value={formData.district}
+                onChange={e => setFormData({ ...formData, district: e.target.value })}
+                className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 px-4 border rounded-xl text-white outline-none"
+                placeholder="Ej: Chorrillos"
               />
             </div>
           </div>
