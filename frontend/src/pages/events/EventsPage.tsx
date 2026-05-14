@@ -354,14 +354,19 @@ const EventsPage: React.FC = () => {
         <div className="glass-card p-20 flex flex-col items-center justify-center text-center">
           <Trophy className="text-slate-700 w-16 h-16 mb-4" />
           <h2 className="text-white font-bold text-xl">No hay eventos disponibles</h2>
-          <p className="text-slate-500 mt-2 text-sm">
-            {canCreate ? 'Sé el primero en publicar un torneo o evento.' : 'Vuelve pronto para ver los próximos eventos.'}
+          <p className="text-slate-500 mt-2 text-sm max-w-sm">
+            {search ? `No se encontraron resultados para "${search}".` : (canCreate ? 'Sé el primero en publicar un torneo o evento deportivo.' : 'Vuelve pronto para ver los próximos eventos.')}
           </p>
-          {canCreate && (
-            <button onClick={() => setShowModal(true)} className="btn-primary mt-6 flex items-center gap-2">
-              <Plus className="w-4 h-4" /> Publicar primero
+          <div className="flex gap-4 mt-8">
+            <button onClick={fetchEvents} className="glass-card px-6 py-2 text-sm hover:bg-white/10 transition-all flex items-center gap-2">
+              <Loader2 className="w-4 h-4" /> Actualizar
             </button>
-          )}
+            {canCreate && (
+              <button onClick={() => setShowModal(true)} className="btn-primary flex items-center gap-2">
+                <Plus className="w-4 h-4" /> Publicar Evento
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>
