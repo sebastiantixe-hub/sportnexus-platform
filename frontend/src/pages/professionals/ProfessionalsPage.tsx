@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import CreateProfessionalModal from './CreateProfessionalModal';
+import { PayMeModal } from '../../components/payment/PayMeModal';
 
 const ProfessionalCard: React.FC<{ professional: any; onBook: (p: any) => void; isOwner: boolean; onEdit: (p: any) => void; onDelete: (id: string) => void; }> = ({ professional, onBook, isOwner, onEdit, onDelete }) => (
   <motion.div 
@@ -73,6 +74,9 @@ const ProfessionalsPage: React.FC = () => {
   const [message, setMessage] = useState<{type: 'success'|'error', text: string} | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingProf, setEditingProf] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [isPayMeOpen, setIsPayMeOpen] = useState(false);
+  const [profToBook, setProfToBook] = useState<any>(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -89,15 +93,23 @@ const ProfessionalsPage: React.FC = () => {
     fetchProfessionals();
   }, []);
 
-  const handleBook = async (prof: any) => {
+  const handleBookClick = (prof: any) => {
+    setProfToBook(prof);
+    setIsPayMeOpen(true);
+  };
+
+  const processBooking = async () => {
+    if (!profToBook) return;
     try {
       setLoading(true);
-      await api.post(`/professionals/${prof.id}/book`, { notes: 'Reserva solicitada desde la plataforma principal.' });
-      setMessage({type: 'success', text: `¡Reserva confirmada con ${prof.provider?.name || 'el profesional'}! Revisa tus notificaciones.`});
+      await api.post(`/professionals/${profToBook.id}/book`, { notes: 'Reserva pagada y solicitada desde la plataforma principal.' });
+      setMessage({type: 'success', text: `¡Reserva confirmada con ${profToBook.provider?.name || 'el profesional'}! Revisa tus notificaciones.`});
     } catch (err: any) {
       setMessage({ type: 'error', text: 'Error al reservar: ' + (err.response?.data?.message || 'Servidor no disponible') });
     } finally {
       setLoading(false);
+      setIsPayMeOpen(false);
+      setProfToBook(null);
       setTimeout(() => setMessage(null), 4000);
     }
   };
@@ -116,7 +128,27 @@ const ProfessionalsPage: React.FC = () => {
     }
   };
 
-  const filtered = professionals.filter(p => p.title.toLowerCase().includes(search.toLowerCase()) || p.serviceType.toLowerCase().includes(search.toLowerCase()));
+  const filtered = professionals.filter(p => {
+    const s = search.toLowerCase();
+    const titleMatch = p.title?.toLowerCase().includes(s);
+    const serviceMatch = p.serviceType?.toLowerCase().includes(s);
+    const nameMatch = p.provider?.name?.toLowerCase().includes(s);
+    const matchesSearch = titleMatch || serviceMatch || nameMatch;
+
+    const matchesCategory = selectedCategory === 'ALL' || 
+      (selectedCategory === 'OTROS' && !['PHYSIOTHERAPY', 'NUTRITION_PLAN', 'PERSONAL_TRAINING'].includes(p.serviceType)) ||
+      p.serviceType === selectedCategory;
+
+    return matchesSearch && matchesCategory;
+  });
+
+  const categories = [
+    { id: 'ALL', label: 'Todos' },
+    { id: 'PHYSIOTHERAPY', label: 'Fisioterapia' },
+    { id: 'NUTRITION_PLAN', label: 'Nutrición' },
+    { id: 'PERSONAL_TRAINING', label: 'Personal Training' },
+    { id: 'OTROS', label: 'Otros' }
+  ];
 
   return (
     <div className="space-y-8 relative">
@@ -137,15 +169,32 @@ const ProfessionalsPage: React.FC = () => {
         )}
       </header>
 
-      <div className="relative max-w-xl">
-        <Search className="absolute top-1/2 left-4 -translate-y-1/2 text-slate-500 w-5 h-5" />
-        <input 
-          type="text"
-          placeholder="Buscar: Fisioterapia, Nutrición, Personal Training..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="bg-white/5 border-white/10 focus:border-accent w-full py-4 pr-4 pl-12 border rounded-2xl text-white outline-none transition-all"
-        />
+      <div className="flex flex-col gap-4 max-w-2xl">
+        <div className="relative">
+          <Search className="absolute top-1/2 left-4 -translate-y-1/2 text-slate-500 w-5 h-5" />
+          <input 
+            type="text"
+            placeholder="Buscar por servicio, profesional o categoría..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="bg-white/5 border-white/10 focus:border-accent w-full py-4 pr-4 pl-12 border rounded-2xl text-white outline-none transition-all"
+          />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {categories.map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${
+                selectedCategory === cat.id 
+                  ? 'bg-accent/20 border-accent text-accent' 
+                  : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {message && (
@@ -177,7 +226,7 @@ const ProfessionalsPage: React.FC = () => {
             <ProfessionalCard 
                key={p.id} 
                professional={p} 
-               onBook={handleBook} 
+               onBook={handleBookClick} 
                isOwner={user?.role === 'ADMIN' || p.providerId === user?.id}
                onEdit={setEditingProf}
                onDelete={handleDelete}
@@ -190,6 +239,16 @@ const ProfessionalsPage: React.FC = () => {
           <h2 className="text-white font-bold text-xl mb-2">Aún no hay profesionales registrados</h2>
           <p className="text-slate-400">Sé el primero en ofrecer un servicio.</p>
         </div>
+      )}
+
+      {profToBook && (
+        <PayMeModal
+          isOpen={isPayMeOpen}
+          onClose={() => { setIsPayMeOpen(false); setProfToBook(null); }}
+          onSuccess={processBooking}
+          amount={Number(profToBook.price)}
+          description={`Reserva de ${profToBook.title} con ${profToBook.provider?.name || 'Profesional'}`}
+        />
       )}
     </div>
   );

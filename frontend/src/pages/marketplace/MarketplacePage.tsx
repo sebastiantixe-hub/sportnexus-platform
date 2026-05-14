@@ -95,6 +95,7 @@ export const MarketplacePage: React.FC = () => {
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [search, setSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [message, setMessage] = useState<string | null>(null);
   const { user } = useAuth();
 
@@ -165,7 +166,12 @@ export const MarketplacePage: React.FC = () => {
     }
   };
 
-  const filteredProducts = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+  const uniqueCategories = Array.from(new Set(products.map(p => p.category || 'Deportes')));
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = selectedCategory === 'ALL' || (p.category || 'Deportes') === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
@@ -201,15 +207,43 @@ export const MarketplacePage: React.FC = () => {
       </header>
 
       {/* Search */}
-      <div className="relative">
-        <Search className="absolute top-1/2 left-4 -translate-y-1/2 text-slate-500 w-5 h-5" />
-        <input 
-          type="text"
-          placeholder="Buscar equipamiento, suplementos..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="bg-white/5 border-white/10 focus:border-secondary-light w-full py-4 pr-4 pl-12 border rounded-2xl text-white outline-none transition-all"
-        />
+      <div className="flex flex-col gap-4">
+        <div className="relative">
+          <Search className="absolute top-1/2 left-4 -translate-y-1/2 text-slate-500 w-5 h-5" />
+          <input 
+            type="text"
+            placeholder="Buscar equipamiento, suplementos..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="bg-white/5 border-white/10 focus:border-secondary-light w-full py-4 pr-4 pl-12 border rounded-2xl text-white outline-none transition-all"
+          />
+        </div>
+        {/* Category Filters */}
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setSelectedCategory('ALL')}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${
+              selectedCategory === 'ALL' 
+                ? 'bg-secondary/20 border-secondary-light text-secondary-light' 
+                : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'
+            }`}
+          >
+            Todas las categorías
+          </button>
+          {uniqueCategories.map((cat: any) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${
+                selectedCategory === cat 
+                  ? 'bg-secondary/20 border-secondary-light text-secondary-light' 
+                  : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
       </div>
 
       {message && (

@@ -25,6 +25,9 @@ const EVENT_TYPE_CONFIG: Record<string, { label: string; icon: any; color: strin
   MASTERCLASS: { label: 'Masterclass', icon: BookOpen, color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
   WORKSHOP: { label: 'Workshop', icon: Layers, color: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20' },
   RETREAT: { label: 'Retiro', icon: Sunrise, color: 'text-green-400 bg-green-500/10 border-green-500/20' },
+  CROSSFIT: { label: 'CrossFit', icon: Trophy, color: 'text-orange-400 bg-orange-500/10 border-orange-500/20' },
+  WEIGHTLIFTING: { label: 'Levantamiento Pesas', icon: Trophy, color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' },
+  OTHER: { label: 'Otros', icon: Trophy, color: 'text-slate-400 bg-slate-500/10 border-slate-500/20' },
 };
 
 const EventCard: React.FC<{ event: any; onRegister: (e: any) => void }> = ({ event, onRegister }) => {
@@ -185,6 +188,9 @@ const CreateEventModal: React.FC<{ onClose: () => void; onCreated: () => void }>
               <option value="MASTERCLASS" className="bg-slate-900">Masterclass</option>
               <option value="WORKSHOP" className="bg-slate-900">Workshop</option>
               <option value="RETREAT" className="bg-slate-900">Retiro</option>
+              <option value="CROSSFIT" className="bg-slate-900">CrossFit</option>
+              <option value="WEIGHTLIFTING" className="bg-slate-900">Levantamiento de Pesas</option>
+              <option value="OTHER" className="bg-slate-900">Otros</option>
             </select>
           </div>
 
@@ -260,7 +266,8 @@ const EventsPage: React.FC = () => {
   };
 
   const filtered = events.filter(e => {
-    const matchSearch = e.title.toLowerCase().includes(search.toLowerCase());
+    const s = search.toLowerCase();
+    const matchSearch = e.title.toLowerCase().includes(s) || e.organizer?.name?.toLowerCase().includes(s);
     const matchType = filterType === 'ALL' || e.eventType === filterType;
     return matchSearch && matchType;
   });
@@ -273,6 +280,9 @@ const EventsPage: React.FC = () => {
     { key: 'MASTERCLASS', label: '📖 Masterclass' },
     { key: 'WORKSHOP', label: '🔧 Workshops' },
     { key: 'RETREAT', label: '🌅 Retiros' },
+    { key: 'CROSSFIT', label: '🏋️ CrossFit' },
+    { key: 'WEIGHTLIFTING', label: '💪 Levantamiento' },
+    { key: 'OTHER', label: '🌟 Otros' },
   ];
 
   return (
@@ -310,7 +320,7 @@ const EventsPage: React.FC = () => {
         <div className="relative flex-grow">
           <Search className="absolute top-1/2 left-4 -translate-y-1/2 text-slate-500 w-5 h-5" />
           <input
-            type="text" placeholder="Buscar eventos, torneos..." value={search}
+            type="text" placeholder="Buscar eventos, organizador..." value={search}
             onChange={e => setSearch(e.target.value)}
             className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 pr-4 pl-12 border rounded-2xl text-white outline-none transition-all"
           />

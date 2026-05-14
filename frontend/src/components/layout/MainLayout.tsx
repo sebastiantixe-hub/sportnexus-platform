@@ -160,7 +160,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { to: '/dashboard/tickets',  icon: MessageSquare,   label: 'Mis Solicitudes',          roles: ['TRAINER'] },
 
     // ── ATLETA (USER) — NO accede a Mis Negocios ──────────────────
-    { to: '/discovery',          icon: Map,             label: 'Buscar Academias',         roles: ['USER'] },
+    { to: '/discovery',          icon: Map,             label: 'Buscador General',         roles: ['USER'] },
     { to: '/classes',            icon: Calendar,        label: 'Mis Reservas',             roles: ['USER'] },
     { to: '/sport-store',        icon: ShoppingBag,     label: 'Tienda Deportiva',         roles: ['USER'] },
     { to: '/professionals',      icon: Users,           label: 'Servicios Profesionales',  roles: ['USER'] },
