@@ -187,8 +187,8 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 border-r border-white/5 p-6 transform transition-transform duration-300 ease-in-out
         lg:relative lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="flex items-center gap-3 mb-10 px-2">
-          <img src="/hercix-logo.png" alt="Hercix" className="h-8 object-contain" />
+        <div className="flex items-center justify-center mb-10 px-2">
+          <img src="/hercix-logo.png" alt="Hercix" className="h-14 object-contain" />
         </div>
 
         <nav className="space-y-2 flex-grow">
