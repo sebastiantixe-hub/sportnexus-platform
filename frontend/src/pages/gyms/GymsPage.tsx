@@ -118,10 +118,15 @@ const GymsPage: React.FC = () => {
     }
   };
 
-  const filteredGyms = gyms.filter(g =>
-    g.name.toLowerCase().includes(search.toLowerCase()) ||
-    g.address?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredGyms = gyms.filter(g => {
+    const s = search.toLowerCase();
+    return (g.name || '').toLowerCase().includes(s) ||
+           (g.address || '').toLowerCase().includes(s) ||
+           (g.description || '').toLowerCase().includes(s) ||
+           (g.city || '').toLowerCase().includes(s) ||
+           (g.district || '').toLowerCase().includes(s) ||
+           (g.province || '').toLowerCase().includes(s);
+  });
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
