@@ -97,9 +97,12 @@ const MapSearchPage: React.FC = () => {
   };
 
 
-  // Filter gyms by search text and sport type
+  const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
   const filtered = gyms.filter(g => {
-    const matchSearch = !search || g.name.toLowerCase().includes(search.toLowerCase()) || (g.address || '').toLowerCase().includes(search.toLowerCase()) || (g.city || '').toLowerCase().includes(search.toLowerCase()) || (g.district || '').toLowerCase().includes(search.toLowerCase()) || (g.province || '').toLowerCase().includes(search.toLowerCase());
+    const s = normalize(search);
+    const fields = [g.name, g.address, g.city, g.district, g.province];
+    const matchSearch = !search || fields.some(f => normalize(f || '').includes(s));
     const matchSport = !sportFilter || g.name.includes(sportFilter);
     return matchSearch && matchSport;
   });
@@ -174,7 +177,9 @@ const MapSearchPage: React.FC = () => {
                     <h3 className="text-white font-bold text-sm leading-tight truncate">{gym.name}</h3>
                     <p className="text-slate-400 text-xs mt-1 flex items-center gap-1">
                       <MapPin className="w-3 h-3 shrink-0" />
-                      <span className="truncate">{gym.address}, {gym.city}</span>
+                      <span className="truncate">
+                        {gym.address || ''}{gym.district ? `, ${gym.district}` : ''}{gym.province ? `, ${gym.province}` : ''}{gym.city ? `, ${gym.city}` : ''}
+                      </span>
                     </p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-600 shrink-0 mt-1" />

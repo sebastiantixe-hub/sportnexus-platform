@@ -41,7 +41,11 @@ const GymCard: React.FC<{
       <div className="mt-6 flex flex-col gap-2">
         <div className="flex items-center gap-2 text-slate-400 text-xs text-secondary-light">
           <MapPin className="w-4 h-4" />
-          <span>{gym.address || 'Ubicación no especificada'}</span>
+          <span className="line-clamp-1">
+            {gym.address || 'Sin dirección'}
+            {gym.district && `, ${gym.district}`}
+            {gym.province && `, ${gym.province}`}
+          </span>
         </div>
       </div>
 
@@ -118,14 +122,12 @@ const GymsPage: React.FC = () => {
     }
   };
 
+  const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
   const filteredGyms = gyms.filter(g => {
-    const s = search.toLowerCase();
-    return (g.name || '').toLowerCase().includes(s) ||
-           (g.address || '').toLowerCase().includes(s) ||
-           (g.description || '').toLowerCase().includes(s) ||
-           (g.city || '').toLowerCase().includes(s) ||
-           (g.district || '').toLowerCase().includes(s) ||
-           (g.province || '').toLowerCase().includes(s);
+    const s = normalize(search);
+    const fields = [g.name, g.address, g.description, g.city, g.district, g.province];
+    return fields.some(field => normalize(field || '').includes(s));
   });
 
   return (
