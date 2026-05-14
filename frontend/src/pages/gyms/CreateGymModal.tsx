@@ -28,6 +28,8 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
     name: initialData?.name || '',
     description: initialData?.description || '',
     address: initialData?.address || '',
+    district: initialData?.district || '',
+    province: initialData?.province || '',
     phone: initialData?.phone || '',
     website: initialData?.website || '',
     openDays: initialData?.openDays || 'Lunes a Sábado',
@@ -114,6 +116,28 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
                 onChange={e => setFormData({ ...formData, address: e.target.value })}
                 className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 pl-12 pr-4 border rounded-xl text-white outline-none"
                 placeholder="Av. Principal 123, Ciudad"
+              />
+            </div>
+          </div>
+
+          {/* Distrito y Provincia */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Distrito</label>
+              <input
+                value={formData.district}
+                onChange={e => setFormData({ ...formData, district: e.target.value })}
+                className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 px-4 border rounded-xl text-white outline-none"
+                placeholder="Ej: Chorrillos"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Provincia</label>
+              <input
+                value={formData.province}
+                onChange={e => setFormData({ ...formData, province: e.target.value })}
+                className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 px-4 border rounded-xl text-white outline-none"
+                placeholder="Ej: Lima"
               />
             </div>
           </div>

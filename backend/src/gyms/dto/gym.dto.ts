@@ -26,6 +26,14 @@ export class CreateGymDto {
 
   @IsString()
   @IsOptional()
+  district?: string;
+
+  @IsString()
+  @IsOptional()
+  province?: string;
+
+  @IsString()
+  @IsOptional()
   country?: string;
 
   @IsString()
@@ -70,6 +78,14 @@ export class UpdateGymDto {
   @IsString()
   @IsOptional()
   city?: string;
+
+  @IsString()
+  @IsOptional()
+  district?: string;
+
+  @IsString()
+  @IsOptional()
+  province?: string;
 
   @IsString()
   @IsOptional()

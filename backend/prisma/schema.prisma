@@ -50,6 +50,8 @@ model Gym {
   description     String?
   address         String?          @db.VarChar(300)
   city            String?          @db.VarChar(100)
+  district        String?          @db.VarChar(100)
+  province        String?          @db.VarChar(100)
   country         String?          @default("Colombia") @db.VarChar(100)
   latitude        Float?
   longitude       Float?
