@@ -22,6 +22,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { UsersModule } from './users/users.module';
 import { TicketsModule } from './tickets/tickets.module';
+import { HealthModule } from './health/health.module';
 
 
 @Module({
@@ -48,6 +49,7 @@ import { TicketsModule } from './tickets/tickets.module';
     NotificationsModule,
     UsersModule,
     TicketsModule,
+    HealthModule,
   ],
 
 

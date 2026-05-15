@@ -8,12 +8,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateClassDto, UpdateClassDto } from './dto/class.dto';
 import { ReservationStatus } from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
+import { HealthService } from '../health/health.service';
 
 @Injectable()
 export class ClassesService {
   constructor(
     private prisma: PrismaService,
-    private notificationsService: NotificationsService
+    private notificationsService: NotificationsService,
+    private healthService: HealthService
   ) {}
 
   async create(gymId: string, currentUserId: string, dto: CreateClassDto) {
@@ -202,9 +204,21 @@ export class ClassesService {
   async markAttendance(reservationId: string, currentUserId: string) {
     const reservation = await this.prisma.reservation.findUnique({
       where: { id: reservationId },
+      include: { class: true }
     });
 
     if (!reservation) throw new NotFoundException('Ticket / Reserva no encontrada');
+
+    // Trigger automatic calorie calculation
+    try {
+      await this.healthService.calculateCaloriesFromClass(
+        reservation.userId,
+        reservation.class.title,
+        reservation.class.durationMin
+      );
+    } catch (err) {
+      console.error('Error calculating calories:', err);
+    }
 
     return this.prisma.reservation.update({
       where: { id: reservationId },

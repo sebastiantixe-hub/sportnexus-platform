@@ -15,7 +15,7 @@ import MapSearchPage from './pages/discovery/MapSearchPage';
 import EventsPage from './pages/events/EventsPage';
 import AnalyticsView from './pages/dashboard/AnalyticsView';
 import CRMView from './pages/dashboard/CRMView';
-import WearablesView, { FitbitCallbackHandler } from './pages/dashboard/WearablesView';
+import HealthView from './pages/dashboard/HealthView';
 import InvoicesView from './pages/dashboard/InvoicesView';
 import PlatformOverviewView from './pages/dashboard/PlatformOverviewView';
 import UsersManagementView from './pages/dashboard/UsersManagementView';
@@ -39,8 +39,7 @@ function App() {
             <Route element={<MainLayout><AnalyticsView /></MainLayout>} path="/dashboard/analytics" />
             <Route element={<MainLayout><PlatformOverviewView /></MainLayout>} path="/dashboard/platform-overview" />
             <Route element={<MainLayout><CRMView /></MainLayout>} path="/dashboard/crm" />
-            <Route element={<MainLayout><WearablesView /></MainLayout>} path="/dashboard/wearables" />
-            <Route element={<FitbitCallbackHandler />} path="/dashboard/wearables/fitbit-callback" />
+            <Route element={<MainLayout><HealthView /></MainLayout>} path="/dashboard/health" />
             <Route element={<MainLayout><InvoicesView /></MainLayout>} path="/dashboard/invoices" />
             <Route element={<MainLayout><UsersManagementView /></MainLayout>} path="/dashboard/users" />
             <Route element={<MainLayout><TicketsPage /></MainLayout>} path="/dashboard/tickets" />

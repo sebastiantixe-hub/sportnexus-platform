@@ -149,15 +149,13 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { to: '/sport-store',        icon: ShoppingBag,     label: 'Tienda Deportiva',         roles: ['GYM_OWNER'] },
     { to: '/professionals',      icon: Users,           label: 'Servicios Profesionales',  roles: ['GYM_OWNER'] },
     { to: '/memberships',        icon: CreditCard,      label: 'Membresías',               roles: ['GYM_OWNER'] },
-    { to: '/dashboard/wearables',icon: Activity,        label: 'Salud',                    roles: ['GYM_OWNER'] },
-    { to: '/dashboard/tickets',  icon: MessageSquare,   label: 'Mis Solicitudes',          roles: ['GYM_OWNER'] },
+    { to: '/dashboard/health',   icon: Activity,        label: 'Hercix Health',            roles: ['USER', 'GYM_OWNER', 'TRAINER', 'ADMIN'] },
+    { to: '/dashboard/tickets',  icon: MessageSquare,   label: 'Soporte / Tickets',        roles: ['USER', 'GYM_OWNER', 'TRAINER', 'ADMIN'] },
 
     // ── TRAINER ───────────────────────────────────────────────────
     { to: '/classes',            icon: Calendar,        label: 'Mis Clases',               roles: ['TRAINER'] },
     { to: '/professionals',      icon: Users,           label: 'Servicios Profesionales',  roles: ['TRAINER'] },
     { to: '/sport-store',        icon: ShoppingBag,     label: 'Tienda Deportiva',         roles: ['TRAINER'] },
-    { to: '/dashboard/wearables',icon: Activity,        label: 'Salud',                    roles: ['TRAINER'] },
-    { to: '/dashboard/tickets',  icon: MessageSquare,   label: 'Mis Solicitudes',          roles: ['TRAINER'] },
 
     // ── ATLETA (USER) — NO accede a Mis Negocios ──────────────────
     { to: '/discovery',          icon: Map,             label: 'Buscador General',         roles: ['USER'] },
@@ -166,8 +164,6 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { to: '/professionals',      icon: Users,           label: 'Servicios Profesionales',  roles: ['USER'] },
     { to: '/events',             icon: Trophy,          label: 'Eventos',                  roles: ['USER'] },
     { to: '/memberships',        icon: CreditCard,      label: 'Membresías',               roles: ['USER'] },
-    { to: '/dashboard/wearables',icon: Activity,        label: 'Salud',                    roles: ['USER'] },
-    { to: '/dashboard/tickets',  icon: MessageSquare,   label: 'Mis Solicitudes',          roles: ['USER'] },
   ];
 
   const filteredNavItems = navItems.filter(item => user && item.roles.includes(user.role));

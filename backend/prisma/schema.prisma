@@ -39,6 +39,8 @@ model User {
   notifications        Notification[]
   professionalBookings ProfessionalBooking[]
   supportTickets       SupportTicket[]
+  healthMetrics        HealthMetric[]
+  weight               Float?             @default(70)
 
   @@map("users")
 }
@@ -631,5 +633,30 @@ enum TicketCategory {
   INSTRUCTOR
   FACILITY
   OTHER
+}
+
+model HealthMetric {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  type      HealthMetricType
+  value     Float
+  unit      String           @db.VarChar(20)
+  date      DateTime         @db.Date
+  createdAt DateTime         @default(now()) @map("created_at")
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date, type])
+  @@index([userId, date])
+  @@map("health_metrics")
+}
+
+enum HealthMetricType {
+  WEIGHT
+  STEPS
+  WATER
+  CALORIES_BURNED
+  CALORIES_INTAKE
+  SLEEP_HOURS
+  DISTANCE
 }
 
