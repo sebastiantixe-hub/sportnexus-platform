@@ -181,7 +181,8 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       {/* Sidebar */}
       <aside className={`
         fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 border-r border-white/5 p-6 transform transition-transform duration-300 ease-in-out
-        lg:relative lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        lg:translate-x-0 lg:static lg:block
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="flex items-center justify-center mb-10 px-2">
           <img src="/hercix-logo.png" alt="Hercix" className="h-14 object-contain" />
@@ -306,7 +307,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
           <footer className="mt-20 py-8 border-t border-white/5 text-center">
             <p className="text-slate-500 text-[10px] uppercase font-bold tracking-[0.3em]">
-              © 2026 QORIBEX | TODOS LOS DERECHOS RESERVADOS
+              © 2026 HERCIX | TODOS LOS DERECHOS RESERVADOS
             </p>
           </footer>
         </div>
