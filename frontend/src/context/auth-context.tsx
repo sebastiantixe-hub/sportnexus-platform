@@ -34,9 +34,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const syncUser = async () => {
-      console.log('Sincronizando con Backend:', { isAuthenticated, auth0Loading, hasUser: !!auth0User });
+      // Si hay un código de Auth0 en la URL, no hacemos nada todavía, dejamos que el SDK procese el callback
+      const params = new URLSearchParams(window.location.search);
+      const hasAuth0Params = params.has('code') || params.has('error') || params.has('state');
       
-      if (auth0Loading) return; // Esperar a que Auth0 termine de inicializarse
+      console.log('Sincronizando con Backend:', { isAuthenticated, auth0Loading, hasUser: !!auth0User, hasAuth0Params });
+      
+      if (auth0Loading || (hasAuth0Params && !isAuthenticated)) {
+        console.log('Esperando a que Auth0 procese el callback...');
+        return; 
+      }
 
       if (isAuthenticated && auth0User) {
         setBackendLoading(true);
