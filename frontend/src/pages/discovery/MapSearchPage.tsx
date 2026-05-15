@@ -207,12 +207,22 @@ const MapSearchPage: React.FC = () => {
                       <p className="text-slate-500 text-[11px] flex items-center gap-1">
                         <MapPin className="w-3 h-3" /> {gym.address}
                       </p>
-                      <button 
-                        onClick={() => handleSelectGym(gym)} 
-                        className="mt-3 w-full bg-slate-900 text-white py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-primary transition-colors"
-                      >
-                        Ver Detalles
-                      </button>
+                      <div className="grid grid-cols-2 gap-2 mt-3">
+                        <button 
+                          onClick={() => handleSelectGym(gym)} 
+                          className="bg-slate-900 text-white py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-primary transition-colors"
+                        >
+                          Detalles
+                        </button>
+                        <a 
+                          href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${gym.latitude},${gym.longitude}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-yellow-500/10 text-yellow-600 border border-yellow-500/20 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-yellow-500/20 transition-colors flex items-center justify-center gap-1"
+                        >
+                          Street View
+                        </a>
+                      </div>
                     </div>
                   </Popup>
                 </Marker>
@@ -298,7 +308,25 @@ const MapSearchPage: React.FC = () => {
                       <MapPin className="w-3.5 h-3.5" /> {selectedGym.address}, {selectedGym.city}
                     </p>
                     {selectedGym.phone && <p className="text-slate-500 text-xs mt-1">📞 {selectedGym.phone}</p>}
-                    {selectedGym.description && <p className="text-slate-400 text-sm mt-2 line-clamp-2">{selectedGym.description}</p>}
+                    <div className="flex gap-2 mt-3">
+                      <a 
+                        href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${selectedGym.latitude},${selectedGym.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-yellow-500/20 transition-all"
+                      >
+                        📍 Street View 360°
+                      </a>
+                      <a 
+                        href={`https://www.google.com/maps/search/?api=1&query=${selectedGym.latitude},${selectedGym.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 bg-primary/10 text-primary-light border border-primary/20 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-primary/20 transition-all"
+                      >
+                        🚗 Cómo llegar
+                      </a>
+                    </div>
+                    {selectedGym.description && <p className="text-slate-400 text-sm mt-3 line-clamp-2">{selectedGym.description}</p>}
                   </div>
                   <button onClick={() => setSelectedGym(null)} className="text-slate-400 hover:text-white p-1"><X className="w-5 h-5" /></button>
                 </div>
