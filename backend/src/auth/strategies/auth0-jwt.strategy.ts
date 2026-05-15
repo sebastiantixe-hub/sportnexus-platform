@@ -32,7 +32,7 @@ export class Auth0JwtStrategy extends PassportStrategy(Strategy, 'auth0') {
       }),
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       audience: audience,
-      issuer: `https://${domain}/`,
+      issuer: [`https://${domain}/`, `https://${domain}`], // Accept both with and without trailing slash
       algorithms: ['RS256'],
     });
   }
@@ -42,7 +42,8 @@ export class Auth0JwtStrategy extends PassportStrategy(Strategy, 'auth0') {
    * Finds or creates the user in our Prisma DB.
    * Return value is attached to request.user
    */
-  async validate(payload: Auth0JwtPayload) {
+   async validate(payload: Auth0JwtPayload) {
+    console.log('Validando Payload de Auth0:', JSON.stringify(payload, null, 2));
     const { sub, email, name, picture } = payload;
 
     if (!sub) {
