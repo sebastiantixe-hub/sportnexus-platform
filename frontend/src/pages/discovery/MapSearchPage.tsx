@@ -20,20 +20,21 @@ L.Icon.Default.mergeOptions({
 
 // Custom Icons with Glow Effect
 const getCustomIcon = (sportLabel: string) => {
-  const emoji = sportLabel.split(' ')[0] || '📍';
+  const emoji = sportLabel.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]|\u200D|./u)?.[0] || '📍';
+  
   return L.divIcon({
     html: `
       <div class="relative flex items-center justify-center marker-glow">
-        <div class="absolute w-10 h-10 bg-primary/40 rounded-full blur-md animate-pulse"></div>
-        <div class="relative w-8 h-8 bg-slate-900 border-2 border-primary-light rounded-full flex items-center justify-center shadow-2xl transition-transform hover:scale-110">
-          <span class="text-sm">${emoji}</span>
-          <div class="absolute -bottom-1 w-2 h-2 bg-primary-light rotate-45"></div>
+        <div class="absolute w-12 h-12 bg-red-500/30 rounded-full blur-md animate-pulse"></div>
+        <div class="relative w-9 h-9 bg-slate-950 border-2 border-red-500 rounded-full flex items-center justify-center shadow-2xl transition-transform hover:scale-110 active:scale-95">
+          <span class="text-lg leading-none select-none">${emoji}</span>
+          <div class="absolute -bottom-1 w-2.5 h-2.5 bg-red-500 rotate-45 rounded-sm"></div>
         </div>
       </div>
     `,
     className: 'custom-sport-icon',
-    iconSize: [40, 40],
-    iconAnchor: [20, 40],
+    iconSize: [48, 48],
+    iconAnchor: [24, 48],
   });
 };
 
@@ -179,24 +180,37 @@ const MapSearchPage: React.FC = () => {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
               url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" 
             />
-            {filtered.filter(g => g.latitude && g.longitude).map(gym => (
-              <Marker 
-                key={gym.id} 
-                position={[gym.latitude, gym.longitude]}
-                icon={getCustomIcon(SPORT_FILTERS.find(f => gym.name.includes(f.value))?.label || '📍')}
-                eventHandlers={{
-                  click: () => handleSelectGym(gym)
-                }}
-              >
-                <Popup className="custom-popup">
-                  <div className="p-1">
-                    <strong className="text-slate-900 block border-b mb-1">{gym.name}</strong>
-                    <p className="text-slate-600 text-[10px] leading-tight">{gym.address}</p>
-                    <button onClick={() => handleSelectGym(gym)} className="mt-2 text-primary-light font-bold text-[10px] uppercase tracking-wider">Ver Detalles →</button>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
+            {filtered.filter(g => g.latitude && g.longitude).map(gym => {
+              const sportInfo = SPORT_FILTERS.find(f => f.value !== '' && gym.name.includes(f.value));
+              return (
+                <Marker 
+                  key={gym.id} 
+                  position={[gym.latitude, gym.longitude]}
+                  icon={getCustomIcon(sportInfo?.label || '📍')}
+                  eventHandlers={{
+                    click: () => handleSelectGym(gym)
+                  }}
+                >
+                  <Popup className="custom-popup">
+                    <div className="p-2 min-w-[150px]">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xl">{sportInfo?.label.split(' ')[0] || '📍'}</span>
+                        <strong className="text-slate-900 text-sm leading-tight">{gym.name}</strong>
+                      </div>
+                      <p className="text-slate-500 text-[11px] flex items-center gap-1">
+                        <MapPin className="w-3 h-3" /> {gym.address}
+                      </p>
+                      <button 
+                        onClick={() => handleSelectGym(gym)} 
+                        className="mt-3 w-full bg-slate-900 text-white py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-primary transition-colors"
+                      >
+                        Ver Detalles
+                      </button>
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            })}
           </MapContainer>
         </div>
 
