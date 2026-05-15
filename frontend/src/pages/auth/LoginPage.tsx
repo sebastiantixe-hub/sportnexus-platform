@@ -1,33 +1,10 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React from 'react';
 import { useAuth } from '../../context/auth-context';
-import api from '../../api/api-client';
-import { LogIn, Mail, Lock, Loader2 } from 'lucide-react';
+import { LogIn, Loader2, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login } = useAuth();
-  const navigate = useNavigate();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsSubmitting(true);
-
-    try {
-      const { data } = await api.post('/auth/login', { email, password });
-      login(data.accessToken, data.refreshToken, data.user);
-      navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al iniciar sesión');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const { login, loading } = useAuth();
 
   return (
     <div className="flex bg-background-darker min-h-screen items-center justify-center p-4 relative overflow-hidden">
@@ -39,73 +16,43 @@ const LoginPage: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="glass-card w-full max-w-md p-8 relative z-10"
+        className="glass-card w-full max-w-md p-8 relative z-10 text-center"
       >
         <div className="flex flex-col items-center mb-8">
-          <img src="/hercix-logo.png" alt="Hercix" className="h-14 object-contain mb-4" />
-          <p className="text-slate-400 mt-2">Bienvenido de nuevo, atleta.</p>
+          <img src="/hercix-logo.png" alt="Hercix" className="h-20 object-contain mb-4" />
+          <h2 className="text-2xl font-bold text-white">Bienvenido a Hercix</h2>
+          <p className="text-slate-400 mt-2">La plataforma definitiva para el atleta moderno.</p>
         </div>
 
-        {error && (
-          <div className="bg-red-500/10 border-red-500/20 mb-6 p-4 border rounded-lg text-red-400 text-sm">
-            {error}
+        <div className="bg-primary/5 border border-primary/10 rounded-2xl p-6 mb-8 text-left">
+          <div className="flex items-center gap-3 mb-3">
+            <ShieldCheck className="text-primary-light w-5 h-5" />
+            <span className="text-sm font-bold text-white uppercase tracking-wider">Acceso Seguro</span>
           </div>
-        )}
+          <p className="text-xs text-slate-400 leading-relaxed">
+            Utilizamos Auth0 para garantizar que tus datos estén protegidos con los estándares de seguridad más altos de la industria.
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-slate-300 text-sm font-medium ml-1">Email</label>
-            <div className="relative">
-              <Mail className="absolute top-1/2 left-3 -translate-y-1/2 text-slate-500 w-5 h-5" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 pr-4 pl-10 border rounded-xl text-white outline-none transition-all focus:ring-1 focus:ring-primary-light/50"
-                placeholder="tu@email.com"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-slate-300 text-sm font-medium ml-1">Contraseña</label>
-            <div className="relative">
-              <Lock className="absolute top-1/2 left-3 -translate-y-1/2 text-slate-500 w-5 h-5" />
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 pr-4 pl-10 border rounded-xl text-white outline-none transition-all focus:ring-1 focus:ring-primary-light/50"
-                placeholder="••••••••"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="btn-primary w-full py-3 flex items-center justify-center gap-2 group relative overflow-hidden active:scale-[0.98]"
-          >
-            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-            {isSubmitting ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <>
-                <LogIn className="w-5 h-5" />
-                <span>Iniciar Sesión</span>
-              </>
-            )}
-          </button>
-        </form>
+        <button
+          onClick={() => login()}
+          disabled={loading}
+          className="btn-primary w-full py-4 flex items-center justify-center gap-3 group relative overflow-hidden active:scale-[0.98] text-lg shadow-xl shadow-primary/20"
+        >
+          <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+          {loading ? (
+            <Loader2 className="w-6 h-6 animate-spin" />
+          ) : (
+            <>
+              <LogIn className="w-6 h-6" />
+              <span>Entrar con Auth0</span>
+            </>
+          )}
+        </button>
 
         <div className="mt-8 pt-6 border-t border-white/5 text-center">
-          <p className="text-slate-400 text-sm">
-            ¿No tienes una cuenta?{' '}
-            <Link to="/register" className="text-primary-light hover:underline font-medium">
-              Regístrate gratis
-            </Link>
+          <p className="text-slate-500 text-xs uppercase tracking-widest font-bold">
+            Powered by SportNexus & Auth0
           </p>
         </div>
       </motion.div>
@@ -114,4 +61,3 @@ const LoginPage: React.FC = () => {
 };
 
 export default LoginPage;
-
