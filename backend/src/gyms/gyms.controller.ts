@@ -40,8 +40,9 @@ export class GymsController {
 
   @Get()
   @ApiOperation({ summary: 'Obtener lista de gimnasios activos' })
-  findAll() {
-    return this.gymsService.findAll();
+  @ApiQuery({ name: 'ownerId', required: false })
+  findAll(@Query('ownerId') ownerId?: string) {
+    return this.gymsService.findAll(ownerId);
   }
 
   @Get('nearby')

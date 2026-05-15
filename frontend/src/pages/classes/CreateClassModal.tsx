@@ -29,9 +29,15 @@ const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onCreated,
   useEffect(() => {
     const fetchMyGyms = async () => {
       try {
-        const { data } = await api.get('/gyms'); // El dueño verá sus gimnasios
+        const authData = JSON.parse(localStorage.getItem('auth_data') || '{}');
+        const user = authData.user;
+        const ownerParam = user?.role === 'GYM_OWNER' ? `?ownerId=${user.id}` : '';
+        const { data } = await api.get(`/gyms${ownerParam}`);
         setGyms(data);
-        if (data.length > 0) setFormData(prev => ({ ...prev, gymId: data[0].id }));
+        if (data.length > 0) {
+          const selectedGymId = initialData?.gymId || data[0].id;
+          setFormData(prev => ({ ...prev, gymId: selectedGymId }));
+        }
       } catch (err) {
         console.error(err);
       }
