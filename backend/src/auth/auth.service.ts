@@ -313,12 +313,18 @@ export class AuthService {
 
     if (user) return user;
 
-    // 2. Try by email (user may have registered before Auth0)
-    const existing = await this.prisma.user.findUnique({
-      where: { email },
+    // 2. Try by email (user may have registered before Auth0) - Case Insensitive
+    const existing = await this.prisma.user.findFirst({
+      where: { 
+        email: {
+          equals: email,
+          mode: 'insensitive'
+        }
+      },
     });
 
     if (existing) {
+      console.log(`Encontrado usuario existente por email (case-insensitive): ${existing.email}. Vinculando a Auth0 ID: ${auth0Id}`);
       // Link the Auth0 ID to the existing account
       user = await this.prisma.user.update({
         where: { id: existing.id },
