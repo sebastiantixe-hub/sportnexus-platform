@@ -4,7 +4,7 @@ import './index.css'
 import App from './App.tsx'
 import { Auth0Provider } from '@auth0/auth0-react'
 
-const domain = "dev-vdhdedydkqqaxog8.us.auth0.com";
+const domain = "dev-vdhdedydkqqaxog0.us.auth0.com";
 const clientId = "gStJSXkE1TCUqjHMIH4L0zLybibRaQ7a";
 const audience = "https://hercix-api";
 
