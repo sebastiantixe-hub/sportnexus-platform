@@ -34,21 +34,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const syncUser = async () => {
+      console.log('Sincronizando con Backend:', { isAuthenticated, auth0Loading, hasUser: !!auth0User });
+      
+      if (auth0Loading) return; // Esperar a que Auth0 termine de inicializarse
+
       if (isAuthenticated && auth0User) {
+        setBackendLoading(true);
         try {
           const token = await getAccessTokenSilently();
+          console.log('Token de Auth0 obtenido con éxito');
           localStorage.setItem('token', token);
           
-          // Sync with our backend
           const { data } = await api.get('/auth/me');
+          console.log('Perfil sincronizado desde Backend:', data.email);
           setUser(data);
-        } catch (error) {
-          console.error('Error syncing user with backend:', error);
+        } catch (error: any) {
+          console.error('Error sincronizando usuario:', error.response?.data || error.message);
+          // Si el error es 401, significa que el backend rechazó el token de Auth0
+          if (error.response?.status === 401) {
+             console.warn('Backend rechazó el token. Verificando configuración...');
+          }
+          setUser(null);
           localStorage.removeItem('token');
         } finally {
           setBackendLoading(false);
         }
-      } else if (!auth0Loading) {
+      } else {
+        // Solo limpiar si no estamos en medio de una carga de Auth0
         setUser(null);
         localStorage.removeItem('token');
         setBackendLoading(false);
