@@ -61,6 +61,7 @@ const MapSearchPage: React.FC = () => {
   const [gymClasses, setGymClasses] = useState<any[]>([]);
   const [loadingClasses, setLoadingClasses] = useState(false);
   const [map, setMap] = useState<L.Map | null>(null);
+  const [mapLayer, setMapLayer] = useState<'dark' | 'satellite'>('dark');
 
   useEffect(() => {
     api.get('/gyms').then(({ data }) => setGyms(data)).catch(console.error).finally(() => setLoading(false));
@@ -177,8 +178,14 @@ const MapSearchPage: React.FC = () => {
             ref={setMap as any}
           >
             <TileLayer 
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" 
+              attribution={mapLayer === 'dark' 
+                ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                : 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EBP, and the GIS User Community'
+              }
+              url={mapLayer === 'dark'
+                ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                : "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              } 
             />
             {filtered.filter(g => g.latitude && g.longitude).map(gym => {
               const sportInfo = SPORT_FILTERS.find(f => f.value !== '' && gym.name.includes(f.value));
@@ -212,6 +219,24 @@ const MapSearchPage: React.FC = () => {
               );
             })}
           </MapContainer>
+
+          {/* Layer Toggle Button */}
+          <button 
+            onClick={() => setMapLayer(l => l === 'dark' ? 'satellite' : 'dark')}
+            className="absolute bottom-6 right-6 z-[400] w-14 h-14 rounded-xl border-2 border-white/20 overflow-hidden shadow-2xl hover:scale-110 active:scale-95 transition-all group"
+          >
+            <div className="absolute inset-0 bg-black/50 group-hover:bg-transparent transition-colors z-10 flex items-center justify-center">
+              <span className="text-[10px] font-bold text-white uppercase tracking-tighter shadow-lg">Capas</span>
+            </div>
+            <img 
+              src={mapLayer === 'dark' 
+                ? "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/15/18525/11252" 
+                : "https://a.basemaps.cartocdn.com/dark_all/15/18525/11252.png"
+              } 
+              alt="Toggle Layer"
+              className="w-full h-full object-cover"
+            />
+          </button>
         </div>
 
         {/* Gym list */}
