@@ -7,7 +7,7 @@ import { AuthGuard } from '@nestjs/passport';
  * Esto permite que el endpoint /auth/me funcione con ambos sistemas.
  */
 @Injectable()
-export class AnyAuthGuard extends AuthGuard(['jwt', 'auth0']) {
+export class AnyAuthGuard extends AuthGuard(['auth0', 'jwt']) {
   handleRequest(err: any, user: any) {
     if (err || !user) {
       throw err || new UnauthorizedException('Token inválido o expirado');
