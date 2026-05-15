@@ -133,7 +133,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
     // ── ADMIN exclusivo ───────────────────────────────────────────
     { to: '/dashboard/users',    icon: Users,           label: 'Cuentas',                 roles: ['ADMIN'] },
-    { to: '/dashboard/tickets',  icon: MessageSquare,   label: 'Soporte / Quejas',         roles: ['ADMIN'] },
+
     { to: '/gyms',               icon: Building2,       label: 'Todos los Negocios',       roles: ['ADMIN'] },
     { to: '/classes',            icon: Calendar,        label: 'Todas las Clases',         roles: ['ADMIN'] },
     { to: '/discovery',          icon: Map,             label: 'Descubrir',                roles: ['ADMIN'] },
