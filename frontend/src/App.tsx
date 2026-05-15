@@ -35,7 +35,7 @@ function App() {
               IMPORTANTE: No usamos <Navigate /> directo en "/" porque borra los parámetros de Auth0 (code/state).
               Dejamos que el componente ProtectedRoute maneje la lógica de hacia dónde ir.
           */}
-          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/" element={<ProtectedRoute><MainLayout><Dashboard /></MainLayout></ProtectedRoute>} />
 
           {/* Protected Routes inside MainLayout */}
           <Route element={<ProtectedRoute />}>
