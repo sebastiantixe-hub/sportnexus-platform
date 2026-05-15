@@ -18,6 +18,25 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
+// Custom Icons with Glow Effect
+const getCustomIcon = (sportLabel: string) => {
+  const emoji = sportLabel.split(' ')[0] || '📍';
+  return L.divIcon({
+    html: `
+      <div class="relative flex items-center justify-center marker-glow">
+        <div class="absolute w-10 h-10 bg-primary/40 rounded-full blur-md animate-pulse"></div>
+        <div class="relative w-8 h-8 bg-slate-900 border-2 border-primary-light rounded-full flex items-center justify-center shadow-2xl transition-transform hover:scale-110">
+          <span class="text-sm">${emoji}</span>
+          <div class="absolute -bottom-1 w-2 h-2 bg-primary-light rotate-45"></div>
+        </div>
+      </div>
+    `,
+    className: 'custom-sport-icon',
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+  });
+};
+
 const SPORT_FILTERS = [
   { label: 'Todos', value: '' },
   { label: '🏋️ Gimnasio', value: 'Gimnasio' },
@@ -40,6 +59,7 @@ const MapSearchPage: React.FC = () => {
   const [selectedGym, setSelectedGym] = useState<any>(null);
   const [gymClasses, setGymClasses] = useState<any[]>([]);
   const [loadingClasses, setLoadingClasses] = useState(false);
+  const [map, setMap] = useState<L.Map | null>(null);
 
   useEffect(() => {
     api.get('/gyms').then(({ data }) => setGyms(data)).catch(console.error).finally(() => setLoading(false));
@@ -51,6 +71,7 @@ const MapSearchPage: React.FC = () => {
     navigator.geolocation.getCurrentPosition(
       async ({ coords: { latitude, longitude } }) => {
         setCenterMap([latitude, longitude]);
+        if (map) map.flyTo([latitude, longitude], 14);
         try { const { data } = await api.get(`/gyms/nearby?lat=${latitude}&lng=${longitude}&radius=10`); setGyms(data); }
         catch { } finally { setLoading(false); }
       },
@@ -88,6 +109,9 @@ const MapSearchPage: React.FC = () => {
 
   const handleSelectGym = async (gym: any) => {
     setSelectedGym(gym);
+    if (map && gym.latitude && gym.longitude) {
+      map.flyTo([gym.latitude, gym.longitude], 15);
+    }
     setLoadingClasses(true);
     try {
       const { data } = await api.get(`/classes?gymId=${gym.id}`);
@@ -143,11 +167,34 @@ const MapSearchPage: React.FC = () => {
       <div className="flex-grow flex gap-4 relative overflow-hidden">
         {/* Map */}
         <div className="w-2/3 bg-slate-800/50 rounded-2xl border border-white/10 relative overflow-hidden hidden lg:block z-0">
-          <MapContainer key={centerMap.join(',')} center={centerMap} zoom={13} style={{ width: '100%', height: '100%' }} className="z-0">
-            <TileLayer attribution='&copy; OpenStreetMap' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <MapContainer 
+            key={centerMap.join(',')} 
+            center={centerMap} 
+            zoom={13} 
+            style={{ width: '100%', height: '100%' }} 
+            className="z-0"
+            ref={setMap as any}
+          >
+            <TileLayer 
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" 
+            />
             {filtered.filter(g => g.latitude && g.longitude).map(gym => (
-              <Marker key={gym.id} position={[gym.latitude, gym.longitude]}>
-                <Popup><strong>{gym.name}</strong><br />{gym.address}</Popup>
+              <Marker 
+                key={gym.id} 
+                position={[gym.latitude, gym.longitude]}
+                icon={getCustomIcon(SPORT_FILTERS.find(f => gym.name.includes(f.value))?.label || '📍')}
+                eventHandlers={{
+                  click: () => handleSelectGym(gym)
+                }}
+              >
+                <Popup className="custom-popup">
+                  <div className="p-1">
+                    <strong className="text-slate-900 block border-b mb-1">{gym.name}</strong>
+                    <p className="text-slate-600 text-[10px] leading-tight">{gym.address}</p>
+                    <button onClick={() => handleSelectGym(gym)} className="mt-2 text-primary-light font-bold text-[10px] uppercase tracking-wider">Ver Detalles →</button>
+                  </div>
+                </Popup>
               </Marker>
             ))}
           </MapContainer>
