@@ -77,10 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     syncUser();
   }, [isAuthenticated, auth0User, getAccessTokenSilently, auth0Loading]);
 
-  const login = () => {
-    console.log('Contexto: Llamando a loginWithRedirect de Auth0');
-    loginWithRedirect();
-  };
+  const login = () => loginWithRedirect();
   
   const logout = () => {
     localStorage.removeItem('token');

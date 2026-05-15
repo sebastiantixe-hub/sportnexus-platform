@@ -35,10 +35,7 @@ const LoginPage: React.FC = () => {
         </div>
 
         <button
-          onClick={() => {
-            console.log('Haciendo clic en el botón de Auth0...');
-            login();
-          }}
+          onClick={() => login()}
           disabled={loading}
           className="btn-primary w-full py-4 flex items-center justify-center gap-3 group relative overflow-hidden active:scale-[0.98] text-lg shadow-xl shadow-primary/20"
         >
