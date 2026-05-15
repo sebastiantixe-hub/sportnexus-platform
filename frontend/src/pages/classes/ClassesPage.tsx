@@ -137,6 +137,7 @@ const ClassCard: React.FC<{
 
 const ClassesPage: React.FC = () => {
   const [classes, setClasses] = useState<any[]>([]);
+  const [search, setSearch] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingClass, setEditingClass] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -209,6 +210,21 @@ const ClassesPage: React.FC = () => {
     setAttendanceClass(classItem);
   };
 
+  const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+  const filteredClasses = classes.filter(c => {
+    if (!search) return true;
+    const s = normalize(search);
+    const fields = [
+      c.title,
+      c.description,
+      c.gym?.name,
+      c.trainer?.user?.name,
+      c.discipline
+    ];
+    return fields.some(f => normalize(f || '').includes(s));
+  });
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -272,6 +288,8 @@ const ClassesPage: React.FC = () => {
             type="text"
             className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-primary-light outline-none transition-all"
             placeholder="Buscar por clase, disciplina o profesor..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
         <button className="bg-white/5 border border-white/10 rounded-xl px-6 py-3 text-white flex items-center gap-2 hover:bg-white/10 transition-all">
@@ -284,9 +302,9 @@ const ClassesPage: React.FC = () => {
         <div className="flex h-64 items-center justify-center">
           <Loader2 className="text-primary w-12 h-12 animate-spin" />
         </div>
-      ) : classes.length > 0 ? (
+      ) : filteredClasses.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {classes.map(c => (
+          {filteredClasses.map(c => (
             <ClassCard 
               key={c.id} 
               classItem={c} 
