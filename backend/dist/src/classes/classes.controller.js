@@ -48,6 +48,12 @@ let ClassesController = class ClassesController {
     markAttendance(reservationId, user) {
         return this.classesService.markAttendance(reservationId, user.id);
     }
+    unmarkAttendance(reservationId, user) {
+        return this.classesService.unmarkAttendance(reservationId, user.id);
+    }
+    removeReservation(reservationId, user) {
+        return this.classesService.removeReservation(reservationId, user.id);
+    }
     update(id, user, updateClassDto) {
         return this.classesService.update(id, user.id, updateClassDto);
     }
@@ -127,6 +133,30 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], ClassesController.prototype, "markAttendance", null);
+__decorate([
+    (0, common_1.Patch)('reservations/:id/unattend'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.GYM_OWNER, client_1.UserRole.TRAINER, client_1.UserRole.ADMIN),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Desmarcar asistencia' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], ClassesController.prototype, "unmarkAttendance", null);
+__decorate([
+    (0, common_1.Delete)('reservations/:id'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.GYM_OWNER, client_1.UserRole.TRAINER, client_1.UserRole.ADMIN),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Eliminar una reserva de la lista' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], ClassesController.prototype, "removeReservation", null);
 __decorate([
     (0, common_1.Patch)(':id'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),

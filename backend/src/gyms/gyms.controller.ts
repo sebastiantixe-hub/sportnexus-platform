@@ -21,6 +21,7 @@ import {
   ApiOperation,
   ApiBearerAuth,
   ApiResponse,
+  ApiQuery,
 } from '@nestjs/swagger';
 
 @ApiTags('gyms')

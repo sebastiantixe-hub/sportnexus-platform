@@ -11,17 +11,22 @@ export declare class GymsController {
         phone: string | null;
         updatedAt: Date;
         description: string | null;
+        ownerId: string;
         address: string | null;
         city: string | null;
+        district: string | null;
+        province: string | null;
         country: string | null;
         latitude: number | null;
         longitude: number | null;
         logoUrl: string | null;
         website: string | null;
+        openTime: string | null;
+        closeTime: string | null;
+        openDays: string | null;
         status: import("@prisma/client").$Enums.GymStatus;
-        ownerId: string;
     }>;
-    findAll(): Promise<({
+    findAll(ownerId?: string): Promise<({
         owner: {
             id: string;
             name: string;
@@ -36,15 +41,20 @@ export declare class GymsController {
         phone: string | null;
         updatedAt: Date;
         description: string | null;
+        ownerId: string;
         address: string | null;
         city: string | null;
+        district: string | null;
+        province: string | null;
         country: string | null;
         latitude: number | null;
         longitude: number | null;
         logoUrl: string | null;
         website: string | null;
+        openTime: string | null;
+        closeTime: string | null;
+        openDays: string | null;
         status: import("@prisma/client").$Enums.GymStatus;
-        ownerId: string;
     })[]>;
     findNearby(lat: string, lng: string, radius?: string): Promise<({
         owner: {
@@ -61,15 +71,20 @@ export declare class GymsController {
         phone: string | null;
         updatedAt: Date;
         description: string | null;
+        ownerId: string;
         address: string | null;
         city: string | null;
+        district: string | null;
+        province: string | null;
         country: string | null;
         latitude: number | null;
         longitude: number | null;
         logoUrl: string | null;
         website: string | null;
+        openTime: string | null;
+        closeTime: string | null;
+        openDays: string | null;
         status: import("@prisma/client").$Enums.GymStatus;
-        ownerId: string;
     })[]>;
     findOne(id: string): Promise<{
         gymTrainers: ({
@@ -105,8 +120,8 @@ export declare class GymsController {
             isActive: boolean;
             updatedAt: Date;
             description: string | null;
-            gymId: string;
             price: import("@prisma/client/runtime/library").Decimal;
+            gymId: string;
             durationDays: number;
             maxClasses: number | null;
             includesMarketplace: boolean;
@@ -119,15 +134,20 @@ export declare class GymsController {
         phone: string | null;
         updatedAt: Date;
         description: string | null;
+        ownerId: string;
         address: string | null;
         city: string | null;
+        district: string | null;
+        province: string | null;
         country: string | null;
         latitude: number | null;
         longitude: number | null;
         logoUrl: string | null;
         website: string | null;
+        openTime: string | null;
+        closeTime: string | null;
+        openDays: string | null;
         status: import("@prisma/client").$Enums.GymStatus;
-        ownerId: string;
     }>;
     findMembers(id: string): Promise<{
         id: string;
@@ -144,15 +164,20 @@ export declare class GymsController {
         phone: string | null;
         updatedAt: Date;
         description: string | null;
+        ownerId: string;
         address: string | null;
         city: string | null;
+        district: string | null;
+        province: string | null;
         country: string | null;
         latitude: number | null;
         longitude: number | null;
         logoUrl: string | null;
         website: string | null;
+        openTime: string | null;
+        closeTime: string | null;
+        openDays: string | null;
         status: import("@prisma/client").$Enums.GymStatus;
-        ownerId: string;
     }>;
     remove(id: string, user: any): Promise<{
         id: string;
@@ -162,14 +187,19 @@ export declare class GymsController {
         phone: string | null;
         updatedAt: Date;
         description: string | null;
+        ownerId: string;
         address: string | null;
         city: string | null;
+        district: string | null;
+        province: string | null;
         country: string | null;
         latitude: number | null;
         longitude: number | null;
         logoUrl: string | null;
         website: string | null;
+        openTime: string | null;
+        closeTime: string | null;
+        openDays: string | null;
         status: import("@prisma/client").$Enums.GymStatus;
-        ownerId: string;
     }>;
 }

@@ -30,8 +30,8 @@ let GymsController = class GymsController {
     create(user, createGymDto) {
         return this.gymsService.create(user.id, createGymDto);
     }
-    findAll() {
-        return this.gymsService.findAll();
+    findAll(ownerId) {
+        return this.gymsService.findAll(ownerId);
     }
     findNearby(lat, lng, radius = '5') {
         return this.gymsService.findNearby(Number(lat), Number(lng), Number(radius));
@@ -68,8 +68,10 @@ __decorate([
 __decorate([
     (0, common_1.Get)(),
     (0, swagger_1.ApiOperation)({ summary: 'Obtener lista de gimnasios activos' }),
+    (0, swagger_1.ApiQuery)({ name: 'ownerId', required: false }),
+    __param(0, (0, common_1.Query)('ownerId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], GymsController.prototype, "findAll", null);
 __decorate([

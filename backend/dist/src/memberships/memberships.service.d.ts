@@ -10,8 +10,8 @@ export declare class MembershipsService {
         isActive: boolean;
         updatedAt: Date;
         description: string | null;
-        gymId: string;
         price: import("@prisma/client/runtime/library").Decimal;
+        gymId: string;
         durationDays: number;
         maxClasses: number | null;
         includesMarketplace: boolean;
@@ -27,8 +27,8 @@ export declare class MembershipsService {
         isActive: boolean;
         updatedAt: Date;
         description: string | null;
-        gymId: string;
         price: import("@prisma/client/runtime/library").Decimal;
+        gymId: string;
         durationDays: number;
         maxClasses: number | null;
         includesMarketplace: boolean;
@@ -41,8 +41,8 @@ export declare class MembershipsService {
             isActive: boolean;
             updatedAt: Date;
             description: string | null;
-            gymId: string;
             price: import("@prisma/client/runtime/library").Decimal;
+            gymId: string;
             durationDays: number;
             maxClasses: number | null;
             includesMarketplace: boolean;
@@ -69,8 +69,8 @@ export declare class MembershipsService {
             isActive: boolean;
             updatedAt: Date;
             description: string | null;
-            gymId: string;
             price: import("@prisma/client/runtime/library").Decimal;
+            gymId: string;
             durationDays: number;
             maxClasses: number | null;
             includesMarketplace: boolean;

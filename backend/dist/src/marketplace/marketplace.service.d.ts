@@ -10,8 +10,8 @@ export declare class MarketplaceService {
         isActive: boolean;
         updatedAt: Date;
         description: string | null;
-        gymId: string;
         price: import("@prisma/client/runtime/library").Decimal;
+        gymId: string;
         stock: number;
         category: string | null;
         imageUrl: string | null;
@@ -29,8 +29,8 @@ export declare class MarketplaceService {
         isActive: boolean;
         updatedAt: Date;
         description: string | null;
-        gymId: string;
         price: import("@prisma/client/runtime/library").Decimal;
+        gymId: string;
         stock: number;
         category: string | null;
         imageUrl: string | null;
@@ -42,8 +42,8 @@ export declare class MarketplaceService {
         isActive: boolean;
         updatedAt: Date;
         description: string | null;
-        gymId: string;
         price: import("@prisma/client/runtime/library").Decimal;
+        gymId: string;
         stock: number;
         category: string | null;
         imageUrl: string | null;
@@ -55,8 +55,8 @@ export declare class MarketplaceService {
         isActive: boolean;
         updatedAt: Date;
         description: string | null;
-        gymId: string;
         price: import("@prisma/client/runtime/library").Decimal;
+        gymId: string;
         stock: number;
         category: string | null;
         imageUrl: string | null;
@@ -70,8 +70,8 @@ export declare class MarketplaceService {
                 isActive: boolean;
                 updatedAt: Date;
                 description: string | null;
-                gymId: string;
                 price: import("@prisma/client/runtime/library").Decimal;
+                gymId: string;
                 stock: number;
                 category: string | null;
                 imageUrl: string | null;
@@ -106,8 +106,8 @@ export declare class MarketplaceService {
                 isActive: boolean;
                 updatedAt: Date;
                 description: string | null;
-                gymId: string;
                 price: import("@prisma/client/runtime/library").Decimal;
+                gymId: string;
                 stock: number;
                 category: string | null;
                 imageUrl: string | null;

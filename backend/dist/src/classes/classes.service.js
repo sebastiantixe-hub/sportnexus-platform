@@ -189,6 +189,27 @@ let ClassesService = class ClassesService {
             data: { status: client_1.ReservationStatus.ATTENDED },
         });
     }
+    async unmarkAttendance(reservationId, currentUserId) {
+        const reservation = await this.prisma.reservation.findUnique({
+            where: { id: reservationId },
+        });
+        if (!reservation)
+            throw new common_1.NotFoundException('Reserva no encontrada');
+        return this.prisma.reservation.update({
+            where: { id: reservationId },
+            data: { status: client_1.ReservationStatus.CONFIRMED },
+        });
+    }
+    async removeReservation(reservationId, currentUserId) {
+        const reservation = await this.prisma.reservation.findUnique({
+            where: { id: reservationId },
+        });
+        if (!reservation)
+            throw new common_1.NotFoundException('Reserva no encontrada');
+        return this.prisma.reservation.delete({
+            where: { id: reservationId },
+        });
+    }
     async update(id, currentUserId, dto) {
         const classItem = await this.findOne(id);
         if (classItem.gym.ownerId !== currentUserId) {

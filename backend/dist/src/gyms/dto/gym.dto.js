@@ -17,10 +17,15 @@ class CreateGymDto {
     description;
     address;
     city;
+    district;
+    province;
     country;
     phone;
     email;
     website;
+    openTime;
+    closeTime;
+    openDays;
 }
 exports.CreateGymDto = CreateGymDto;
 __decorate([
@@ -47,6 +52,16 @@ __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
+], CreateGymDto.prototype, "district", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateGymDto.prototype, "province", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
 ], CreateGymDto.prototype, "country", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
@@ -63,15 +78,35 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], CreateGymDto.prototype, "website", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateGymDto.prototype, "openTime", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateGymDto.prototype, "closeTime", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateGymDto.prototype, "openDays", void 0);
 class UpdateGymDto {
     name;
     description;
     address;
     city;
+    district;
+    province;
     country;
     phone;
     email;
     website;
+    openTime;
+    closeTime;
+    openDays;
     status;
 }
 exports.UpdateGymDto = UpdateGymDto;
@@ -100,6 +135,16 @@ __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
+], UpdateGymDto.prototype, "district", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], UpdateGymDto.prototype, "province", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
 ], UpdateGymDto.prototype, "country", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
@@ -116,6 +161,21 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], UpdateGymDto.prototype, "website", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], UpdateGymDto.prototype, "openTime", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], UpdateGymDto.prototype, "closeTime", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], UpdateGymDto.prototype, "openDays", void 0);
 __decorate([
     (0, class_validator_1.IsEnum)(client_1.GymStatus),
     (0, class_validator_1.IsOptional)(),

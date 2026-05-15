@@ -8,12 +8,12 @@ export declare class EventsService {
         date: Date;
         createdAt: Date;
         isActive: boolean;
-        description: string | null;
         title: string;
-        capacity: number | null;
+        description: string | null;
+        eventType: import("@prisma/client").$Enums.EventType;
         price: import("@prisma/client/runtime/library").Decimal;
         location: string | null;
-        eventType: import("@prisma/client").$Enums.EventType;
+        capacity: number | null;
         organizerId: string;
     }>;
     findAll(): Promise<({
@@ -27,12 +27,12 @@ export declare class EventsService {
         date: Date;
         createdAt: Date;
         isActive: boolean;
-        description: string | null;
         title: string;
-        capacity: number | null;
+        description: string | null;
+        eventType: import("@prisma/client").$Enums.EventType;
         price: import("@prisma/client/runtime/library").Decimal;
         location: string | null;
-        eventType: import("@prisma/client").$Enums.EventType;
+        capacity: number | null;
         organizerId: string;
     })[]>;
     findOne(id: string): Promise<{
@@ -46,12 +46,12 @@ export declare class EventsService {
         date: Date;
         createdAt: Date;
         isActive: boolean;
-        description: string | null;
         title: string;
-        capacity: number | null;
+        description: string | null;
+        eventType: import("@prisma/client").$Enums.EventType;
         price: import("@prisma/client/runtime/library").Decimal;
         location: string | null;
-        eventType: import("@prisma/client").$Enums.EventType;
+        capacity: number | null;
         organizerId: string;
     }>;
     update(id: string, currentUserId: string, updateDto: UpdateEventDto, isAdmin: boolean): Promise<{
@@ -59,12 +59,12 @@ export declare class EventsService {
         date: Date;
         createdAt: Date;
         isActive: boolean;
-        description: string | null;
         title: string;
-        capacity: number | null;
+        description: string | null;
+        eventType: import("@prisma/client").$Enums.EventType;
         price: import("@prisma/client/runtime/library").Decimal;
         location: string | null;
-        eventType: import("@prisma/client").$Enums.EventType;
+        capacity: number | null;
         organizerId: string;
     }>;
     remove(id: string): Promise<{
@@ -72,12 +72,12 @@ export declare class EventsService {
         date: Date;
         createdAt: Date;
         isActive: boolean;
-        description: string | null;
         title: string;
-        capacity: number | null;
+        description: string | null;
+        eventType: import("@prisma/client").$Enums.EventType;
         price: import("@prisma/client/runtime/library").Decimal;
         location: string | null;
-        eventType: import("@prisma/client").$Enums.EventType;
+        capacity: number | null;
         organizerId: string;
     }>;
 }

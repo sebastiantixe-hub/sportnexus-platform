@@ -26,9 +26,12 @@ let GymsService = class GymsService {
             },
         });
     }
-    async findAll() {
+    async findAll(ownerId) {
+        const where = { status: client_1.GymStatus.ACTIVE };
+        if (ownerId)
+            where.ownerId = ownerId;
         return this.prisma.gym.findMany({
-            where: { status: client_1.GymStatus.ACTIVE },
+            where,
             include: {
                 owner: {
                     select: {
