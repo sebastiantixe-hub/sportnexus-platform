@@ -15,6 +15,9 @@ import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AnyAuthGuard } from './guards/any-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
+import { Roles } from './decorators/roles.decorator';
+import { RolesGuard } from './guards/roles.guard';
+import { UserRole } from '@prisma/client';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -69,6 +72,18 @@ export class AuthController {
   @UseGuards(AnyAuthGuard)
   getDashboardStats(@CurrentUser() user: any) {
     return this.authService.getDashboardStats(user.id, user.role);
+  }
+
+  @ApiOperation({ summary: 'Invite a new gym owner or coach' })
+  @ApiBearerAuth()
+  @Post('invite')
+  @UseGuards(AnyAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.GYM_OWNER)
+  invite(
+    @CurrentUser() user: { id: string; role: UserRole },
+    @Body() dto: { email: string; role: UserRole; gymId?: string },
+  ) {
+    return this.authService.inviteUser(user, dto.email, dto.role, dto.gymId);
   }
 }
 

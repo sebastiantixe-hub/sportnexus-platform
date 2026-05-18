@@ -661,3 +661,25 @@ enum HealthMetricType {
   DISTANCE
 }
 
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+}
+
+model Invitation {
+  id          String           @id @default(uuid())
+  email       String           @unique @db.VarChar(255)
+  role        UserRole
+  gymId       String?          @map("gym_id")
+  token       String           @unique @db.VarChar(255)
+  status      InvitationStatus @default(PENDING)
+  invitedById String           @map("invited_by_id")
+  expiresAt   DateTime         @map("expires_at")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  @@map("invitations")
+}
+
+

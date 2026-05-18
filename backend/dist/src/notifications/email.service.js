@@ -103,6 +103,23 @@ let EmailService = EmailService_1 = class EmailService {
     `;
         await this.send(to, '¡Bienvenido a SportNexus! 🚀', content, '¡Tu cuenta está lista!');
     }
+    async sendInvitation(to, role, invitationLink) {
+        const content = `
+      <h2 style="margin:0 0 8px;color:#fff;font-size:24px;">¡Has sido invitado a Hercix Health! ⚡</h2>
+      <p style="margin:0 0 24px;color:#a0aec0;font-size:15px;line-height:1.6;">
+        Un administrador o dueño de negocio te ha invitado a unirte a la plataforma con el rol de <strong>${role}</strong>.
+      </p>
+      <div style="margin-top:32px;text-align:center;">
+        <a href="${invitationLink}" style="background:linear-gradient(135deg,#e11d48,#f43f5e);color:#fff;text-decoration:none;padding:14px 36px;border-radius:8px;font-size:15px;font-weight:700;display:inline-block;">
+          Aceptar Invitación y Registrarse →
+        </a>
+      </div>
+      <p style="margin:24px 0 0;color:#6b7280;font-size:12px;text-align:center;">
+        Este enlace es de un solo uso y vencerá automáticamente en un periodo de 7 días.
+      </p>
+    `;
+        await this.send(to, 'Invitación especial a Hercix Health ⚡', content, 'Has sido invitado a Hercix Health');
+    }
     async sendBookingConfirmation(to, data) {
         const dateStr = data.date.toLocaleDateString('es-CO', {
             weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',

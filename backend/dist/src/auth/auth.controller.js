@@ -20,6 +20,9 @@ const register_dto_1 = require("./dto/register.dto");
 const login_dto_1 = require("./dto/login.dto");
 const any_auth_guard_1 = require("./guards/any-auth.guard");
 const current_user_decorator_1 = require("./decorators/current-user.decorator");
+const roles_decorator_1 = require("./decorators/roles.decorator");
+const roles_guard_1 = require("./guards/roles.guard");
+const client_1 = require("@prisma/client");
 let AuthController = class AuthController {
     authService;
     constructor(authService) {
@@ -45,6 +48,9 @@ let AuthController = class AuthController {
     }
     getDashboardStats(user) {
         return this.authService.getDashboardStats(user.id, user.role);
+    }
+    invite(user, dto) {
+        return this.authService.inviteUser(user, dto.email, dto.role, dto.gymId);
     }
 };
 exports.AuthController = AuthController;
@@ -105,6 +111,18 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "getDashboardStats", null);
+__decorate([
+    (0, swagger_1.ApiOperation)({ summary: 'Invite a new gym owner or coach' }),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.Post)('invite'),
+    (0, common_1.UseGuards)(any_auth_guard_1.AnyAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.GYM_OWNER),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "invite", null);
 exports.AuthController = AuthController = __decorate([
     (0, swagger_1.ApiTags)('Authentication'),
     (0, common_1.Controller)('auth'),

@@ -16,10 +16,10 @@ export declare class AuthService {
         refreshToken: string;
         user: {
             id: string;
+            createdAt: Date;
             name: string;
             email: string;
             role: import("@prisma/client").$Enums.UserRole;
-            createdAt: Date;
         };
     }>;
     login(dto: LoginDto): Promise<{
@@ -27,8 +27,9 @@ export declare class AuthService {
         refreshToken: string;
         user: {
             id: string;
-            auth0Id: string | null;
+            createdAt: Date;
             name: string;
+            auth0Id: string | null;
             email: string;
             role: import("@prisma/client").$Enums.UserRole;
             phone: string | null;
@@ -36,7 +37,6 @@ export declare class AuthService {
             avatarUrl: string | null;
             isActive: boolean;
             emailVerified: boolean;
-            createdAt: Date;
             updatedAt: Date;
             weight: number | null;
         };
@@ -46,8 +46,9 @@ export declare class AuthService {
         refreshToken: string;
         user: {
             id: string;
-            auth0Id: string | null;
+            createdAt: Date;
             name: string;
+            auth0Id: string | null;
             email: string;
             role: import("@prisma/client").$Enums.UserRole;
             phone: string | null;
@@ -55,13 +56,13 @@ export declare class AuthService {
             avatarUrl: string | null;
             isActive: boolean;
             emailVerified: boolean;
-            createdAt: Date;
             updatedAt: Date;
             weight: number | null;
         };
     }>;
     getMe(userId: string): Promise<{
         id: string;
+        createdAt: Date;
         name: string;
         email: string;
         role: import("@prisma/client").$Enums.UserRole;
@@ -70,7 +71,6 @@ export declare class AuthService {
         avatarUrl: string | null;
         isActive: boolean;
         emailVerified: boolean;
-        createdAt: Date;
     } | null>;
     updateProfile(userId: string, data: {
         name: string;
@@ -134,7 +134,6 @@ export declare class AuthService {
         email: string;
         name: string;
         avatarUrl?: string;
-        role?: UserRole;
     }): Promise<{
         id: string;
         name: string;
@@ -144,4 +143,12 @@ export declare class AuthService {
         isActive: boolean;
     }>;
     private generateTokens;
+    inviteUser(invitedBy: {
+        id: string;
+        role: UserRole;
+    }, email: string, role: UserRole, gymId?: string): Promise<{
+        message: string;
+        invitationId: string;
+        expiresAt: Date;
+    }>;
 }

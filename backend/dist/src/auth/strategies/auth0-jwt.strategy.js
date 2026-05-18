@@ -43,26 +43,11 @@ let Auth0JwtStrategy = class Auth0JwtStrategy extends (0, passport_1.PassportStr
         if (!sub) {
             throw new common_1.UnauthorizedException('Token inválido: falta sub');
         }
-        const customRoles = payload['https://hercix.com/roles'] || payload['roles'] || [];
-        let assignedRole = undefined;
-        if (customRoles.includes('ADMIN') || customRoles.includes('Super Admin') || customRoles.includes('admin')) {
-            assignedRole = 'ADMIN';
-        }
-        else if (customRoles.includes('GYM_OWNER') || customRoles.includes('Owners') || customRoles.includes('owner')) {
-            assignedRole = 'GYM_OWNER';
-        }
-        else if (customRoles.includes('TRAINER') || customRoles.includes('Coaches') || customRoles.includes('trainer')) {
-            assignedRole = 'TRAINER';
-        }
-        else if (customRoles.includes('USER') || customRoles.includes('Atletas') || customRoles.includes('user')) {
-            assignedRole = 'USER';
-        }
         const user = await this.authService.findOrCreateAuth0User({
             auth0Id: sub,
             email: email ?? `${sub}@auth0.user`,
             name: name ?? 'Usuario',
             avatarUrl: picture,
-            role: assignedRole,
         });
         if (!user || !user.isActive) {
             throw new common_1.UnauthorizedException('Usuario inactivo o no encontrado');

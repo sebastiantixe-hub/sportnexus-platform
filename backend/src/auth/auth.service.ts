@@ -324,9 +324,8 @@ export class AuthService {
     email: string;
     name: string;
     avatarUrl?: string;
-    role?: UserRole;
   }) {
-    const { auth0Id, email, name, avatarUrl, role } = params;
+    const { auth0Id, email, name, avatarUrl } = params;
 
     // 1. Try by auth0Id (fastest path after first login)
     let user = await this.prisma.user.findUnique({
@@ -335,18 +334,10 @@ export class AuthService {
     });
 
     if (user) {
-      // If a role was sent from Auth0 JWT and it differs, synchronize it!
-      if (role && user.role !== role) {
-        user = await this.prisma.user.update({
-          where: { id: user.id },
-          data: { role },
-          select: { id: true, name: true, email: true, role: true, isActive: true, avatarUrl: true },
-        });
-      }
       return user;
     }
 
-    // 2. Try by email (user may have registered before Auth0) - Case Insensitive
+    // 2. Try by email (user may have registered before Auth0 or pre-seeded/invited)
     const existing = await this.prisma.user.findFirst({
       where: { 
         email: {
@@ -358,36 +349,85 @@ export class AuthService {
 
     if (existing) {
       console.log(`Encontrado usuario existente por email (case-insensitive): ${existing.email}. Vinculando a Auth0 ID: ${auth0Id}`);
-      // Link the Auth0 ID and optionally update role if passed
       user = await this.prisma.user.update({
         where: { id: existing.id },
         data: { 
           auth0Id, 
           avatarUrl: avatarUrl ?? existing.avatarUrl,
-          ...(role ? { role } : {}),
         },
         select: { id: true, name: true, email: true, role: true, isActive: true, avatarUrl: true },
       });
       return user;
     }
 
-    // 3. Create brand-new user
-    user = await this.prisma.user.create({
+    // 3. New User Flow: Check if there's a pending invitation
+    const invitation = await this.prisma.invitation.findFirst({
+      where: {
+        email: {
+          equals: email,
+          mode: 'insensitive'
+        },
+        status: 'PENDING',
+        expiresAt: { gt: new Date() }
+      }
+    });
+
+    let assignedRole: UserRole = UserRole.USER;
+    let gymIdToLink: string | null = null;
+
+    if (invitation) {
+      console.log(`Invitación encontrada para ${email}. Asignando rol: ${invitation.role}`);
+      assignedRole = invitation.role;
+      gymIdToLink = invitation.gymId;
+    } else {
+      console.log(`No hay invitación para ${email}. Creando atleta público (USER)`);
+    }
+
+    // Create the user in PostgreSQL
+    const newUser = await this.prisma.user.create({
       data: {
         auth0Id,
-        email,
+        email: email.toLowerCase(),
         name,
         avatarUrl,
-        role: role || UserRole.USER,
+        role: assignedRole,
         emailVerified: true,
       },
       select: { id: true, name: true, email: true, role: true, isActive: true, avatarUrl: true },
     });
 
+    // If invitation was accepted, handle updates
+    if (invitation) {
+      await this.prisma.invitation.update({
+        where: { id: invitation.id },
+        data: { status: 'ACCEPTED' }
+      });
+
+      // SaaS flow: If invited as a Trainer and gymId is present, create trainer profile and link
+      if (assignedRole === UserRole.TRAINER && gymIdToLink) {
+        const trainerProf = await this.prisma.trainerProfile.create({
+          data: {
+            userId: newUser.id,
+            bio: 'Entrenador invitado',
+            experienceYears: 1
+          }
+        });
+
+        await this.prisma.gymTrainer.create({
+          data: {
+            gymId: gymIdToLink,
+            trainerId: trainerProf.id,
+            canCreateClasses: true
+          }
+        });
+        console.log(`TrainerProfile creado y vinculado al gimnasio ${gymIdToLink}`);
+      }
+    }
+
     // Send welcome email to new Auth0 users (non-blocking)
     this.emailService.sendWelcome(email, name).catch(() => {});
 
-    return user;
+    return newUser;
   }
 
   // ── Token helpers ─────────────────────────────────────────────────────────
@@ -416,5 +456,54 @@ export class AuthService {
     });
 
     return { accessToken, refreshToken };
+  }
+
+  // ── Invitation Flow ──────────────────────────────────────────────────────
+
+  async inviteUser(invitedBy: { id: string; role: UserRole }, email: string, role: UserRole, gymId?: string) {
+    // 1. Validate that only ADMIN can invite other ADMINs or GYM_OWNERs
+    if (role === UserRole.ADMIN || role === UserRole.GYM_OWNER) {
+      if (invitedBy.role !== UserRole.ADMIN) {
+        throw new UnauthorizedException('Solo los administradores de Hercix pueden invitar a dueños de gimnasios.');
+      }
+    }
+
+    // 2. Prevent duplicate active invitations or existing users
+    const userExists = await this.prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
+    if (userExists) {
+      throw new ConflictException('Este correo electrónico ya está registrado como usuario activo.');
+    }
+
+    // Delete any old pending invitation for this email
+    await this.prisma.invitation.deleteMany({
+      where: { email: email.toLowerCase() },
+    });
+
+    const token = require('crypto').randomBytes(32).toString('hex');
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days validity
+
+    const invitation = await this.prisma.invitation.create({
+      data: {
+        email: email.toLowerCase(),
+        role,
+        gymId,
+        token,
+        invitedById: invitedBy.id,
+        expiresAt,
+      },
+    });
+
+    // Send invitation email using EmailService
+    const invitationLink = `http://localhost:5173/login?inviteToken=${token}&email=${encodeURIComponent(email)}`;
+    await this.emailService.sendInvitation(email.toLowerCase(), role, invitationLink).catch(() => {});
+
+    return {
+      message: 'Invitación creada y enviada con éxito',
+      invitationId: invitation.id,
+      expiresAt: invitation.expiresAt,
+    };
   }
 }

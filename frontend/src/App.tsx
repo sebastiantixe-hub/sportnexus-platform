@@ -31,15 +31,20 @@ function App() {
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          
           {/* 
-              IMPORTANTE: No usamos <Navigate /> directo en "/" porque borra los parámetros de Auth0 (code/state).
-              Dejamos que el componente ProtectedRoute maneje la lógica de hacia dónde ir.
+              Página de inicio que redirige automáticamente al dashboard según rol
           */}
           <Route path="/" element={<ProtectedRoute><MainLayout><Dashboard /></MainLayout></ProtectedRoute>} />
 
+          {/* Rutas con Protección de Rol estricta */}
+          <Route path="/super-admin" element={<ProtectedRoute allowedRoles={['ADMIN']}><MainLayout><Dashboard /></MainLayout></ProtectedRoute>} />
+          <Route path="/owner-dashboard" element={<ProtectedRoute allowedRoles={['GYM_OWNER']}><MainLayout><Dashboard /></MainLayout></ProtectedRoute>} />
+          <Route path="/coach-dashboard" element={<ProtectedRoute allowedRoles={['TRAINER']}><MainLayout><Dashboard /></MainLayout></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['USER']}><MainLayout><Dashboard /></MainLayout></ProtectedRoute>} />
+
           {/* Protected Routes inside MainLayout */}
           <Route element={<ProtectedRoute />}>
-            <Route element={<MainLayout><Dashboard /></MainLayout>} path="/dashboard" />
             <Route element={<MainLayout><AnalyticsView /></MainLayout>} path="/dashboard/analytics" />
             <Route element={<MainLayout><PlatformOverviewView /></MainLayout>} path="/dashboard/platform-overview" />
             <Route element={<MainLayout><CRMView /></MainLayout>} path="/dashboard/crm" />

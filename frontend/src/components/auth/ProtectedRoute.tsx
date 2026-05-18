@@ -23,7 +23,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles, children 
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/dashboard" replace />;
+    // Redirect unauthorized users dynamically to their correct dashboard path
+    let correctPath = '/dashboard';
+    if (user.role === 'ADMIN') correctPath = '/super-admin';
+    else if (user.role === 'GYM_OWNER') correctPath = '/owner-dashboard';
+    else if (user.role === 'TRAINER') correctPath = '/coach-dashboard';
+    
+    return <Navigate to={correctPath} replace />;
   }
 
   return children ? <>{children}</> : <Outlet />;

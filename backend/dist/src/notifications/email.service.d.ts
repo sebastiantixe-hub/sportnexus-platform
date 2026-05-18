@@ -6,6 +6,7 @@ export declare class EmailService {
     constructor();
     private baseTemplate;
     sendWelcome(to: string, name: string): Promise<void>;
+    sendInvitation(to: string, role: string, invitationLink: string): Promise<void>;
     sendBookingConfirmation(to: string, data: {
         userName: string;
         className: string;
