@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/auth-context';
-import { Loader2, ShieldCheck, User, Phone, FileText, Sparkles, Dumbbell, Users } from 'lucide-react';
+import { Loader2, ShieldCheck, User, Phone, FileText, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
@@ -15,7 +15,6 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
     name: user?.name || '',
     phone: user?.phone || '',
     dni: user?.dni || '',
-    role: 'USER',
   });
 
   const [loading, setLoading] = useState(false);
@@ -129,38 +128,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                 />
               </div>
 
-              {/* Rol Selector Grid */}
-              <div className="space-y-3">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-primary-light" /> Selecciona tu Rol en la Plataforma
-                </label>
-                <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { value: 'USER', label: 'Atleta', icon: User, desc: 'Entrenar y reservar' },
-                    { value: 'GYM_OWNER', label: 'Dueño', icon: Dumbbell, desc: 'Gestionar locales' },
-                    { value: 'TRAINER', label: 'Coach', icon: Users, desc: 'Dar clases' },
-                  ].map((roleOpt) => {
-                    const IconComp = roleOpt.icon;
-                    const isSelected = formData.role === roleOpt.value;
-                    return (
-                      <button
-                        key={roleOpt.value}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, role: roleOpt.value })}
-                        className={`flex flex-col items-center justify-center p-3 rounded-2xl border text-center transition-all duration-300 ${
-                          isSelected
-                            ? 'bg-gradient-to-br from-primary/20 to-secondary/10 border-primary shadow-lg shadow-primary/10'
-                            : 'bg-white/5 border-white/5 hover:border-white/20'
-                        }`}
-                      >
-                        <IconComp className={`w-5 h-5 mb-1.5 ${isSelected ? 'text-primary-light' : 'text-slate-400'}`} />
-                        <span className="text-xs font-bold text-white block">{roleOpt.label}</span>
-                        <span className="text-[8px] text-slate-500 mt-0.5 block leading-tight">{roleOpt.desc}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+
 
               {/* Submit Button */}
               <button
