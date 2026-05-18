@@ -12,12 +12,13 @@ const classes_service_1 = require("./classes.service");
 const classes_controller_1 = require("./classes.controller");
 const prisma_module_1 = require("../prisma/prisma.module");
 const notifications_module_1 = require("../notifications/notifications.module");
+const health_module_1 = require("../health/health.module");
 let ClassesModule = class ClassesModule {
 };
 exports.ClassesModule = ClassesModule;
 exports.ClassesModule = ClassesModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, notifications_module_1.NotificationsModule],
+        imports: [prisma_module_1.PrismaModule, notifications_module_1.NotificationsModule, health_module_1.HealthModule],
         controllers: [classes_controller_1.ClassesController],
         providers: [classes_service_1.ClassesService],
         exports: [classes_service_1.ClassesService],

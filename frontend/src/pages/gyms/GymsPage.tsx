@@ -96,7 +96,8 @@ const GymsPage: React.FC = () => {
   const fetchGyms = async () => {
     try {
       setLoading(true);
-      const { data } = await api.get('/gyms');
+      const url = user?.role === 'GYM_OWNER' ? `/gyms?ownerId=${user.id}` : '/gyms';
+      const { data } = await api.get(url);
       setGyms(data);
     } catch (err) {
       console.error('Error fetching gyms:', err);

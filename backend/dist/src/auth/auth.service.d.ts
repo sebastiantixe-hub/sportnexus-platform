@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { UserRole } from '@prisma/client';
 import { EmailService } from '../notifications/email.service';
 export declare class AuthService {
     private readonly prisma;
@@ -15,10 +16,10 @@ export declare class AuthService {
         refreshToken: string;
         user: {
             id: string;
-            createdAt: Date;
             name: string;
             email: string;
             role: import("@prisma/client").$Enums.UserRole;
+            createdAt: Date;
         };
     }>;
     login(dto: LoginDto): Promise<{
@@ -26,16 +27,18 @@ export declare class AuthService {
         refreshToken: string;
         user: {
             id: string;
-            createdAt: Date;
-            name: string;
             auth0Id: string | null;
+            name: string;
             email: string;
             role: import("@prisma/client").$Enums.UserRole;
             phone: string | null;
+            dni: string | null;
             avatarUrl: string | null;
             isActive: boolean;
             emailVerified: boolean;
+            createdAt: Date;
             updatedAt: Date;
+            weight: number | null;
         };
     }>;
     refreshTokens(userId: string, refreshToken: string): Promise<{
@@ -43,29 +46,46 @@ export declare class AuthService {
         refreshToken: string;
         user: {
             id: string;
-            createdAt: Date;
-            name: string;
             auth0Id: string | null;
+            name: string;
             email: string;
             role: import("@prisma/client").$Enums.UserRole;
             phone: string | null;
+            dni: string | null;
             avatarUrl: string | null;
             isActive: boolean;
             emailVerified: boolean;
+            createdAt: Date;
             updatedAt: Date;
+            weight: number | null;
         };
     }>;
     getMe(userId: string): Promise<{
         id: string;
-        createdAt: Date;
         name: string;
         email: string;
         role: import("@prisma/client").$Enums.UserRole;
         phone: string | null;
+        dni: string | null;
         avatarUrl: string | null;
         isActive: boolean;
         emailVerified: boolean;
+        createdAt: Date;
     } | null>;
+    updateProfile(userId: string, data: {
+        name: string;
+        phone?: string;
+        dni?: string;
+        role?: UserRole;
+    }): Promise<{
+        id: string;
+        name: string;
+        email: string;
+        role: import("@prisma/client").$Enums.UserRole;
+        phone: string | null;
+        dni: string | null;
+        avatarUrl: string | null;
+    }>;
     getDashboardStats(userId: string, role: string): Promise<{
         gyms: number;
         classes: number;
@@ -114,6 +134,7 @@ export declare class AuthService {
         email: string;
         name: string;
         avatarUrl?: string;
+        role?: UserRole;
     }): Promise<{
         id: string;
         name: string;

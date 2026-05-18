@@ -8,6 +8,8 @@ interface User {
   email: string;
   role: string;
   avatarUrl?: string;
+  phone?: string;
+  dni?: string;
 }
 
 interface AuthContextType {
@@ -15,6 +17,7 @@ interface AuthContextType {
   loading: boolean;
   login: () => void;
   logout: () => void;
+  updateUserProfile: (data: { name: string; phone?: string; dni?: string }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -85,8 +88,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     auth0Logout({ logoutParams: { returnTo: window.location.origin } });
   };
 
+  const updateUserProfile = async (profileData: { name: string; phone?: string; dni?: string }) => {
+    try {
+      const { data } = await api.patch('/auth/profile', profileData);
+      setUser(prev => prev ? { ...prev, ...data } : data);
+    } catch (error) {
+      console.error('Error al actualizar el perfil:', error);
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading: auth0Loading || (isAuthenticated && backendLoading), login, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading: auth0Loading || (isAuthenticated && backendLoading), 
+      login, 
+      logout,
+      updateUserProfile
+    }}>
       {children}
     </AuthContext.Provider>
   );

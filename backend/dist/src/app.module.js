@@ -28,6 +28,7 @@ const payments_module_1 = require("./payments/payments.module");
 const notifications_module_1 = require("./notifications/notifications.module");
 const users_module_1 = require("./users/users.module");
 const tickets_module_1 = require("./tickets/tickets.module");
+const health_module_1 = require("./health/health.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -56,6 +57,7 @@ exports.AppModule = AppModule = __decorate([
             notifications_module_1.NotificationsModule,
             users_module_1.UsersModule,
             tickets_module_1.TicketsModule,
+            health_module_1.HealthModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [],

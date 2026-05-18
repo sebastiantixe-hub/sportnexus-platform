@@ -1,0 +1,187 @@
+import React, { useState } from 'react';
+import { useAuth } from '../../context/auth-context';
+import { Loader2, ShieldCheck, User, Phone, FileText, Sparkles, Dumbbell, Users } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
+
+interface CompleteProfileModalProps {
+  isOpen: boolean;
+  onSuccess?: () => void;
+}
+
+export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOpen, onSuccess }) => {
+  const { user, updateUserProfile } = useAuth();
+  const [formData, setFormData] = useState({
+    name: user?.name || '',
+    phone: user?.phone || '',
+    dni: user?.dni || '',
+    role: 'USER',
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name.trim()) {
+      toast.error('❌ Por favor, ingresa tu nombre completo.');
+      return;
+    }
+    if (!formData.phone.trim() || formData.phone.length < 7) {
+      toast.error('❌ Por favor, ingresa un número telefónico válido.');
+      return;
+    }
+    if (!formData.dni.trim() || formData.dni.length < 5) {
+      toast.error('❌ Por favor, ingresa un DNI / Cédula válido.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await updateUserProfile(formData);
+      toast.success('🎉 ¡Perfil completado con éxito! Bienvenido a Hercix.');
+      if (onSuccess) onSuccess();
+    } catch (err: any) {
+      toast.error('❌ Error al actualizar los datos de perfil.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
+          {/* Backdrop with extreme blur and premium styling */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-slate-950/85 backdrop-blur-md"
+          />
+
+          {/* Modal Container */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: 'spring', duration: 0.5 }}
+            className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-white/10 bg-slate-900/90 p-8 shadow-2xl marker-glow"
+          >
+            {/* Ambient background glow */}
+            <div className="absolute -left-20 -top-20 h-40 w-40 rounded-full bg-primary/20 blur-3xl animate-pulse" />
+            <div className="absolute -right-20 -bottom-20 h-40 w-40 rounded-full bg-secondary/20 blur-3xl animate-pulse" />
+
+            <div className="relative text-center">
+              {/* Premium Icon Header */}
+              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-primary to-secondary text-white shadow-lg shadow-primary/20">
+                <Sparkles className="h-8 w-8 animate-pulse" />
+              </div>
+
+              <h2 className="text-2xl font-extrabold tracking-tight text-white">¡Queremos conocerte mejor!</h2>
+              <p className="mt-2 text-sm text-slate-400">
+                Para garantizar la seguridad de tus reservas y compras en Hercix, completa tus datos obligatorios.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="relative mt-8 space-y-5">
+              {/* Nombre input */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-primary-light" /> Nombre Completo
+                </label>
+                <input
+                  required
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Ej. Juan Pérez"
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-primary transition-all placeholder:text-slate-600"
+                />
+              </div>
+
+              {/* DNI / Documento input */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5 text-primary-light" /> DNI / Cédula de Identidad
+                </label>
+                <input
+                  required
+                  type="text"
+                  value={formData.dni}
+                  onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
+                  placeholder="Ej. 102938475"
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-primary transition-all placeholder:text-slate-600"
+                />
+              </div>
+
+              {/* Teléfono input */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-primary-light" /> Número Telefónico
+                </label>
+                <input
+                  required
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="Ej. +51 987 654 321"
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-primary transition-all placeholder:text-slate-600"
+                />
+              </div>
+
+              {/* Rol Selector Grid */}
+              <div className="space-y-3">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-primary-light" /> Selecciona tu Rol en la Plataforma
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { value: 'USER', label: 'Atleta', icon: User, desc: 'Entrenar y reservar' },
+                    { value: 'GYM_OWNER', label: 'Dueño', icon: Dumbbell, desc: 'Gestionar locales' },
+                    { value: 'TRAINER', label: 'Coach', icon: Users, desc: 'Dar clases' },
+                  ].map((roleOpt) => {
+                    const IconComp = roleOpt.icon;
+                    const isSelected = formData.role === roleOpt.value;
+                    return (
+                      <button
+                        key={roleOpt.value}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, role: roleOpt.value })}
+                        className={`flex flex-col items-center justify-center p-3 rounded-2xl border text-center transition-all duration-300 ${
+                          isSelected
+                            ? 'bg-gradient-to-br from-primary/20 to-secondary/10 border-primary shadow-lg shadow-primary/10'
+                            : 'bg-white/5 border-white/5 hover:border-white/20'
+                        }`}
+                      >
+                        <IconComp className={`w-5 h-5 mb-1.5 ${isSelected ? 'text-primary-light' : 'text-slate-400'}`} />
+                        <span className="text-xs font-bold text-white block">{roleOpt.label}</span>
+                        <span className="text-[8px] text-slate-500 mt-0.5 block leading-tight">{roleOpt.desc}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-secondary py-4 text-sm font-bold uppercase tracking-widest text-white shadow-lg shadow-primary/25 transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Guardando...
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center gap-2">
+                    <ShieldCheck className="w-4 h-4" /> Registrarme Completamente
+                  </span>
+                )}
+              </button>
+            </form>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+};

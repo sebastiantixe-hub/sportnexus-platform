@@ -9,7 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AnyAuthGuard = void 0;
 const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
-let AnyAuthGuard = class AnyAuthGuard extends (0, passport_1.AuthGuard)(['jwt', 'auth0']) {
+let AnyAuthGuard = class AnyAuthGuard extends (0, passport_1.AuthGuard)(['auth0', 'jwt']) {
     handleRequest(err, user) {
         if (err || !user) {
             throw err || new common_1.UnauthorizedException('Token inválido o expirado');

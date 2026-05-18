@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
   Body,
   UseGuards,
   HttpCode,
@@ -49,6 +50,17 @@ export class AuthController {
   @UseGuards(AnyAuthGuard)
   getMe(@CurrentUser() user: { id: string }) {
     return this.authService.getMe(user.id);
+  }
+
+  @ApiOperation({ summary: 'Update current user profile (JWT or Auth0)' })
+  @ApiBearerAuth()
+  @UseGuards(AnyAuthGuard)
+  @Patch('profile')
+  updateProfile(
+    @CurrentUser() user: { id: string },
+    @Body() dto: { name: string; phone?: string; dni?: string; role?: any },
+  ) {
+    return this.authService.updateProfile(user.id, dto);
   }
 
   @ApiOperation({ summary: 'Get dashboard statistics' })

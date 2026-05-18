@@ -102,10 +102,12 @@ export declare class ProfessionalsController {
                 passwordHash: string | null;
                 role: import("@prisma/client").$Enums.UserRole;
                 phone: string | null;
+                dni: string | null;
                 avatarUrl: string | null;
                 isActive: boolean;
                 emailVerified: boolean;
                 updatedAt: Date;
+                weight: number | null;
             };
         } & {
             id: string;

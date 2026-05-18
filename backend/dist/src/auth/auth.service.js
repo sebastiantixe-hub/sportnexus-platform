@@ -142,11 +142,32 @@ let AuthService = class AuthService {
                 email: true,
                 role: true,
                 phone: true,
+                dni: true,
                 avatarUrl: true,
                 isActive: true,
                 emailVerified: true,
                 createdAt: true,
             },
+        });
+    }
+    async updateProfile(userId, data) {
+        return this.prisma.user.update({
+            where: { id: userId },
+            data: {
+                name: data.name,
+                phone: data.phone,
+                dni: data.dni,
+                ...(data.role ? { role: data.role } : {}),
+            },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                phone: true,
+                dni: true,
+                avatarUrl: true,
+            }
         });
     }
     async getDashboardStats(userId, role) {
@@ -276,20 +297,38 @@ let AuthService = class AuthService {
         }
     }
     async findOrCreateAuth0User(params) {
-        const { auth0Id, email, name, avatarUrl } = params;
+        const { auth0Id, email, name, avatarUrl, role } = params;
         let user = await this.prisma.user.findUnique({
             where: { auth0Id },
             select: { id: true, name: true, email: true, role: true, isActive: true, avatarUrl: true },
         });
-        if (user)
+        if (user) {
+            if (role && user.role !== role) {
+                user = await this.prisma.user.update({
+                    where: { id: user.id },
+                    data: { role },
+                    select: { id: true, name: true, email: true, role: true, isActive: true, avatarUrl: true },
+                });
+            }
             return user;
-        const existing = await this.prisma.user.findUnique({
-            where: { email },
+        }
+        const existing = await this.prisma.user.findFirst({
+            where: {
+                email: {
+                    equals: email,
+                    mode: 'insensitive'
+                }
+            },
         });
         if (existing) {
+            console.log(`Encontrado usuario existente por email (case-insensitive): ${existing.email}. Vinculando a Auth0 ID: ${auth0Id}`);
             user = await this.prisma.user.update({
                 where: { id: existing.id },
-                data: { auth0Id, avatarUrl: avatarUrl ?? existing.avatarUrl },
+                data: {
+                    auth0Id,
+                    avatarUrl: avatarUrl ?? existing.avatarUrl,
+                    ...(role ? { role } : {}),
+                },
                 select: { id: true, name: true, email: true, role: true, isActive: true, avatarUrl: true },
             });
             return user;
@@ -300,7 +339,7 @@ let AuthService = class AuthService {
                 email,
                 name,
                 avatarUrl,
-                role: client_1.UserRole.USER,
+                role: role || client_1.UserRole.USER,
                 emailVerified: true,
             },
             select: { id: true, name: true, email: true, role: true, isActive: true, avatarUrl: true },

@@ -199,11 +199,15 @@ const AdminDashboard: React.FC<{ stats: any; user: any }> = ({ stats, user }) =>
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState<any>(null);
+  const [memberships, setMemberships] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     api.get('/auth/stats').then(({ data }) => setStats(data)).catch(console.error).finally(() => setLoading(false));
-  }, []);
+    if (user?.role === 'USER') {
+      api.get('/memberships/me').then(({ data }) => setMemberships(data)).catch(console.error);
+    }
+  }, [user]);
 
   const isOwner = user?.role === 'GYM_OWNER';
   const isTrainer = user?.role === 'TRAINER';
@@ -334,18 +338,34 @@ const Dashboard: React.FC = () => {
               </button>
             </div>
           ) : (
-            <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-3xl border border-white/5">
-              <span className="text-white/40 text-xs font-semibold uppercase tracking-wider">Membresía Activa</span>
-              <h3 className="text-2xl font-extrabold text-white mt-1">
-                {stats?.reservations > 0 ? 'Plan Activo' : 'Sin Plan'}
-              </h3>
-              <p className="text-slate-500 mt-3 text-sm">
-                {stats?.reservations > 0 ? `${stats.reservations} clases reservadas.` : 'Suscríbete para empezar.'}
-              </p>
+            <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-3xl border border-white/5 space-y-4">
+              <div>
+                <span className="text-white/40 text-xs font-semibold uppercase tracking-wider">Membresía & Locales</span>
+                {memberships.length > 0 ? (
+                  <div className="space-y-4 mt-3">
+                    {memberships.map((m: any) => (
+                      <div key={m.id} className="border-b border-white/5 pb-3 last:border-0 last:pb-0">
+                        <h4 className="text-white font-bold text-sm">{m.plan.name}</h4>
+                        <p className="text-primary-light text-xs font-semibold flex items-center gap-1 mt-0.5">
+                          <Building2 className="w-3.5 h-3.5" /> {m.plan.gym?.name || 'Gimnasio Hercix'}
+                        </p>
+                        <p className="text-slate-500 text-[11px] mt-1">
+                          Vence: {new Date(m.expiresAt).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="mt-3">
+                    <h3 className="text-xl font-bold text-white">Sin Membresía</h3>
+                    <p className="text-slate-500 text-xs mt-1">Suscríbete a un plan para empezar a entrenar.</p>
+                  </div>
+                )}
+              </div>
               <button onClick={() => window.location.href = '/memberships'}
-                className="btn-primary w-full py-2.5 mt-5 text-sm">
-                <CreditCard className="w-4 h-4 inline mr-2" />
-                {stats?.reservations > 0 ? 'Gestionar Plan' : 'Ver Planes'}
+                className="btn-primary w-full py-2.5 mt-3 text-sm flex items-center justify-center gap-2">
+                <CreditCard className="w-4 h-4" />
+                <span>{memberships.length > 0 ? 'Ver Más Planes' : 'Adquirir Plan'}</span>
               </button>
             </div>
           )}

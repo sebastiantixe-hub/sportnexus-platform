@@ -40,6 +40,9 @@ let AuthController = class AuthController {
     getMe(user) {
         return this.authService.getMe(user.id);
     }
+    updateProfile(user, dto) {
+        return this.authService.updateProfile(user.id, dto);
+    }
     getDashboardStats(user) {
         return this.authService.getDashboardStats(user.id, user.role);
     }
@@ -81,6 +84,17 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "getMe", null);
+__decorate([
+    (0, swagger_1.ApiOperation)({ summary: 'Update current user profile (JWT or Auth0)' }),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.UseGuards)(any_auth_guard_1.AnyAuthGuard),
+    (0, common_1.Patch)('profile'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "updateProfile", null);
 __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Get dashboard statistics' }),
     (0, swagger_1.ApiBearerAuth)(),

@@ -137,11 +137,33 @@ export class AuthService {
         email: true,
         role: true,
         phone: true,
+        dni: true,
         avatarUrl: true,
         isActive: true,
         emailVerified: true,
         createdAt: true,
       },
+    });
+  }
+
+  async updateProfile(userId: string, data: { name: string; phone?: string; dni?: string; role?: UserRole }) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        name: data.name,
+        phone: data.phone,
+        dni: data.dni,
+        ...(data.role ? { role: data.role } : {}),
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phone: true,
+        dni: true,
+        avatarUrl: true,
+      }
     });
   }
 
@@ -302,8 +324,9 @@ export class AuthService {
     email: string;
     name: string;
     avatarUrl?: string;
+    role?: UserRole;
   }) {
-    const { auth0Id, email, name, avatarUrl } = params;
+    const { auth0Id, email, name, avatarUrl, role } = params;
 
     // 1. Try by auth0Id (fastest path after first login)
     let user = await this.prisma.user.findUnique({
@@ -311,7 +334,17 @@ export class AuthService {
       select: { id: true, name: true, email: true, role: true, isActive: true, avatarUrl: true },
     });
 
-    if (user) return user;
+    if (user) {
+      // If a role was sent from Auth0 JWT and it differs, synchronize it!
+      if (role && user.role !== role) {
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: { role },
+          select: { id: true, name: true, email: true, role: true, isActive: true, avatarUrl: true },
+        });
+      }
+      return user;
+    }
 
     // 2. Try by email (user may have registered before Auth0) - Case Insensitive
     const existing = await this.prisma.user.findFirst({
@@ -325,10 +358,14 @@ export class AuthService {
 
     if (existing) {
       console.log(`Encontrado usuario existente por email (case-insensitive): ${existing.email}. Vinculando a Auth0 ID: ${auth0Id}`);
-      // Link the Auth0 ID to the existing account
+      // Link the Auth0 ID and optionally update role if passed
       user = await this.prisma.user.update({
         where: { id: existing.id },
-        data: { auth0Id, avatarUrl: avatarUrl ?? existing.avatarUrl },
+        data: { 
+          auth0Id, 
+          avatarUrl: avatarUrl ?? existing.avatarUrl,
+          ...(role ? { role } : {}),
+        },
         select: { id: true, name: true, email: true, role: true, isActive: true, avatarUrl: true },
       });
       return user;
@@ -341,7 +378,7 @@ export class AuthService {
         email,
         name,
         avatarUrl,
-        role: UserRole.USER,
+        role: role || UserRole.USER,
         emailVerified: true,
       },
       select: { id: true, name: true, email: true, role: true, isActive: true, avatarUrl: true },

@@ -14,12 +14,15 @@ const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const client_1 = require("@prisma/client");
 const notifications_service_1 = require("../notifications/notifications.service");
+const health_service_1 = require("../health/health.service");
 let ClassesService = class ClassesService {
     prisma;
     notificationsService;
-    constructor(prisma, notificationsService) {
+    healthService;
+    constructor(prisma, notificationsService, healthService) {
         this.prisma = prisma;
         this.notificationsService = notificationsService;
+        this.healthService = healthService;
     }
     async create(gymId, currentUserId, dto) {
         const gym = await this.prisma.gym.findUnique({
@@ -181,9 +184,16 @@ let ClassesService = class ClassesService {
     async markAttendance(reservationId, currentUserId) {
         const reservation = await this.prisma.reservation.findUnique({
             where: { id: reservationId },
+            include: { class: true }
         });
         if (!reservation)
             throw new common_1.NotFoundException('Ticket / Reserva no encontrada');
+        try {
+            await this.healthService.calculateCaloriesFromClass(reservation.userId, reservation.class.title, reservation.class.durationMin);
+        }
+        catch (err) {
+            console.error('Error calculating calories:', err);
+        }
         return this.prisma.reservation.update({
             where: { id: reservationId },
             data: { status: client_1.ReservationStatus.ATTENDED },
@@ -237,6 +247,7 @@ exports.ClassesService = ClassesService;
 exports.ClassesService = ClassesService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        notifications_service_1.NotificationsService])
+        notifications_service_1.NotificationsService,
+        health_service_1.HealthService])
 ], ClassesService);
 //# sourceMappingURL=classes.service.js.map

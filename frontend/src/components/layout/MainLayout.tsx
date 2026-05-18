@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AIChatWidget from '../ai/AIChatWidget';
+import { CompleteProfileModal } from '../auth/CompleteProfileModal';
 
 interface SidebarItemProps {
   to: string;
@@ -315,6 +316,11 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       {/* AI Chat Widget */}
       <AIChatWidget />
+
+      {/* Complete Profile Onboarding Modal */}
+      <CompleteProfileModal 
+        isOpen={!!user && (!user.phone || !user.dni) && (user.role === 'USER' || user.role === 'GYM_OWNER' || user.role === 'TRAINER')} 
+      />
 
       {/* Overlay for mobile sidebar */}
       <AnimatePresence>
