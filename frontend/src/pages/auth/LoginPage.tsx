@@ -13,6 +13,7 @@ const LoginPage: React.FC = () => {
       desc: 'Acceso y control central de la plataforma Hercix Health.',
       color: 'from-red-500/20 to-red-600/10 border-red-500/20 text-red-400Hover',
       accent: 'bg-red-500',
+      image: '/assets/super_admin_gateway.png',
     },
     {
       title: 'Dueño (Owner)',
@@ -20,6 +21,7 @@ const LoginPage: React.FC = () => {
       desc: 'Administración de gimnasios, academias, ingresos y membresías.',
       color: 'from-primary/20 to-primary/10 border-primary/20 text-primary-lightHover',
       accent: 'bg-primary',
+      image: '/assets/gym_owner_gateway.png',
     },
     {
       title: 'Coach / Entrenador',
@@ -27,6 +29,7 @@ const LoginPage: React.FC = () => {
       desc: 'Gestión de clases, rutinas, alumnos y perfiles profesionales.',
       color: 'from-accent/20 to-accent/10 border-accent/20 text-accentHover',
       accent: 'bg-accent',
+      image: '/assets/coach_gateway.png',
     },
     {
       title: 'Atleta / Usuario',
@@ -34,6 +37,7 @@ const LoginPage: React.FC = () => {
       desc: 'Reservas de clases, wearables de salud y compras en el marketplace.',
       color: 'from-green-500/20 to-green-600/10 border-green-500/20 text-green-400Hover',
       accent: 'bg-green-500',
+      image: '/assets/athlete_gateway.png',
     },
   ];
 
@@ -68,22 +72,34 @@ const LoginPage: React.FC = () => {
               transition={{ delay: i * 0.1, duration: 0.5 }}
               whileHover={{ y: -5, scale: 1.02 }}
               onClick={() => login()}
-              className={`glass-card p-6 border border-white/5 bg-gradient-to-br ${r.color.split(' ')[0]} ${r.color.split(' ')[1]} hover:border-white/20 transition-all cursor-pointer group flex flex-col justify-between`}
+              className={`glass-card p-5 border border-white/5 bg-gradient-to-br ${r.color.split(' ')[0]} ${r.color.split(' ')[1]} hover:border-white/20 transition-all cursor-pointer group flex flex-col justify-between`}
             >
               <div>
-                <div className="flex justify-between items-start mb-4">
-                  <div className={`p-3 rounded-2xl ${r.accent}/10 border border-${r.accent.replace('bg-', '')}/20 text-white group-hover:scale-110 transition-transform`}>
-                    <Icon className="w-7 h-7" />
-                  </div>
-                  <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider bg-white/5 px-2.5 py-1 rounded-full">
+                {/* Image Container with Lucide Icon Badge Overlay */}
+                <div className="relative w-full h-40 rounded-2xl overflow-hidden mb-4 border border-white/10">
+                  <img 
+                    src={r.image} 
+                    alt={r.title} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/10 to-transparent"></div>
+                  
+                  {/* Badge floating */}
+                  <div className="absolute top-3 right-3 bg-slate-950/60 backdrop-blur-md border border-white/10 px-2.5 py-1 rounded-full text-[9px] uppercase font-bold text-slate-300">
                     Ingreso Seguro
-                  </span>
+                  </div>
+
+                  {/* Icon floating */}
+                  <div className="absolute bottom-3 left-3 p-2.5 rounded-xl bg-slate-950/60 backdrop-blur-md border border-white/10 text-white">
+                    <Icon className="w-5 h-5" />
+                  </div>
                 </div>
+
                 <h3 className="text-xl font-bold text-white group-hover:text-primary-light transition-colors">{r.title}</h3>
                 <p className="text-slate-400 text-xs mt-2 leading-relaxed">{r.desc}</p>
               </div>
               
-              <div className="mt-6 flex items-center gap-2 text-xs font-bold text-primary-light opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="mt-5 flex items-center gap-2 text-xs font-bold text-primary-light opacity-0 group-hover:opacity-100 transition-opacity">
                 <span>Ingresar ahora</span>
                 <LogIn className="w-3.5 h-3.5" />
               </div>
