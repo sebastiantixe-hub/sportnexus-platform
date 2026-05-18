@@ -52,7 +52,7 @@ const LoginPage: React.FC = () => {
 
         <div className="mt-8 pt-6 border-t border-white/5 text-center">
           <p className="text-slate-500 text-xs uppercase tracking-widest font-bold">
-            Powered by SportNexus & Auth0
+            Powered by Hercix & Auth0
           </p>
         </div>
       </motion.div>
