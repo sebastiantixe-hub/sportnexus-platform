@@ -310,28 +310,42 @@ const MapSearchPage: React.FC = () => {
           ) : filtered.length === 0 ? (
             <div className="glass-card p-8 text-center text-slate-500">No se encontraron resultados para "{search}".</div>
           ) : (
-            filtered.map(gym => (
-              <motion.div whileHover={{ x: 3 }} key={gym.id}
-                onClick={() => handleSelectGym(gym)}
-                className="glass-card p-4 border-white/5 hover:border-primary/30 cursor-pointer transition-all">
-                <div className="flex justify-between items-start gap-2">
-                  <div className="min-w-0">
-                    <h3 className="text-white font-bold text-sm leading-tight truncate">{gym.name}</h3>
-                    <p className="text-slate-400 text-xs mt-1 flex items-center gap-1">
-                      <MapPin className="w-3 h-3 shrink-0" />
-                      <span className="truncate">
-                        {gym.address || ''}{gym.district ? `, ${gym.district}` : ''}{gym.province ? `, ${gym.province}` : ''}{gym.city ? `, ${gym.city}` : ''}
-                      </span>
-                    </p>
+            filtered.map(gym => {
+              const sportInfo = SPORT_FILTERS.find(f => f.value !== '' && gym.name.includes(f.value));
+              const emoji = sportInfo?.label.split(' ')[0] || '📍';
+              
+              return (
+                <motion.div whileHover={{ x: 3 }} key={gym.id}
+                  onClick={() => handleSelectGym(gym)}
+                  className="glass-card p-4 border-white/5 hover:border-primary/30 cursor-pointer transition-all flex gap-3.5 items-start">
+                  
+                  {/* Glowing Premium Category Icon */}
+                  <div className="relative w-10 h-10 rounded-xl bg-slate-950 border border-white/10 flex items-center justify-center shrink-0 shadow-lg">
+                    <span className="text-xl select-none">{emoji}</span>
+                    <div className="absolute inset-0 bg-primary/10 rounded-xl blur-sm opacity-50"></div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-600 shrink-0 mt-1" />
-                </div>
-                <div className="mt-2 flex items-center gap-2 text-xs text-slate-500">
-                  <span className="bg-slate-800 px-2 py-0.5 rounded">⭐ 4.8</span>
-                  <span className="text-primary-light font-bold">Ver clases →</span>
-                </div>
-              </motion.div>
-            ))
+
+                  <div className="min-w-0 flex-grow">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="min-w-0">
+                        <h3 className="text-white font-bold text-sm leading-tight truncate">{gym.name}</h3>
+                        <p className="text-slate-400 text-xs mt-1 flex items-center gap-1">
+                          <MapPin className="w-3 h-3 shrink-0" />
+                          <span className="truncate">
+                            {gym.address || ''}{gym.district ? `, ${gym.district}` : ''}{gym.province ? `, ${gym.province}` : ''}{gym.city ? `, ${gym.city}` : ''}
+                          </span>
+                        </p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-slate-600 shrink-0 mt-1" />
+                    </div>
+                    <div className="mt-2 flex items-center gap-2 text-xs text-slate-500">
+                      <span className="bg-slate-800 px-2 py-0.5 rounded">⭐ 4.8</span>
+                      <span className="text-primary-light font-bold">Ver clases →</span>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })
           )}
         </div>
       </div>
