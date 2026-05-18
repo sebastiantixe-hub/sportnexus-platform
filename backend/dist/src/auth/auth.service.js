@@ -303,6 +303,9 @@ let AuthService = class AuthService {
             select: { id: true, name: true, email: true, role: true, isActive: true, avatarUrl: true },
         });
         if (user) {
+            if (auth0Id.startsWith('google-oauth2|') && (user.role === client_1.UserRole.ADMIN || user.role === client_1.UserRole.GYM_OWNER || user.role === client_1.UserRole.TRAINER)) {
+                throw new common_1.UnauthorizedException('Por motivos de ciberseguridad corporativa, los perfiles de Administrador, Dueño y Coach de Hercix tienen estrictamente prohibido el ingreso con cuentas sociales (Google). Debe iniciar sesión utilizando sus credenciales locales seguras (Email y Contraseña).');
+            }
             return user;
         }
         const existing = await this.prisma.user.findFirst({
@@ -314,6 +317,9 @@ let AuthService = class AuthService {
             },
         });
         if (existing) {
+            if (auth0Id.startsWith('google-oauth2|') && (existing.role === client_1.UserRole.ADMIN || existing.role === client_1.UserRole.GYM_OWNER || existing.role === client_1.UserRole.TRAINER)) {
+                throw new common_1.UnauthorizedException('Por motivos de ciberseguridad corporativa, los perfiles de Administrador, Dueño y Coach de Hercix tienen estrictamente prohibido el ingreso con cuentas sociales (Google). Debe iniciar sesión utilizando sus credenciales locales seguras (Email y Contraseña).');
+            }
             console.log(`Encontrado usuario existente por email (case-insensitive): ${existing.email}. Vinculando a Auth0 ID: ${auth0Id}`);
             user = await this.prisma.user.update({
                 where: { id: existing.id },

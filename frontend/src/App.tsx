@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/auth-context';
+import { AuthProvider, useAuth } from './context/auth-context';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
 import LoginPage from './pages/auth/LoginPage';
@@ -23,6 +23,29 @@ import TicketsPage from './pages/tickets/TicketsPage';
 import SportStorePage from './pages/store/SportStorePage';
 import { Toaster } from 'sonner';
 
+// Componente de Redirección Dinámica de Inicio según el Rol del usuario
+const HomeRedirect = () => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="flex bg-background-darker h-screen items-center justify-center">
+        <div className="border-primary border-t-2 rounded-full w-12 h-12 animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Redireccionar al URL dedicado del Rol correspondiente
+  if (user.role === 'ADMIN') return <Navigate to="/super-admin" replace />;
+  if (user.role === 'GYM_OWNER') return <Navigate to="/owner-dashboard" replace />;
+  if (user.role === 'TRAINER') return <Navigate to="/coach-dashboard" replace />;
+  return <Navigate to="/dashboard" replace />;
+};
+
 function App() {
   return (
     <AuthProvider>
@@ -33,9 +56,9 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           
           {/* 
-              Página de inicio que redirige automáticamente al dashboard según rol
+              Redirección Dinámica a cada panel dedicado según el rol de la cuenta
           */}
-          <Route path="/" element={<ProtectedRoute><MainLayout><Dashboard /></MainLayout></ProtectedRoute>} />
+          <Route path="/" element={<ProtectedRoute><HomeRedirect /></ProtectedRoute>} />
 
           {/* Rutas con Protección de Rol estricta */}
           <Route path="/super-admin" element={<ProtectedRoute allowedRoles={['ADMIN']}><MainLayout><Dashboard /></MainLayout></ProtectedRoute>} />
