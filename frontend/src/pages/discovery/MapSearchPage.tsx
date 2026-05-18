@@ -64,7 +64,44 @@ const MapSearchPage: React.FC = () => {
   const [mapLayer, setMapLayer] = useState<'dark' | 'satellite'>('dark');
 
   useEffect(() => {
-    api.get('/gyms').then(({ data }) => setGyms(data)).catch(console.error).finally(() => setLoading(false));
+    let activeGyms: any[] = [];
+    
+    const loadGyms = async (isPoll = false) => {
+      try {
+        const { data } = await api.get('/gyms');
+        
+        // Verificar en tiempo real si hay un nuevo gimnasio creado por dueños/admins
+        if (isPoll && activeGyms.length > 0) {
+          const existingIds = new Set(activeGyms.map(g => g.id));
+          const newGyms = data.filter((g: any) => !existingIds.has(g.id));
+          
+          if (newGyms.length > 0) {
+            newGyms.forEach((newGym: any) => {
+              toast.success(`✨ ¡Nueva academia detectada en tiempo real: "${newGym.name}"!`, {
+                description: `Ubicación: ${newGym.address || 'Hercix Suite'}`,
+                icon: '📍',
+              });
+            });
+          }
+        }
+        
+        activeGyms = data;
+        setGyms(data);
+      } catch (err) {
+        console.error('Error al sincronizar locales en tiempo real:', err);
+      } finally {
+        if (!isPoll) setLoading(false);
+      }
+    };
+
+    loadGyms();
+
+    // Sincronización en tiempo real de alta frecuencia (cada 6 segundos)
+    const interval = setInterval(() => {
+      loadGyms(true);
+    }, 6000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const handleNearbySearch = () => {
@@ -137,11 +174,20 @@ const MapSearchPage: React.FC = () => {
     <div className="space-y-4 h-[calc(100vh-120px)] flex flex-col">
       {/* Header */}
       <header className="flex-shrink-0 space-y-4">
-        <div>
-          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-            <MapIcon className="text-primary-light" /> Buscar Academias y Gimnasios
-          </h1>
-          <p className="text-slate-400 mt-1">Encuentra el lugar perfecto para entrenar cerca de ti.</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+              <MapIcon className="text-primary-light" /> Buscar Academias y Gimnasios
+            </h1>
+            <p className="text-slate-400 mt-1">Encuentra el lugar perfecto para entrenar cerca de ti.</p>
+          </div>
+          <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/20 px-3 py-1.5 rounded-full shrink-0 max-w-fit">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            </span>
+            <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest">Tiempo Real Activo</span>
+          </div>
         </div>
 
         {/* Search bar */}
