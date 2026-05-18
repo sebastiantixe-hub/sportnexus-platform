@@ -1,60 +1,107 @@
 import React from 'react';
 import { useAuth } from '../../context/auth-context';
-import { LogIn, Loader2, ShieldCheck } from 'lucide-react';
+import { ShieldCheck, Building2, Dumbbell, Users, LogIn } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const LoginPage: React.FC = () => {
-  const { login, loading } = useAuth();
+  const { login } = useAuth();
+
+  const roles = [
+    {
+      title: 'Super Admin',
+      icon: ShieldCheck,
+      desc: 'Acceso y control central de la plataforma Hercix Health.',
+      color: 'from-red-500/20 to-red-600/10 border-red-500/20 text-red-400Hover',
+      accent: 'bg-red-500',
+    },
+    {
+      title: 'Dueño (Owner)',
+      icon: Building2,
+      desc: 'Administración de gimnasios, academias, ingresos y membresías.',
+      color: 'from-primary/20 to-primary/10 border-primary/20 text-primary-lightHover',
+      accent: 'bg-primary',
+    },
+    {
+      title: 'Coach / Entrenador',
+      icon: Dumbbell,
+      desc: 'Gestión de clases, rutinas, alumnos y perfiles profesionales.',
+      color: 'from-accent/20 to-accent/10 border-accent/20 text-accentHover',
+      accent: 'bg-accent',
+    },
+    {
+      title: 'Atleta / Usuario',
+      icon: Users,
+      desc: 'Reservas de clases, wearables de salud y compras en el marketplace.',
+      color: 'from-green-500/20 to-green-600/10 border-green-500/20 text-green-400Hover',
+      accent: 'bg-green-500',
+    },
+  ];
 
   return (
-    <div className="flex bg-background-darker min-h-screen items-center justify-center p-4 relative overflow-hidden">
-      {/* Background blobs for depth */}
-      <div className="absolute -top-24 -left-24 rounded-full w-96 h-96 bg-primary/20 blur-3xl"></div>
-      <div className="absolute -bottom-24 -right-24 rounded-full w-96 h-96 bg-accent/20 blur-3xl"></div>
+    <div className="flex flex-col bg-background-darker min-h-screen items-center justify-center p-6 relative overflow-hidden">
+      {/* Background glowing design */}
+      <div className="absolute -top-40 -left-40 rounded-full w-[600px] h-[600px] bg-primary/10 blur-3xl"></div>
+      <div className="absolute -bottom-40 -right-40 rounded-full w-[600px] h-[600px] bg-accent/10 blur-3xl"></div>
 
+      {/* Header Info */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="glass-card w-full max-w-md p-8 relative z-10 text-center"
+        className="text-center max-w-2xl mb-12 relative z-10"
       >
-        <div className="flex flex-col items-center mb-8">
-          <img src="/hercix-logo.png" alt="Hercix" className="h-20 object-contain mb-4" />
-          <h2 className="text-2xl font-bold text-white">Bienvenido a Hercix</h2>
-          <p className="text-slate-400 mt-2">La plataforma definitiva para el atleta moderno.</p>
-        </div>
+        <img src="/hercix-logo.png" alt="Hercix" className="h-20 mx-auto object-contain mb-4" />
+        <h1 className="text-4xl font-extrabold text-white tracking-tight">Portal de Acceso Seguro</h1>
+        <p className="text-slate-400 mt-2 text-base">
+          Selecciona tu perfil de acceso para ingresar de manera encriptada a la suite Hercix Health.
+        </p>
+      </motion.div>
 
-        <div className="bg-primary/5 border border-primary/10 rounded-2xl p-6 mb-8 text-left">
-          <div className="flex items-center gap-3 mb-3">
-            <ShieldCheck className="text-primary-light w-5 h-5" />
-            <span className="text-sm font-bold text-white uppercase tracking-wider">Acceso Seguro</span>
-          </div>
-          <p className="text-xs text-slate-400 leading-relaxed">
-            Utilizamos Auth0 para garantizar que tus datos estén protegidos con los estándares de seguridad más altos de la industria.
-          </p>
-        </div>
+      {/* Interactive Gateway Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl relative z-10 mb-10">
+        {roles.map((r, i) => {
+          const Icon = r.icon;
+          return (
+            <motion.div
+              key={r.title}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1, duration: 0.5 }}
+              whileHover={{ y: -5, scale: 1.02 }}
+              onClick={() => login()}
+              className={`glass-card p-6 border border-white/5 bg-gradient-to-br ${r.color.split(' ')[0]} ${r.color.split(' ')[1]} hover:border-white/20 transition-all cursor-pointer group flex flex-col justify-between`}
+            >
+              <div>
+                <div className="flex justify-between items-start mb-4">
+                  <div className={`p-3 rounded-2xl ${r.accent}/10 border border-${r.accent.replace('bg-', '')}/20 text-white group-hover:scale-110 transition-transform`}>
+                    <Icon className="w-7 h-7" />
+                  </div>
+                  <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider bg-white/5 px-2.5 py-1 rounded-full">
+                    Ingreso Seguro
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold text-white group-hover:text-primary-light transition-colors">{r.title}</h3>
+                <p className="text-slate-400 text-xs mt-2 leading-relaxed">{r.desc}</p>
+              </div>
+              
+              <div className="mt-6 flex items-center gap-2 text-xs font-bold text-primary-light opacity-0 group-hover:opacity-100 transition-opacity">
+                <span>Ingresar ahora</span>
+                <LogIn className="w-3.5 h-3.5" />
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
 
-        <button
-          onClick={() => login()}
-          disabled={loading}
-          className="btn-primary w-full py-4 flex items-center justify-center gap-3 group relative overflow-hidden active:scale-[0.98] text-lg shadow-xl shadow-primary/20"
-        >
-          <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-          {loading ? (
-            <Loader2 className="w-6 h-6 animate-spin" />
-          ) : (
-            <>
-              <LogIn className="w-6 h-6" />
-              <span>Entrar con Auth0</span>
-            </>
-          )}
-        </button>
-
-        <div className="mt-8 pt-6 border-t border-white/5 text-center">
-          <p className="text-slate-500 text-xs uppercase tracking-widest font-bold">
-            Powered by Hercix & Auth0
-          </p>
-        </div>
+      {/* Footer Branding */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        className="relative z-10 text-center border-t border-white/5 pt-6 w-full max-w-md"
+      >
+        <p className="text-slate-500 text-[10px] uppercase tracking-widest font-bold">
+          Powered by Hercix & Auth0
+        </p>
       </motion.div>
     </div>
   );
