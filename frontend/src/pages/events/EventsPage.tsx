@@ -17,6 +17,10 @@ import {
   BookOpen,
   Layers,
   Sunrise,
+  CreditCard,
+  Lock,
+  Shield,
+  Check,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -268,6 +272,269 @@ const CreateEventModal: React.FC<{ onClose: () => void; onCreated: () => void; i
   );
 };
 
+interface PaymentGatewayModalProps {
+  event: any;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({ event, onClose, onSuccess }) => {
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardName, setCardName] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvv, setCardCvv] = useState('');
+  const [status, setStatus] = useState<'IDLE' | 'PROCESSING' | 'SUCCESS'>('IDLE');
+  const [processStep, setProcessStep] = useState('');
+  const [error, setError] = useState('');
+
+  const formatCardNumber = (value: string) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    const matches = v.match(/\d{4,16}/g);
+    const match = (matches && matches[0]) || '';
+    const parts = [];
+
+    for (let i = 0, len = match.length; i < len; i += 4) {
+      parts.push(match.substring(i, i + 4));
+    }
+
+    if (parts.length > 0) {
+      return parts.join(' ');
+    } else {
+      return v;
+    }
+  };
+
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCardNumber(formatCardNumber(e.target.value));
+  };
+
+  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/[^0-9]/g, '');
+    if (value.length > 2) {
+      value = value.substring(0, 2) + '/' + value.substring(2, 4);
+    }
+    setCardExpiry(value.substring(0, 5));
+  };
+
+  const handleCvvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCardCvv(e.target.value.replace(/[^0-9]/g, '').substring(0, 4));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (cardNumber.length < 19) {
+      setError('Por favor, ingresa un número de tarjeta de 16 dígitos válido.');
+      return;
+    }
+    if (cardExpiry.length < 5) {
+      setError('Por favor, ingresa una fecha de expiración válida (MM/AA).');
+      return;
+    }
+    if (cardCvv.length < 3) {
+      setError('Por favor, ingresa un CVV de 3 o 4 dígitos válido.');
+      return;
+    }
+    if (!cardName.trim()) {
+      setError('Por favor, ingresa el nombre del titular.');
+      return;
+    }
+
+    setError('');
+    setStatus('PROCESSING');
+    
+    // Simular los pasos de verificación bancaria premium
+    const steps = [
+      '🔒 Conectando con la red segura Hercix Pay...',
+      '💳 Autorizando cobro de $' + Number(event.price) + ' USD...',
+      '🏦 Verificando fondos y firma encriptada...',
+      '✅ ¡Transacción autorizada con éxito!'
+    ];
+
+    let currentStep = 0;
+    setProcessStep(steps[0]);
+
+    const interval = setInterval(() => {
+      currentStep++;
+      if (currentStep < steps.length) {
+        setProcessStep(steps[currentStep]);
+      } else {
+        clearInterval(interval);
+        setStatus('SUCCESS');
+        setTimeout(() => {
+          onSuccess();
+        }, 1500);
+      }
+    }, 800);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="glass-card w-full max-w-lg bg-slate-900 border-white/10 p-6 relative overflow-hidden shadow-2xl"
+      >
+        <button onClick={onClose} disabled={status === 'PROCESSING' || status === 'SUCCESS'} className="absolute top-5 right-5 text-slate-500 hover:text-white transition-colors disabled:opacity-30">
+          <X />
+        </button>
+
+        {status === 'IDLE' && (
+          <>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="bg-primary/20 p-2 rounded-lg">
+                <CreditCard className="text-primary-light w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white font-outfit">Pasarela Hercix Pay</h2>
+                <p className="text-slate-400 text-xs">Pago 100% encriptado y seguro</p>
+              </div>
+            </div>
+
+            {/* Credit Card Preview */}
+            <div className="relative h-44 w-full rounded-2xl bg-gradient-to-br from-indigo-600 via-purple-700 to-pink-600 p-6 text-white shadow-xl mb-6 overflow-hidden border border-white/10">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent opacity-40" />
+              <div className="flex justify-between items-start mb-6 relative z-10">
+                <div className="text-xs font-bold tracking-widest text-white/80">HERCIX PLATINUM</div>
+                <CreditCard className="w-7 h-7 opacity-80" />
+              </div>
+              <div className="text-lg font-mono tracking-widest mb-4 relative z-10">
+                {cardNumber || '•••• •••• •••• ••••'}
+              </div>
+              <div className="flex justify-between items-end relative z-10">
+                <div>
+                  <div className="text-[9px] text-white/50 uppercase font-bold tracking-wider">Titular</div>
+                  <div className="text-xs font-semibold truncate max-w-[180px]">{cardName.toUpperCase() || 'NOMBRE APELLIDO'}</div>
+                </div>
+                <div>
+                  <div className="text-[9px] text-white/50 uppercase font-bold tracking-wider">Vence</div>
+                  <div className="text-xs font-semibold">{cardExpiry || 'MM/AA'}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Summary info */}
+            <div className="bg-white/5 border border-white/5 p-4 rounded-xl mb-6 flex justify-between items-center">
+              <div>
+                <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider block">Evento / Torneo</span>
+                <span className="text-white font-bold text-sm truncate max-w-[200px] block">{event.title}</span>
+              </div>
+              <div className="text-right">
+                <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider block">Total a Pagar</span>
+                <span className="text-primary-light font-black text-lg block">${Number(event.price).toLocaleString('es-CO')} USD</span>
+              </div>
+            </div>
+
+            {error && <div className="bg-red-500/10 border-red-500/20 p-3 border rounded-xl text-red-400 text-xs mb-4">{error}</div>}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Número de Tarjeta</label>
+                <div className="relative">
+                  <input
+                    required
+                    type="text"
+                    value={cardNumber}
+                    onChange={handleCardNumberChange}
+                    className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 px-4 pl-10 border rounded-xl text-white outline-none font-mono"
+                    placeholder="0000 0000 0000 0000"
+                  />
+                  <CreditCard className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Nombre del Titular</label>
+                <input
+                  required
+                  type="text"
+                  value={cardName}
+                  onChange={e => setCardName(e.target.value)}
+                  className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 px-4 border rounded-xl text-white outline-none uppercase"
+                  placeholder="JUAN PEREZ"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Expiración</label>
+                  <input
+                    required
+                    type="text"
+                    value={cardExpiry}
+                    onChange={handleExpiryChange}
+                    className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 px-4 border rounded-xl text-white outline-none font-mono"
+                    placeholder="MM/AA"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-slate-400 text-xs font-bold uppercase tracking-wider">CVV</label>
+                  <input
+                    required
+                    type="password"
+                    value={cardCvv}
+                    onChange={handleCvvChange}
+                    className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 px-4 border rounded-xl text-white outline-none font-mono"
+                    placeholder="•••"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 text-slate-500 text-[10px] py-1">
+                <Shield className="w-4 h-4 text-green-500 flex-shrink-0" />
+                <span>Pasarela de pruebas segura con encriptación SSL AES de 256 bits.</span>
+              </div>
+
+              <button
+                type="submit"
+                className="btn-primary w-full py-4 flex items-center justify-center gap-2 text-base font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 active:scale-[0.98]"
+              >
+                <Lock className="w-5 h-5" />
+                <span>Pagar ${Number(event.price).toLocaleString('es-CO')} USD Seguro</span>
+              </button>
+            </form>
+          </>
+        )}
+
+        {status === 'PROCESSING' && (
+          <div className="flex flex-col items-center justify-center py-16 text-center space-y-6">
+            <Loader2 className="text-primary w-16 h-16 animate-spin" />
+            <div className="space-y-2">
+              <h3 className="text-lg font-bold text-white">Procesando Pago Seguro...</h3>
+              <p className="text-slate-400 text-sm font-mono animate-pulse">{processStep}</p>
+            </div>
+            <div className="flex items-center gap-1.5 text-slate-500 text-xs bg-white/5 px-4 py-2 rounded-full">
+              <Shield className="w-4 h-4 text-primary-light" />
+              <span>PCI-DSS Compliant Gateway</span>
+            </div>
+          </div>
+        )}
+
+        {status === 'SUCCESS' && (
+          <div className="flex flex-col items-center justify-center py-16 text-center space-y-6">
+            <div className="w-20 h-20 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center text-green-400">
+              <Check className="w-12 h-12" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-black text-white font-outfit">¡Transacción Aprobada!</h3>
+              <p className="text-slate-400 text-sm">Tu inscripción ha sido confirmada con éxito.</p>
+            </div>
+            <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-xl w-full max-w-xs text-left space-y-1">
+              <div className="flex justify-between text-xs text-slate-400">
+                <span>Transacción ID:</span>
+                <span className="font-mono text-white">TXN-{Math.floor(100000 + Math.random() * 900000)}</span>
+              </div>
+              <div className="flex justify-between text-xs text-slate-400">
+                <span>Estado:</span>
+                <span className="text-green-400 font-bold">COMPLETADO</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </motion.div>
+    </div>
+  );
+};
+
 const EventsPage: React.FC = () => {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -276,6 +543,7 @@ const EventsPage: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState<any>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [payingEvent, setPayingEvent] = useState<any>(null);
   const { user } = useAuth();
 
   const fetchEvents = async () => {
@@ -293,8 +561,12 @@ const EventsPage: React.FC = () => {
   useEffect(() => { fetchEvents(); }, []);
 
   const handleRegister = (event: any) => {
-    setSuccessMsg(`¡Inscripción registrada para "${event.title}"! Te contactaremos pronto.`);
-    setTimeout(() => setSuccessMsg(null), 4000);
+    if (Number(event.price) > 0) {
+      setPayingEvent(event);
+    } else {
+      setSuccessMsg(`¡Inscripción gratuita registrada para "${event.title}"! Te contactaremos pronto.`);
+      setTimeout(() => setSuccessMsg(null), 4000);
+    }
   };
 
   const handleCreated = () => {
@@ -419,6 +691,18 @@ const EventsPage: React.FC = () => {
             )}
           </div>
         </div>
+      )}
+
+      {payingEvent && (
+        <PaymentGatewayModal 
+          event={payingEvent} 
+          onClose={() => setPayingEvent(null)} 
+          onSuccess={() => {
+            setSuccessMsg(`¡Pago procesado con éxito e inscripción confirmada para "${payingEvent.title}"!`);
+            setPayingEvent(null);
+            setTimeout(() => setSuccessMsg(null), 5000);
+          }} 
+        />
       )}
     </div>
   );
