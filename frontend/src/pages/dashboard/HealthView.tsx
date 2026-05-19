@@ -47,6 +47,7 @@ const HealthView: React.FC = () => {
   const [coachComments, setCoachComments] = useState<any[]>([]);
   const [isSimulating, setIsSimulating] = useState(false);
   const [simulationInterval, setSimulationInterval] = useState<any>(null);
+  const [simulationSeconds, setSimulationSeconds] = useState(0);
 
   // Cleanup simulation on unmount
   useEffect(() => {
@@ -67,15 +68,17 @@ const HealthView: React.FC = () => {
       toast.success('🏃‍♂️ Entrenamiento simulado finalizado y guardado con éxito.');
     } else {
       setIsSimulating(true);
+      setSimulationSeconds(0);
       toast.info('⚡ Sincronización continua de Smartwatch activa. Trotando en tiempo real...');
       
       const interval = setInterval(() => {
+        setSimulationSeconds(prevSec => prevSec + 1);
         setMetrics(prev => {
           let updated = prev.map(m => {
             if (m.type === 'STEPS') {
               return { ...m, value: m.value + Math.floor(Math.random() * 20) + 10 };
             }
-            if (m.type === 'CALORIES') {
+            if (m.type === 'CALORIES_BURNED') {
               return { ...m, value: Number((m.value + (Math.random() * 1.5 + 0.5)).toFixed(1)) };
             }
             return m;
@@ -91,10 +94,10 @@ const HealthView: React.FC = () => {
               date: getLocalDateString()
             });
           }
-          if (!updated.some(m => m.type === 'CALORIES')) {
+          if (!updated.some(m => m.type === 'CALORIES_BURNED')) {
             updated.push({
               id: 'sim-cal-' + Date.now(),
-              type: 'CALORIES',
+              type: 'CALORIES_BURNED',
               value: 1,
               unit: 'kcal',
               date: getLocalDateString()
@@ -102,7 +105,7 @@ const HealthView: React.FC = () => {
           }
           return updated;
         });
-      }, 1200);
+      }, 1000); // 1-second interval matches simulationSeconds perfectly!
       
       setSimulationInterval(interval);
     }
@@ -110,6 +113,12 @@ const HealthView: React.FC = () => {
 
   const getLocalDateString = () => {
     return new Date().toLocaleDateString('en-CA'); // Returns YYYY-MM-DD in local time
+  };
+
+  const formatTime = (secs: number) => {
+    const m = Math.floor(secs / 60).toString().padStart(2, '0');
+    const s = (secs % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
   };
 
   const [newMetric, setNewMetric] = useState({ 
@@ -342,7 +351,7 @@ const HealthView: React.FC = () => {
             {isSimulating ? (
               <>
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block shrink-0" />
-                <span>Simulando...</span>
+                <span>Simulando... ({formatTime(simulationSeconds)})</span>
               </>
             ) : (
               <>
