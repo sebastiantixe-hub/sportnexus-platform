@@ -6,7 +6,7 @@ import {
   MapPin, Map as MapIcon, Navigation2, Search, X, 
   Calendar, Users, Clock, ChevronRight, Loader2
 } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { PayMeModal } from '../../components/payment/PayMeModal';
@@ -16,6 +16,20 @@ L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+// Custom user location icon (pulsing blue dot)
+const userLocationIcon = L.divIcon({
+  html: `
+    <div class="relative flex items-center justify-center">
+      <div class="absolute w-8 h-8 bg-blue-500/30 rounded-full blur-sm animate-ping"></div>
+      <div class="absolute w-4 h-4 bg-blue-500/50 rounded-full animate-pulse"></div>
+      <div class="relative w-3.5 h-3.5 bg-blue-500 border border-white rounded-full shadow-lg"></div>
+    </div>
+  `,
+  className: 'user-location-marker',
+  iconSize: [32, 32],
+  iconAnchor: [16, 16]
 });
 
 // Custom Icons with Glow Effect
@@ -233,6 +247,33 @@ const MapSearchPage: React.FC = () => {
                 : "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
               } 
             />
+
+            {/* Pulsing User Current Location Marker (San Isidro Center) */}
+            <Marker position={[-12.085, -77.03]} icon={userLocationIcon}>
+              <Popup className="custom-popup">
+                <div className="p-1.5 min-w-[100px] text-center">
+                  <span className="text-sm font-bold text-slate-900 flex items-center justify-center gap-1">
+                    🔵 Mi Ubicación
+                  </span>
+                  <span className="text-[10px] text-slate-500 block mt-0.5">Sede Central Hercix</span>
+                </div>
+              </Popup>
+            </Marker>
+
+            {/* Glowing Active Delivery-Style Route Polyline */}
+            {selectedGym && selectedGym.latitude && selectedGym.longitude && (
+              <Polyline 
+                positions={[
+                  [-12.085, -77.03],
+                  [selectedGym.latitude, selectedGym.longitude]
+                ]}
+                color="#ef4444"
+                weight={4}
+                opacity={0.85}
+                className="animate-route-path"
+              />
+            )}
+
             {filtered.filter(g => g.latitude && g.longitude).map(gym => {
               const sportInfo = SPORT_FILTERS.find(f => f.value !== '' && gym.name.includes(f.value));
               return (
@@ -386,7 +427,36 @@ const MapSearchPage: React.FC = () => {
                         🚗 Cómo llegar
                       </a>
                     </div>
-                    {selectedGym.description && <p className="text-slate-400 text-sm mt-3 line-clamp-2">{selectedGym.description}</p>}
+
+                    {/* Delivery-Style Dynamic Routing / Steps Card */}
+                    <div className="bg-slate-950/80 border border-red-500/20 rounded-xl p-4 mt-4 shadow-inner relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 rounded-full blur-xl pointer-events-none"></div>
+                      <h4 className="text-red-400 font-bold text-[11px] flex items-center gap-1.5 uppercase tracking-wider mb-3">
+                        <Navigation2 className="w-3.5 h-3.5 animate-bounce rotate-45 text-red-500" /> 
+                        Trazado de Ruta Activo (Estilo Delivery)
+                      </h4>
+                      <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                        <div className="bg-white/5 p-2 rounded-lg border border-white/5">
+                          <p className="text-slate-400 text-[10px] mb-0.5">Distancia</p>
+                          <p className="text-white font-bold text-sm">~ 3.2 km</p>
+                        </div>
+                        <div className="bg-white/5 p-2 rounded-lg border border-white/5">
+                          <p className="text-slate-400 text-[10px] mb-0.5">🚗 En Auto</p>
+                          <p className="text-white font-bold text-sm">8 mins</p>
+                        </div>
+                        <div className="bg-white/5 p-2 rounded-lg border border-white/5">
+                          <p className="text-slate-400 text-[10px] mb-0.5">🏃 A Pie</p>
+                          <p className="text-white font-bold text-sm">22 mins</p>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex items-center gap-2 bg-red-500/10 px-3 py-2 rounded-lg border border-red-500/10 text-[10px] text-red-300">
+                        <span className="font-bold shrink-0">📍 PASO A PASO:</span>
+                        <span className="truncate">Avanzar por Av. Javier Prado Este hacia Av. Principal. Girar a la derecha.</span>
+                        <span className="animate-pulse font-bold ml-auto shrink-0">Sincronizado</span>
+                      </div>
+                    </div>
+
+                    {selectedGym.description && <p className="text-slate-400 text-sm mt-4 line-clamp-2">{selectedGym.description}</p>}
                   </div>
                   <button onClick={() => setSelectedGym(null)} className="text-slate-400 hover:text-white p-1"><X className="w-5 h-5" /></button>
                 </div>
@@ -455,6 +525,19 @@ const MapSearchPage: React.FC = () => {
         amount={classToBook?.price || 0}
         description={`Clase: ${classToBook?.title || ''}`}
       />
+
+      {/* Localized styles for dynamic delivery-style maps path animation */}
+      <style>{`
+        @keyframes routeDash {
+          to {
+            stroke-dashoffset: -20;
+          }
+        }
+        .animate-route-path {
+          stroke-dasharray: 8, 8;
+          animation: routeDash 1.2s linear infinite !important;
+        }
+      `}</style>
     </div>
   );
 };
