@@ -24,16 +24,16 @@ let HealthController = class HealthController {
         this.healthService = healthService;
     }
     async create(req, dto) {
-        return this.healthService.createOrUpdate(req.user.userId, dto);
+        return this.healthService.createOrUpdate(req.user.id, dto);
     }
     async findAll(req) {
-        return this.healthService.findAll(req.user.userId);
+        return this.healthService.findAll(req.user.id);
     }
     async findGoal(req) {
-        return this.healthService.findGoal(req.user.userId);
+        return this.healthService.findGoal(req.user.id);
     }
     async updateGoal(req, dto) {
-        return this.healthService.createOrUpdateGoal(req.user.userId, dto);
+        return this.healthService.createOrUpdateGoal(req.user.id, dto);
     }
     async getMETs() {
         return this.healthService.findMETs();
@@ -45,16 +45,16 @@ let HealthController = class HealthController {
         return this.healthService.deleteMET(id);
     }
     async addRecommendation(req, dto) {
-        return this.healthService.createRecommendation(req.user.userId, dto.athleteId, dto.observation);
+        return this.healthService.createRecommendation(req.user.id, dto.athleteId, dto.observation);
     }
     async getRecommendations(athleteId) {
         return this.healthService.findRecommendations(athleteId);
     }
     async getCoachAthletes(req) {
-        return this.healthService.getCoachAthletes(req.user.userId);
+        return this.healthService.getCoachAthletes(req.user.id);
     }
     async getOwnerStats(req) {
-        return this.healthService.getOwnerStats(req.user.userId);
+        return this.healthService.getOwnerStats(req.user.id);
     }
 };
 exports.HealthController = HealthController;

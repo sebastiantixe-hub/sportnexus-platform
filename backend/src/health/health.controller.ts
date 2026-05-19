@@ -16,13 +16,13 @@ export class HealthController {
   @Post('metrics')
   @ApiOperation({ summary: 'Registrar o actualizar una métrica de salud' })
   async create(@Request() req, @Body() dto: CreateHealthMetricDto) {
-    return this.healthService.createOrUpdate(req.user.userId, dto);
+    return this.healthService.createOrUpdate(req.user.id, dto);
   }
 
   @Get('metrics')
   @ApiOperation({ summary: 'Obtener todas las métricas del usuario actual' })
   async findAll(@Request() req) {
-    return this.healthService.findAll(req.user.userId);
+    return this.healthService.findAll(req.user.id);
   }
 
   // ── User Goals ────────────────────────────────────────────────────────────
@@ -30,7 +30,7 @@ export class HealthController {
   @Get('goals')
   @ApiOperation({ summary: 'Obtener las metas de salud del usuario' })
   async findGoal(@Request() req) {
-    return this.healthService.findGoal(req.user.userId);
+    return this.healthService.findGoal(req.user.id);
   }
 
   @Post('goals')
@@ -39,7 +39,7 @@ export class HealthController {
     @Request() req,
     @Body() dto: { targetCalories: number; targetSteps: number; targetWater: number; targetWeight?: number }
   ) {
-    return this.healthService.createOrUpdateGoal(req.user.userId, dto);
+    return this.healthService.createOrUpdateGoal(req.user.id, dto);
   }
 
   // ── Super Admin: MET configurations ───────────────────────────────────────
@@ -69,7 +69,7 @@ export class HealthController {
   @Post('recommendations')
   @ApiOperation({ summary: 'Registrar recomendación/observación de coach para un atleta' })
   async addRecommendation(@Request() req, @Body() dto: { athleteId: string; observation: string }) {
-    return this.healthService.createRecommendation(req.user.userId, dto.athleteId, dto.observation);
+    return this.healthService.createRecommendation(req.user.id, dto.athleteId, dto.observation);
   }
 
   @Get('recommendations/:athleteId')
@@ -83,12 +83,12 @@ export class HealthController {
   @Get('coach/athletes')
   @ApiOperation({ summary: 'Obtener listado y rendimiento de atletas del coach' })
   async getCoachAthletes(@Request() req) {
-    return this.healthService.getCoachAthletes(req.user.userId);
+    return this.healthService.getCoachAthletes(req.user.id);
   }
 
   @Get('owner/stats')
   @ApiOperation({ summary: 'Obtener analíticas del gimnasio para dueños' })
   async getOwnerStats(@Request() req) {
-    return this.healthService.getOwnerStats(req.user.userId);
+    return this.healthService.getOwnerStats(req.user.id);
   }
 }
