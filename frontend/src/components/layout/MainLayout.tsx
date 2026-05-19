@@ -51,6 +51,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   const [notifications, setNotifications] = useState<any[]>([]);
   const prevNotificationsCount = useRef(0);
@@ -210,16 +211,29 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </nav>
 
         <div className="mt-auto pt-6 border-t border-white/5 space-y-4">
-          <div className="flex items-center gap-3 px-2">
-            <div className="w-10 h-10 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center font-bold text-primary-light uppercase">
+          <div 
+            onClick={() => user?.role !== 'ADMIN' && setIsProfileModalOpen(true)}
+            className={`flex items-center gap-3 px-2 py-1.5 rounded-xl transition-all duration-200 ${
+              user?.role !== 'ADMIN' 
+                ? 'cursor-pointer hover:bg-white/5 active:scale-95 group' 
+                : ''
+            }`}
+            title={user?.role !== 'ADMIN' ? "Editar Perfil / Cambiar Rol" : undefined}
+          >
+            <div className="w-10 h-10 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center font-bold text-primary-light uppercase relative group-hover:border-primary/50 transition-colors shrink-0">
               {user?.name.charAt(0)}
+              {user?.role !== 'ADMIN' && (
+                <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-[10px] select-none text-white font-normal">
+                  ✏️
+                </div>
+              )}
             </div>
-            <div className="overflow-hidden">
-              <p className="font-medium text-sm truncate">{user?.name}</p>
+            <div className="overflow-hidden flex-grow text-left">
+              <p className="font-medium text-sm truncate group-hover:text-white transition-colors">{user?.name}</p>
               <div className="flex items-center gap-2">
-                <p className="text-slate-500 text-xs truncate capitalize">{user?.role.toLowerCase().replace('_', ' ')}</p>
+                <p className="text-slate-500 text-xs truncate capitalize group-hover:text-slate-300 transition-colors">{user?.role.toLowerCase().replace('_', ' ')}</p>
                 {activePlan && (
-                  <span className="text-[9px] font-bold bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded flex items-center gap-1 uppercase tracking-wider">
+                  <span className="text-[9px] font-bold bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded flex items-center gap-1 uppercase tracking-wider shrink-0">
                     <Trophy className="w-3 h-3" /> {activePlan.name}
                   </span>
                 )}
@@ -324,10 +338,14 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       {/* AI Chat Widget */}
       <AIChatWidget />
 
-      {/* Complete Profile Onboarding Modal */}
+      {/* Complete Profile Onboarding / Edit Profile Modal */}
       <CompleteProfileModal 
-        isOpen={!!user && user.role !== 'ADMIN' && (!user.dni || !user.phone)} 
-        onSuccess={() => console.log('Perfil completado con éxito')}
+        isOpen={(!!user && user.role !== 'ADMIN' && (!user.dni || !user.phone)) || isProfileModalOpen} 
+        onSuccess={() => {
+          console.log('Perfil completado con éxito');
+          setIsProfileModalOpen(false);
+        }}
+        onClose={() => setIsProfileModalOpen(false)}
       />
 
       {/* Overlay for mobile sidebar */}

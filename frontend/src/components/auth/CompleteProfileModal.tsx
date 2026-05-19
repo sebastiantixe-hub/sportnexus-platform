@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/auth-context';
-import { Loader2, ShieldCheck, User, Phone, FileText, Sparkles } from 'lucide-react';
+import { Loader2, ShieldCheck, User, Phone, FileText, Sparkles, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
 interface CompleteProfileModalProps {
   isOpen: boolean;
   onSuccess?: () => void;
+  onClose?: () => void;
 }
 
-export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOpen, onSuccess }) => {
+export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOpen, onSuccess, onClose }) => {
   const { user, updateUserProfile } = useAuth();
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -70,6 +71,16 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
             {/* Ambient background glow */}
             <div className="absolute -left-20 -top-20 h-40 w-40 rounded-full bg-primary/20 blur-3xl animate-pulse" />
             <div className="absolute -right-20 -bottom-20 h-40 w-40 rounded-full bg-secondary/20 blur-3xl animate-pulse" />
+
+            {onClose && (
+              <button 
+                type="button" 
+                onClick={onClose} 
+                className="absolute top-6 right-6 text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-white/5 transition-all z-10"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
 
             <div className="relative text-center">
               {/* Premium Icon Header */}
