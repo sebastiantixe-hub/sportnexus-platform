@@ -16,10 +16,10 @@ export declare class AuthService {
         refreshToken: string;
         user: {
             id: string;
-            createdAt: Date;
             name: string;
             email: string;
             role: import("@prisma/client").$Enums.UserRole;
+            createdAt: Date;
         };
     }>;
     login(dto: LoginDto): Promise<{
@@ -27,9 +27,8 @@ export declare class AuthService {
         refreshToken: string;
         user: {
             id: string;
-            createdAt: Date;
-            name: string;
             auth0Id: string | null;
+            name: string;
             email: string;
             role: import("@prisma/client").$Enums.UserRole;
             phone: string | null;
@@ -37,6 +36,7 @@ export declare class AuthService {
             avatarUrl: string | null;
             isActive: boolean;
             emailVerified: boolean;
+            createdAt: Date;
             updatedAt: Date;
             weight: number | null;
         };
@@ -46,9 +46,8 @@ export declare class AuthService {
         refreshToken: string;
         user: {
             id: string;
-            createdAt: Date;
-            name: string;
             auth0Id: string | null;
+            name: string;
             email: string;
             role: import("@prisma/client").$Enums.UserRole;
             phone: string | null;
@@ -56,6 +55,7 @@ export declare class AuthService {
             avatarUrl: string | null;
             isActive: boolean;
             emailVerified: boolean;
+            createdAt: Date;
             updatedAt: Date;
             weight: number | null;
         };
@@ -63,7 +63,6 @@ export declare class AuthService {
     getMe(userId: string): Promise<{
         roles: string[];
         id: string;
-        createdAt: Date;
         name: string;
         email: string;
         role: import("@prisma/client").$Enums.UserRole;
@@ -72,6 +71,7 @@ export declare class AuthService {
         avatarUrl: string | null;
         isActive: boolean;
         emailVerified: boolean;
+        createdAt: Date;
     } | null>;
     switchRole(userId: string, newRole: UserRole): Promise<{
         id: string;

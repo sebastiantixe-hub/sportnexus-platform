@@ -4,6 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { passportJwtSecret } from 'jwks-rsa';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from '../auth.service';
+import * as https from 'https';
 
 export interface Auth0JwtPayload {
   sub: string;      // Auth0 user ID e.g. "auth0|abc123"
@@ -34,6 +35,40 @@ export class Auth0JwtStrategy extends PassportStrategy(Strategy, 'auth0') {
       audience: audience,
       issuer: [`https://${domain}/`, `https://${domain}`], // Accept both with and without trailing slash
       algorithms: ['RS256'],
+      passReqToCallback: true,
+    });
+  }
+
+  private fetchUserInfo(domain: string, token: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const options = {
+        hostname: domain,
+        port: 443,
+        path: '/userinfo',
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      };
+
+      const req = https.request(options, (res) => {
+        let body = '';
+        res.on('data', (chunk) => body += chunk);
+        res.on('end', () => {
+          if (res.statusCode === 200) {
+            try {
+              resolve(JSON.parse(body));
+            } catch (e) {
+              reject(new Error('Invalid JSON from userinfo'));
+            }
+          } else {
+            reject(new Error(`Userinfo status code: ${res.statusCode}`));
+          }
+        });
+      });
+
+      req.on('error', (err) => reject(err));
+      req.end();
     });
   }
 
@@ -42,12 +77,34 @@ export class Auth0JwtStrategy extends PassportStrategy(Strategy, 'auth0') {
    * Finds or creates the user in our Prisma DB.
    * Return value is attached to request.user
    */
-   async validate(payload: Auth0JwtPayload) {
+   async validate(req: any, payload: Auth0JwtPayload) {
     console.log('Validando Payload de Auth0:', JSON.stringify(payload, null, 2));
-    const { sub, email, name, picture } = payload;
+    const { sub, picture } = payload;
+    let email = payload.email;
+    let name = payload.name;
 
     if (!sub) {
       throw new UnauthorizedException('Token inválido: falta sub');
+    }
+
+    // Fetch real email from Auth0 /userinfo if not present in custom API access token payload
+    if (!email) {
+      const authHeader = req.headers?.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        const domain = this.config.get<string>('AUTH0_DOMAIN')!;
+        try {
+          console.log(`Fetching userinfo from Auth0 to retrieve real email for ${sub}...`);
+          const userInfo = await this.fetchUserInfo(domain, token);
+          if (userInfo && userInfo.email) {
+            email = userInfo.email;
+            name = userInfo.name || name;
+            console.log(`Retrieved real email from userinfo: ${email}`);
+          }
+        } catch (err) {
+          console.error('Error fetching userinfo from Auth0:', err.message);
+        }
+      }
     }
 
     const user = await this.authService.findOrCreateAuth0User({
@@ -64,3 +121,4 @@ export class Auth0JwtStrategy extends PassportStrategy(Strategy, 'auth0') {
     return user;
   }
 }
+
