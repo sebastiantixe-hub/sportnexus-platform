@@ -135,7 +135,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       to: '/discovery',          
       icon: Map,             
       label: user?.role === 'ADMIN' ? 'Descubrir' :
-             user?.role === 'GYM_OWNER' ? 'Mapa de Competidores' :
+             user?.role === 'GYM_OWNER' ? 'Análisis de Mercado' :
              user?.role === 'TRAINER' ? 'Centros de Entrenamiento' : 'Buscador General',                
       roles: ['USER', 'GYM_OWNER', 'TRAINER', 'ADMIN'] 
     },
