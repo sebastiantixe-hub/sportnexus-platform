@@ -214,16 +214,16 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <div className="w-10 h-10 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center font-bold text-primary-light uppercase">
               {user?.name.charAt(0)}
             </div>
-            <div className="overflow-hidden">
-              <p className="font-medium text-sm truncate">{user?.name}</p>
-              <div className="flex items-center gap-2">
-                <p className="text-slate-500 text-xs truncate capitalize">{user?.role.toLowerCase().replace('_', ' ')}</p>
-                {activePlan && (
-                  <span className="text-[9px] font-bold bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded flex items-center gap-1 uppercase tracking-wider">
-                    <Trophy className="w-3 h-3" /> {activePlan.name}
+             <div className="overflow-hidden flex flex-col gap-0.5 text-left flex-grow">
+              <p className="font-medium text-sm truncate text-white" title={user?.name}>{user?.name}</p>
+              <p className="text-slate-500 text-xs truncate capitalize">{user?.role.toLowerCase().replace('_', ' ')}</p>
+              {activePlan && (
+                <div className="mt-1">
+                  <span className="inline-flex items-center gap-1 text-[9px] font-bold bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                    <Trophy className="w-2.5 h-2.5" /> {activePlan.name}
                   </span>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
 
