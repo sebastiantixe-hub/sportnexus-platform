@@ -10,6 +10,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { PayMeModal } from '../../components/payment/PayMeModal';
+import { useAuth } from '../../context/auth-context';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -65,6 +66,7 @@ const SPORT_FILTERS = [
 ];
 
 const MapSearchPage: React.FC = () => {
+  const { user } = useAuth();
   const [gyms, setGyms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [usingLocation, setUsingLocation] = useState(false);
@@ -191,16 +193,36 @@ const MapSearchPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-              <MapIcon className="text-primary-light" /> Buscar Academias y Gimnasios
+              <MapIcon className="text-primary-light" /> 
+              {user?.role === 'ADMIN' ? 'Mapa de Cobertura Ecosistema' :
+               user?.role === 'GYM_OWNER' ? 'Análisis de Competidores y Mercado' :
+               user?.role === 'TRAINER' ? 'Directorio de Centros Deportivos' : 'Buscar Academias y Gimnasios'}
             </h1>
-            <p className="text-slate-400 mt-1">Encuentra el lugar perfecto para entrenar cerca de ti.</p>
+            <p className="text-slate-400 mt-1">
+              {user?.role === 'ADMIN' ? 'Audita y supervisa la distribución geográfica de los negocios de Hercix.' :
+               user?.role === 'GYM_OWNER' ? 'Monitorea la densidad de gimnasios y ubica oportunidades de expansión en el mapa.' :
+               user?.role === 'TRAINER' ? 'Explora gimnasios aliados y ubicaciones para expandir tu red de alumnos.' :
+               'Encuentra el lugar perfecto para entrenar cerca de ti.'}
+            </p>
           </div>
-          <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/20 px-3 py-1.5 rounded-full shrink-0 max-w-fit">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-            </span>
-            <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest">Tiempo Real Activo</span>
+          <div className="flex flex-wrap gap-2 sm:items-center">
+            {user?.role === 'GYM_OWNER' && (
+              <div className="flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-full shrink-0 text-[10px] font-bold text-indigo-400 uppercase tracking-widest animate-pulse">
+                🎯 MODO GEOMARKETING ACTIVO
+              </div>
+            )}
+            {user?.role === 'TRAINER' && (
+              <div className="flex items-center gap-1.5 bg-cyan-500/10 border border-cyan-500/20 px-3 py-1.5 rounded-full shrink-0 text-[10px] font-bold text-cyan-400 uppercase tracking-widest animate-pulse">
+                💼 RED DE LOCACIONES ACTIVA
+              </div>
+            )}
+            <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/20 px-3 py-1.5 rounded-full shrink-0 max-w-fit">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest">Tiempo Real Activo</span>
+            </div>
           </div>
         </div>
 
