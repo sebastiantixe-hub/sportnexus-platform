@@ -48,7 +48,7 @@ export class EmailService {
         <tr>
           <td style="background:#12122a;border-radius:0 0 16px 16px;border:1px solid #2d2d4e;border-top:none;padding:24px 40px;text-align:center;">
             <p style="margin:0;color:#6b7280;font-size:12px;">
-              © 2026 Hercix Health · Todos los derechos reservados<br/>
+              © 2026 QORIBEX · Todos los derechos reservados<br/>
               <a href="#" style="color:#a855f7;text-decoration:none;">Darse de baja</a> · 
               <a href="#" style="color:#a855f7;text-decoration:none;">Política de privacidad</a>
             </p>
