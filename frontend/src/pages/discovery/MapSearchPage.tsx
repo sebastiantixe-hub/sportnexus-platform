@@ -403,7 +403,13 @@ const MapSearchPage: React.FC = () => {
                     </div>
                     <div className="mt-2 flex items-center gap-2 text-xs text-slate-500">
                       <span className="bg-slate-800 px-2 py-0.5 rounded">⭐ 4.8</span>
-                      <span className="text-primary-light font-bold">Ver clases →</span>
+                      {user?.role === 'GYM_OWNER' ? (
+                        <span className="text-indigo-400 font-bold">Analizar Local →</span>
+                      ) : user?.role === 'TRAINER' ? (
+                        <span className="text-cyan-400 font-bold">Ver Instalaciones →</span>
+                      ) : (
+                        <span className="text-primary-light font-bold">Ver clases →</span>
+                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -520,14 +526,16 @@ const MapSearchPage: React.FC = () => {
                           </div>
                           <div className="text-right shrink-0">
                             <p className="text-green-400 font-bold">${Number(cls.price).toFixed(0)}</p>
-                            <button
-                              onClick={() => initiateBooking(cls.id, cls.title, Number(cls.price))}
-                              disabled={bookingId === cls.id}
-                              className="mt-2 bg-primary hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 flex items-center gap-1">
-                              {bookingId === cls.id ? (
-                                <><Loader2 className="w-3 h-3 animate-spin" /> Reservando...</>
-                              ) : '✅ Reservar'}
-                            </button>
+                            {(!user || user.role === 'USER') && (
+                              <button
+                                onClick={() => initiateBooking(cls.id, cls.title, Number(cls.price))}
+                                disabled={bookingId === cls.id}
+                                className="mt-2 bg-primary hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 flex items-center gap-1">
+                                {bookingId === cls.id ? (
+                                  <><Loader2 className="w-3 h-3 animate-spin" /> Reservando...</>
+                                ) : '✅ Reservar'}
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
