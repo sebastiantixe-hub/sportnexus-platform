@@ -46,11 +46,15 @@ const HealthView: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [coachComments, setCoachComments] = useState<any[]>([]);
 
+  const getLocalDateString = () => {
+    return new Date().toLocaleDateString('en-CA'); // Returns YYYY-MM-DD in local time
+  };
+
   const [newMetric, setNewMetric] = useState({ 
     type: 'STEPS', 
     value: '', 
     unit: 'pasos', 
-    date: new Date().toISOString().split('T')[0] 
+    date: getLocalDateString() 
   });
 
   const [editGoal, setEditGoal] = useState<Goal>({
@@ -90,7 +94,7 @@ const HealthView: React.FC = () => {
         console.error('Error fetching coach recommendations', err);
       }
 
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       toast.error('Error al cargar datos de salud');
     } finally {
@@ -100,16 +104,25 @@ const HealthView: React.FC = () => {
 
   const handleAddMetric = async (e: React.FormEvent) => {
     e.preventDefault();
+    const val = parseFloat(newMetric.value);
+    if (isNaN(val)) {
+      toast.error('Por favor, ingresa un número válido');
+      return;
+    }
+
     try {
       await api.post('/health/metrics', {
         ...newMetric,
-        value: parseFloat(newMetric.value)
+        value: val
       });
       toast.success('Métrica actualizada correctamente');
       setShowLogModal(false);
+      // Reset form value
+      setNewMetric(prev => ({ ...prev, value: '' }));
       fetchData();
-    } catch (err) {
-      toast.error('Error al guardar métrica');
+    } catch (err: any) {
+      const msg = err.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg.join(', ') : msg || 'Error al guardar métrica');
     }
   };
 
@@ -120,30 +133,32 @@ const HealthView: React.FC = () => {
       toast.success('Metas de salud actualizadas');
       setShowGoalModal(false);
       fetchData();
-    } catch (err) {
-      toast.error('Error al actualizar metas');
+    } catch (err: any) {
+      const msg = err.response?.data?.message;
+      toast.error(msg || 'Error al actualizar metas');
     }
   };
 
   const handleQuickWaterAdd = async () => {
-    const today = new Date().toISOString().split('T')[0];
-    const todayWater = metrics.find(m => m.type === 'WATER' && m.date.startsWith(today))?.value || 0;
+    const todayStr = getLocalDateString();
+    const todayWater = metrics.find(m => m.type === 'WATER' && m.date.startsWith(todayStr))?.value || 0;
     try {
       await api.post('/health/metrics', {
         type: 'WATER',
         value: todayWater + 1,
         unit: 'vasos',
-        date: today
+        date: todayStr
       });
       toast.success('+1 Vaso de agua registrado 💧');
       fetchData();
-    } catch (err) {
-      toast.error('Error al actualizar agua');
+    } catch (err: any) {
+      const msg = err.response?.data?.message;
+      toast.error(msg || 'Error al registrar agua');
     }
   };
 
   // Calcular métricas para el día de hoy
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDateString();
   const todayMetrics = {
     steps: metrics.find(m => m.type === 'STEPS' && m.date.startsWith(today))?.value || 0,
     calories: metrics.find(m => m.type === 'CALORIES_BURNED' && m.date.startsWith(today))?.value || 0,
@@ -158,7 +173,7 @@ const HealthView: React.FC = () => {
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
+      const dateStr = d.toLocaleDateString('en-CA');
       const dayName = days[d.getDay()];
 
       const calories = metrics
