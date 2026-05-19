@@ -134,7 +134,7 @@ let AuthService = class AuthService {
         return { user: safeUser, ...tokens };
     }
     async getMe(userId) {
-        return this.prisma.user.findUnique({
+        const user = await this.prisma.user.findUnique({
             where: { id: userId },
             select: {
                 id: true,
@@ -148,6 +148,54 @@ let AuthService = class AuthService {
                 emailVerified: true,
                 createdAt: true,
             },
+        });
+        if (!user)
+            return null;
+        const roles = ['USER'];
+        if (user.role === 'ADMIN') {
+            roles.push('ADMIN');
+        }
+        const gymCount = await this.prisma.gym.count({ where: { ownerId: userId } });
+        if (gymCount > 0 || user.role === 'GYM_OWNER') {
+            roles.push('GYM_OWNER');
+        }
+        const trainerProfile = await this.prisma.trainerProfile.findUnique({ where: { userId } });
+        if (trainerProfile || user.role === 'TRAINER') {
+            roles.push('TRAINER');
+        }
+        return {
+            ...user,
+            roles,
+        };
+    }
+    async switchRole(userId, newRole) {
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user)
+            throw new common_1.NotFoundException('Usuario no encontrado');
+        const eligibleRoles = ['USER'];
+        if (user.role === 'ADMIN')
+            eligibleRoles.push('ADMIN');
+        const gymCount = await this.prisma.gym.count({ where: { ownerId: userId } });
+        if (gymCount > 0 || user.role === 'GYM_OWNER')
+            eligibleRoles.push('GYM_OWNER');
+        const trainerProfile = await this.prisma.trainerProfile.findUnique({ where: { userId } });
+        if (trainerProfile || user.role === 'TRAINER')
+            eligibleRoles.push('TRAINER');
+        if (!eligibleRoles.includes(newRole)) {
+            throw new common_1.BadRequestException(`No eres elegible para el rol: ${newRole}`);
+        }
+        return this.prisma.user.update({
+            where: { id: userId },
+            data: { role: newRole },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                phone: true,
+                dni: true,
+                avatarUrl: true,
+            }
         });
     }
     async updateProfile(userId, data) {

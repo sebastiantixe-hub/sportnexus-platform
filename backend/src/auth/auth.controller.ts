@@ -66,6 +66,17 @@ export class AuthController {
     return this.authService.updateProfile(user.id, dto);
   }
 
+  @ApiOperation({ summary: 'Switch active user profile role' })
+  @ApiBearerAuth()
+  @UseGuards(AnyAuthGuard)
+  @Post('switch-role')
+  switchRole(
+    @CurrentUser() user: { id: string },
+    @Body() dto: { role: UserRole },
+  ) {
+    return this.authService.switchRole(user.id, dto.role);
+  }
+
   @ApiOperation({ summary: 'Get dashboard statistics' })
   @ApiBearerAuth()
   @Get('stats')

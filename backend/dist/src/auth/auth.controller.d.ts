@@ -60,6 +60,7 @@ export declare class AuthController {
     getMe(user: {
         id: string;
     }): Promise<{
+        roles: string[];
         id: string;
         createdAt: Date;
         name: string;
@@ -78,6 +79,19 @@ export declare class AuthController {
         phone?: string;
         dni?: string;
         role?: any;
+    }): Promise<{
+        id: string;
+        name: string;
+        email: string;
+        role: import("@prisma/client").$Enums.UserRole;
+        phone: string | null;
+        dni: string | null;
+        avatarUrl: string | null;
+    }>;
+    switchRole(user: {
+        id: string;
+    }, dto: {
+        role: UserRole;
     }): Promise<{
         id: string;
         name: string;

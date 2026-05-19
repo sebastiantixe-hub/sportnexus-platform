@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete, Param, UseGuards, Request, Patch } from '@nestjs/common';
 import { HealthService } from './health.service';
 import { CreateHealthMetricDto } from './dto/create-health-metric.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -11,15 +11,84 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 export class HealthController {
   constructor(private readonly healthService: HealthService) {}
 
+  // ── Health Metrics ────────────────────────────────────────────────────────
+
   @Post('metrics')
-  @ApiOperation({ summary: 'Create or update a health metric' })
+  @ApiOperation({ summary: 'Registrar o actualizar una métrica de salud' })
   async create(@Request() req, @Body() dto: CreateHealthMetricDto) {
     return this.healthService.createOrUpdate(req.user.userId, dto);
   }
 
   @Get('metrics')
-  @ApiOperation({ summary: 'Get all health metrics for current user' })
+  @ApiOperation({ summary: 'Obtener todas las métricas del usuario actual' })
   async findAll(@Request() req) {
     return this.healthService.findAll(req.user.userId);
+  }
+
+  // ── User Goals ────────────────────────────────────────────────────────────
+
+  @Get('goals')
+  @ApiOperation({ summary: 'Obtener las metas de salud del usuario' })
+  async findGoal(@Request() req) {
+    return this.healthService.findGoal(req.user.userId);
+  }
+
+  @Post('goals')
+  @ApiOperation({ summary: 'Crear o actualizar metas de salud' })
+  async updateGoal(
+    @Request() req,
+    @Body() dto: { targetCalories: number; targetSteps: number; targetWater: number; targetWeight?: number }
+  ) {
+    return this.healthService.createOrUpdateGoal(req.user.userId, dto);
+  }
+
+  // ── Super Admin: MET configurations ───────────────────────────────────────
+
+  @Get('admin/met')
+  @ApiOperation({ summary: 'Obtener lista maestra de valores MET' })
+  async getMETs() {
+    return this.healthService.findMETs();
+  }
+
+  @Post('admin/met')
+  @ApiOperation({ summary: 'Crear o actualizar valor MET de actividad' })
+  async upsertMET(
+    @Body() dto: { name: string; metValue: number; intensity: string; defaultDuration?: number }
+  ) {
+    return this.healthService.createOrUpdateMET(dto);
+  }
+
+  @Delete('admin/met/:id')
+  @ApiOperation({ summary: 'Eliminar configuración MET de actividad' })
+  async deleteMET(@Param('id') id: string) {
+    return this.healthService.deleteMET(id);
+  }
+
+  // ── Coach Recommendations ─────────────────────────────────────────────────
+
+  @Post('recommendations')
+  @ApiOperation({ summary: 'Registrar recomendación/observación de coach para un atleta' })
+  async addRecommendation(@Request() req, @Body() dto: { athleteId: string; observation: string }) {
+    return this.healthService.createRecommendation(req.user.userId, dto.athleteId, dto.observation);
+  }
+
+  @Get('recommendations/:athleteId')
+  @ApiOperation({ summary: 'Obtener recomendaciones de coach de un atleta' })
+  async getRecommendations(@Param('athleteId') athleteId: string) {
+    return this.healthService.findRecommendations(athleteId);
+  }
+
+  // ── Coach & Owner Stats ───────────────────────────────────────────────────
+
+  @Get('coach/athletes')
+  @ApiOperation({ summary: 'Obtener listado y rendimiento de atletas del coach' })
+  async getCoachAthletes(@Request() req) {
+    return this.healthService.getCoachAthletes(req.user.userId);
+  }
+
+  @Get('owner/stats')
+  @ApiOperation({ summary: 'Obtener analíticas del gimnasio para dueños' })
+  async getOwnerStats(@Request() req) {
+    return this.healthService.getOwnerStats(req.user.userId);
   }
 }

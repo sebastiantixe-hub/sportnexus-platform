@@ -42,6 +42,9 @@ model User {
   supportTickets       SupportTicket[]
   healthMetrics        HealthMetric[]
   weight               Float?             @default(70)
+  userGoal             UserGoal?
+  coachRecommendations CoachRecommendation[] @relation("AthleteRecommendations")
+  coachRecommendationsGiven CoachRecommendation[] @relation("CoachRecommendations")
 
   @@map("users")
 }
@@ -680,6 +683,44 @@ model Invitation {
   updatedAt   DateTime         @updatedAt @map("updated_at")
 
   @@map("invitations")
+}
+
+model ActivityMET {
+  id              String   @id @default(uuid())
+  name            String   @unique @db.VarChar(100)
+  metValue        Float    @map("met_value")
+  intensity       String   @db.VarChar(50)
+  defaultDuration Int      @default(60) @map("default_duration")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("activity_met_configs")
+}
+
+model UserGoal {
+  id             String   @id @default(uuid())
+  userId         String   @unique @map("user_id")
+  targetCalories Int      @default(600) @map("target_calories")
+  targetSteps    Int      @default(10000) @map("target_steps")
+  targetWater    Int      @default(8) @map("target_water")
+  targetWeight   Float?   @map("target_weight")
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_goals")
+}
+
+model CoachRecommendation {
+  id          String   @id @default(uuid())
+  coachId     String   @map("coach_id")
+  athleteId   String   @map("athlete_id")
+  observation String   @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  athlete     User     @relation("AthleteRecommendations", fields: [athleteId], references: [id], onDelete: Cascade)
+  coach       User     @relation("CoachRecommendations", fields: [coachId], references: [id], onDelete: Cascade)
+
+  @@index([athleteId])
+  @@index([coachId])
+  @@map("coach_recommendations")
 }
 
 

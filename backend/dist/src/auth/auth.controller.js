@@ -46,6 +46,9 @@ let AuthController = class AuthController {
     updateProfile(user, dto) {
         return this.authService.updateProfile(user.id, dto);
     }
+    switchRole(user, dto) {
+        return this.authService.switchRole(user.id, dto.role);
+    }
     getDashboardStats(user) {
         return this.authService.getDashboardStats(user.id, user.role);
     }
@@ -101,6 +104,17 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "updateProfile", null);
+__decorate([
+    (0, swagger_1.ApiOperation)({ summary: 'Switch active user profile role' }),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.UseGuards)(any_auth_guard_1.AnyAuthGuard),
+    (0, common_1.Post)('switch-role'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "switchRole", null);
 __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Get dashboard statistics' }),
     (0, swagger_1.ApiBearerAuth)(),

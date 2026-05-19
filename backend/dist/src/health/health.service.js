@@ -21,6 +21,12 @@ let HealthService = class HealthService {
     async createOrUpdate(userId, dto) {
         const date = new Date(dto.date);
         date.setUTCHours(0, 0, 0, 0);
+        if (dto.type === client_1.HealthMetricType.WEIGHT) {
+            await this.prisma.user.update({
+                where: { id: userId },
+                data: { weight: dto.value },
+            });
+        }
         return this.prisma.healthMetric.upsert({
             where: {
                 userId_date_type: {
@@ -48,26 +54,157 @@ let HealthService = class HealthService {
             orderBy: { date: 'desc' },
         });
     }
+    async findMETs() {
+        return this.prisma.activityMET.findMany({
+            orderBy: { name: 'asc' },
+        });
+    }
+    async createOrUpdateMET(dto) {
+        return this.prisma.activityMET.upsert({
+            where: { name: dto.name },
+            update: {
+                metValue: dto.metValue,
+                intensity: dto.intensity,
+                defaultDuration: dto.defaultDuration ?? 60,
+            },
+            create: {
+                name: dto.name,
+                metValue: dto.metValue,
+                intensity: dto.intensity,
+                defaultDuration: dto.defaultDuration ?? 60,
+            },
+        });
+    }
+    async deleteMET(id) {
+        const met = await this.prisma.activityMET.findUnique({ where: { id } });
+        if (!met)
+            throw new common_1.NotFoundException('Configuración MET no encontrada');
+        return this.prisma.activityMET.delete({ where: { id } });
+    }
+    async findGoal(userId) {
+        let goal = await this.prisma.userGoal.findUnique({ where: { userId } });
+        if (!goal) {
+            goal = await this.prisma.userGoal.create({
+                data: {
+                    userId,
+                    targetCalories: 600,
+                    targetSteps: 10000,
+                    targetWater: 8,
+                    targetWeight: 70,
+                },
+            });
+        }
+        return goal;
+    }
+    async createOrUpdateGoal(userId, dto) {
+        return this.prisma.userGoal.upsert({
+            where: { userId },
+            update: dto,
+            create: { userId, ...dto },
+        });
+    }
+    async createRecommendation(coachId, athleteId, observation) {
+        return this.prisma.coachRecommendation.create({
+            data: {
+                coachId,
+                athleteId,
+                observation,
+            },
+        });
+    }
+    async findRecommendations(athleteId) {
+        return this.prisma.coachRecommendation.findMany({
+            where: { athleteId },
+            orderBy: { createdAt: 'desc' },
+            include: {
+                coach: { select: { name: true } },
+            },
+        });
+    }
+    async getCoachAthletes(coachId) {
+        const athletes = await this.prisma.user.findMany({
+            where: { role: client_1.UserRole.USER },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                weight: true,
+                avatarUrl: true,
+                healthMetrics: {
+                    orderBy: { date: 'desc' },
+                    take: 50,
+                },
+                coachRecommendations: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 1,
+                },
+            },
+        });
+        return athletes.map(ath => {
+            const caloriesList = ath.healthMetrics.filter(m => m.type === client_1.HealthMetricType.CALORIES_BURNED);
+            const stepsList = ath.healthMetrics.filter(m => m.type === client_1.HealthMetricType.STEPS);
+            const totalCalories = caloriesList.reduce((sum, c) => sum + c.value, 0);
+            const avgSteps = stepsList.length > 0 ? Math.round(stepsList.reduce((sum, s) => sum + s.value, 0) / stepsList.length) : 0;
+            const lastWeight = ath.healthMetrics.find(m => m.type === client_1.HealthMetricType.WEIGHT)?.value || ath.weight || 70;
+            return {
+                id: ath.id,
+                name: ath.name,
+                email: ath.email,
+                weight: lastWeight,
+                avatarUrl: ath.avatarUrl,
+                totalCaloriesBurned: totalCalories,
+                averageSteps: avgSteps,
+                lastObservation: ath.coachRecommendations[0]?.observation || 'Sin observaciones registradas',
+            };
+        });
+    }
+    async getOwnerStats(ownerId) {
+        const gyms = await this.prisma.gym.findMany({
+            where: { ownerId },
+            select: { id: true },
+        });
+        const gymIds = gyms.map(g => g.id);
+        const classes = await this.prisma.class.findMany({
+            where: { gymId: { in: gymIds } },
+            select: { id: true, title: true, durationMin: true },
+        });
+        const classIds = classes.map(c => c.id);
+        const reservations = await this.prisma.reservation.findMany({
+            where: { classId: { in: classIds }, status: 'CONFIRMED' },
+            select: { userId: true, class: { select: { title: true, durationMin: true } } },
+        });
+        let totalGymCalories = 0;
+        const athleteIds = Array.from(new Set(reservations.map(r => r.userId)));
+        const athletes = await this.prisma.user.findMany({
+            where: { id: { in: athleteIds } },
+            select: { id: true, weight: true },
+        });
+        const metConfigs = await this.findMETs();
+        for (const res of reservations) {
+            const athlete = athletes.find(a => a.id === res.userId);
+            const weight = athlete?.weight || 70;
+            const classTitle = res.class.title;
+            const durationMin = res.class.durationMin;
+            const matchedMET = metConfigs.find(m => classTitle.toLowerCase().includes(m.name.toLowerCase()));
+            const met = matchedMET ? matchedMET.metValue : 6.0;
+            totalGymCalories += met * weight * (durationMin / 60);
+        }
+        return {
+            gymCount: gymIds.length,
+            activeAthletes: athleteIds.length,
+            totalCaloriesBurnedInClasses: Math.round(totalGymCalories),
+            averageClassDuration: classes.length > 0 ? Math.round(classes.reduce((sum, c) => sum + c.durationMin, 0) / classes.length) : 0,
+        };
+    }
     async calculateCaloriesFromClass(userId, classTitle, durationMin) {
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
-        if (!user || !user.weight)
+        if (!user)
             return null;
-        const MET_MAP = {
-            'CrossFit': 9.0,
-            'Fútbol': 7.0,
-            'Gimnasio': 6.0,
-            'Pesas': 6.0,
-            'Yoga': 3.0,
-            'Box': 8.0,
-            'Natación': 8.0,
-            'Vóley': 4.0,
-            'Básquetbol': 6.5,
-            'Tenis': 7.0,
-            'Atletismo': 9.0,
-        };
-        const activity = Object.keys(MET_MAP).find(key => classTitle.toLowerCase().includes(key.toLowerCase()));
-        const met = activity ? MET_MAP[activity] : 5.0;
-        const calories = met * user.weight * (durationMin / 60);
+        const weight = user.weight || 70;
+        const metConfigs = await this.findMETs();
+        const matchedMET = metConfigs.find(m => classTitle.toLowerCase().includes(m.name.toLowerCase()));
+        const met = matchedMET ? matchedMET.metValue : 6.0;
+        const calories = met * weight * (durationMin / 60);
         const date = new Date();
         date.setUTCHours(0, 0, 0, 0);
         const existing = await this.prisma.healthMetric.findUnique({

@@ -2,6 +2,8 @@ import {
   Injectable,
   ConflictException,
   UnauthorizedException,
+  BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -129,7 +131,7 @@ export class AuthService {
   // ── Get current user ──────────────────────────────────────────────────────
 
   async getMe(userId: string) {
-    return this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -143,6 +145,67 @@ export class AuthService {
         emailVerified: true,
         createdAt: true,
       },
+    });
+
+    if (!user) return null;
+
+    // Obtener roles adicionales de forma dinámica sin migraciones pesadas
+    const roles: string[] = ['USER']; // Todos son atletas
+
+    // Verificar si es administrador
+    if (user.role === 'ADMIN') {
+      roles.push('ADMIN');
+    }
+
+    // Verificar si es dueño (tiene gimnasios o su rol principal es GYM_OWNER)
+    const gymCount = await this.prisma.gym.count({ where: { ownerId: userId } });
+    if (gymCount > 0 || user.role === 'GYM_OWNER') {
+      roles.push('GYM_OWNER');
+    }
+
+    // Verificar si es coach (tiene trainerProfile o su rol principal es TRAINER)
+    const trainerProfile = await this.prisma.trainerProfile.findUnique({ where: { userId } });
+    if (trainerProfile || user.role === 'TRAINER') {
+      roles.push('TRAINER');
+    }
+
+    return {
+      ...user,
+      roles,
+    };
+  }
+
+  async switchRole(userId: string, newRole: UserRole) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    // Validar que el usuario sea elegible para este rol
+    const eligibleRoles = ['USER'];
+    if (user.role === 'ADMIN') eligibleRoles.push('ADMIN');
+
+    const gymCount = await this.prisma.gym.count({ where: { ownerId: userId } });
+    if (gymCount > 0 || user.role === 'GYM_OWNER') eligibleRoles.push('GYM_OWNER');
+
+    const trainerProfile = await this.prisma.trainerProfile.findUnique({ where: { userId } });
+    if (trainerProfile || user.role === 'TRAINER') eligibleRoles.push('TRAINER');
+
+    if (!eligibleRoles.includes(newRole)) {
+      throw new BadRequestException(`No eres elegible para el rol: ${newRole}`);
+    }
+
+    // Actualizar el rol activo en la base de datos
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { role: newRole },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phone: true,
+        dni: true,
+        avatarUrl: true,
+      }
     });
   }
 

@@ -7,6 +7,7 @@ interface User {
   name: string;
   email: string;
   role: string;
+  roles?: string[];
   avatarUrl?: string;
   phone?: string;
   dni?: string;
@@ -15,9 +16,10 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: () => void;
+  login: (options?: { allowSignUp?: boolean }) => void;
   logout: () => void;
   updateUserProfile: (data: { name: string; phone?: string; dni?: string }) => Promise<void>;
+  switchUserRole: (role: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -57,6 +59,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           const { data } = await api.get('/auth/me');
           console.log('Perfil sincronizado desde Backend:', data.email);
+          
+          // Contingencia local: si el backend no devolvió la propiedad 'roles' (por caché o falta de compilación), la calculamos en el cliente
+          if (!data.roles) {
+            const computedRoles: string[] = ['USER'];
+            if (data.role === 'ADMIN') computedRoles.push('ADMIN');
+            if (data.role === 'GYM_OWNER') computedRoles.push('GYM_OWNER');
+            if (data.role === 'TRAINER') computedRoles.push('TRAINER');
+            data.roles = computedRoles;
+          }
+          
           setUser(data);
         } catch (error: any) {
           console.error('Error sincronizando usuario:', error.response?.data || error.message);
@@ -80,7 +92,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     syncUser();
   }, [isAuthenticated, auth0User, getAccessTokenSilently, auth0Loading]);
 
-  const login = () => loginWithRedirect();
+  const login = (options?: { allowSignUp?: boolean }) => {
+    loginWithRedirect({
+      authorizationParams: {
+        allow_signup: options?.allowSignUp === false ? 'false' : 'true'
+      }
+    });
+  };
   
   const logout = () => {
     localStorage.removeItem('token');
@@ -98,13 +116,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const switchUserRole = async (newRole: string) => {
+    try {
+      setBackendLoading(true);
+      await api.post('/auth/switch-role', { role: newRole });
+      console.log('Rol cambiado con éxito a:', newRole);
+      
+      const { data } = await api.get('/auth/me');
+      
+      // Contingencia local: si el backend no devolvió la propiedad 'roles' (por caché o falta de compilación), la calculamos en el cliente
+      if (!data.roles) {
+        const computedRoles: string[] = ['USER'];
+        if (data.role === 'ADMIN') computedRoles.push('ADMIN');
+        if (data.role === 'GYM_OWNER') computedRoles.push('GYM_OWNER');
+        if (data.role === 'TRAINER') computedRoles.push('TRAINER');
+        data.roles = computedRoles;
+      }
+      
+      setUser(data);
+    } catch (error) {
+      console.error('Error al cambiar de rol:', error);
+      throw error;
+    } finally {
+      setBackendLoading(false);
+    }
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
       loading: auth0Loading || (isAuthenticated && backendLoading), 
       login, 
       logout,
-      updateUserProfile
+      updateUserProfile,
+      switchUserRole
     }}>
       {children}
     </AuthContext.Provider>

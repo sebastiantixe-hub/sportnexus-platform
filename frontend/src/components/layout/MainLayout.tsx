@@ -149,7 +149,14 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { to: '/sport-store',        icon: ShoppingBag,     label: 'Tienda Deportiva',         roles: ['GYM_OWNER'] },
     { to: '/professionals',      icon: Users,           label: 'Servicios Profesionales',  roles: ['GYM_OWNER'] },
     { to: '/memberships',        icon: CreditCard,      label: 'Membresías',               roles: ['GYM_OWNER'] },
-    { to: '/dashboard/health',   icon: Activity,        label: 'Hercix Health',            roles: ['USER', 'GYM_OWNER', 'TRAINER', 'ADMIN'] },
+    { 
+      to: user?.role === 'ADMIN' ? '/dashboard/admin-health' :
+          user?.role === 'GYM_OWNER' ? '/dashboard/owner-health' :
+          user?.role === 'TRAINER' ? '/dashboard/coach-health' : '/dashboard/health',
+      icon: Activity,
+      label: 'Hercix Health',
+      roles: ['USER', 'GYM_OWNER', 'TRAINER', 'ADMIN'] 
+    },
     { to: '/dashboard/tickets',  icon: MessageSquare,   label: 'Soporte / Tickets',        roles: ['USER', 'GYM_OWNER', 'TRAINER', 'ADMIN'] },
 
     // ── TRAINER ───────────────────────────────────────────────────
@@ -218,6 +225,19 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               </div>
             </div>
           </div>
+
+          {user?.roles && user.roles.length > 1 && (
+            <button
+              onClick={() => {
+                sessionStorage.removeItem('profileSelected');
+                navigate('/select-profile');
+              }}
+              className="flex items-center gap-3 w-full px-4 py-3 text-primary-light hover:bg-primary/10 rounded-xl transition-all"
+            >
+              <Users className="w-5 h-5" />
+              <span className="font-medium">Cambiar Perfil</span>
+            </button>
+          )}
 
           <button
             onClick={handleLogout}

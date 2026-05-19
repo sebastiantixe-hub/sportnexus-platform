@@ -61,6 +61,7 @@ export declare class AuthService {
         };
     }>;
     getMe(userId: string): Promise<{
+        roles: string[];
         id: string;
         createdAt: Date;
         name: string;
@@ -72,6 +73,15 @@ export declare class AuthService {
         isActive: boolean;
         emailVerified: boolean;
     } | null>;
+    switchRole(userId: string, newRole: UserRole): Promise<{
+        id: string;
+        name: string;
+        email: string;
+        role: import("@prisma/client").$Enums.UserRole;
+        phone: string | null;
+        dni: string | null;
+        avatarUrl: string | null;
+    }>;
     updateProfile(userId: string, data: {
         name: string;
         phone?: string;

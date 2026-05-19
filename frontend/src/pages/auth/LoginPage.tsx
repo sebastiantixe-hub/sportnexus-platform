@@ -14,6 +14,7 @@ const LoginPage: React.FC = () => {
       color: 'from-red-500/20 to-red-600/10 border-red-500/20 text-red-400Hover',
       accent: 'bg-red-500',
       image: '/assets/super_admin_gateway.png',
+      allowSignUp: false,
     },
     {
       title: 'Dueño (Owner)',
@@ -22,6 +23,7 @@ const LoginPage: React.FC = () => {
       color: 'from-primary/20 to-primary/10 border-primary/20 text-primary-lightHover',
       accent: 'bg-primary',
       image: '/assets/gym_owner_gateway.png',
+      allowSignUp: false,
     },
     {
       title: 'Coach / Entrenador',
@@ -30,6 +32,7 @@ const LoginPage: React.FC = () => {
       color: 'from-accent/20 to-accent/10 border-accent/20 text-accentHover',
       accent: 'bg-accent',
       image: '/assets/coach_gateway.png',
+      allowSignUp: false,
     },
     {
       title: 'Atleta / Usuario',
@@ -38,6 +41,7 @@ const LoginPage: React.FC = () => {
       color: 'from-green-500/20 to-green-600/10 border-green-500/20 text-green-400Hover',
       accent: 'bg-green-500',
       image: '/assets/athlete_gateway.png',
+      allowSignUp: true,
     },
   ];
 
@@ -71,7 +75,7 @@ const LoginPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1, duration: 0.5 }}
               whileHover={{ y: -5, scale: 1.02 }}
-              onClick={() => login()}
+              onClick={() => login({ allowSignUp: r.allowSignUp })}
               className={`glass-card p-5 border border-white/5 bg-gradient-to-br ${r.color.split(' ')[0]} ${r.color.split(' ')[1]} hover:border-white/20 transition-all cursor-pointer group flex flex-col justify-between`}
             >
               <div>

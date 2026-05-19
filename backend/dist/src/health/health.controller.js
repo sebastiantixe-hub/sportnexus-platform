@@ -29,11 +29,38 @@ let HealthController = class HealthController {
     async findAll(req) {
         return this.healthService.findAll(req.user.userId);
     }
+    async findGoal(req) {
+        return this.healthService.findGoal(req.user.userId);
+    }
+    async updateGoal(req, dto) {
+        return this.healthService.createOrUpdateGoal(req.user.userId, dto);
+    }
+    async getMETs() {
+        return this.healthService.findMETs();
+    }
+    async upsertMET(dto) {
+        return this.healthService.createOrUpdateMET(dto);
+    }
+    async deleteMET(id) {
+        return this.healthService.deleteMET(id);
+    }
+    async addRecommendation(req, dto) {
+        return this.healthService.createRecommendation(req.user.userId, dto.athleteId, dto.observation);
+    }
+    async getRecommendations(athleteId) {
+        return this.healthService.findRecommendations(athleteId);
+    }
+    async getCoachAthletes(req) {
+        return this.healthService.getCoachAthletes(req.user.userId);
+    }
+    async getOwnerStats(req) {
+        return this.healthService.getOwnerStats(req.user.userId);
+    }
 };
 exports.HealthController = HealthController;
 __decorate([
     (0, common_1.Post)('metrics'),
-    (0, swagger_1.ApiOperation)({ summary: 'Create or update a health metric' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Registrar o actualizar una métrica de salud' }),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -42,12 +69,85 @@ __decorate([
 ], HealthController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)('metrics'),
-    (0, swagger_1.ApiOperation)({ summary: 'Get all health metrics for current user' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Obtener todas las métricas del usuario actual' }),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], HealthController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('goals'),
+    (0, swagger_1.ApiOperation)({ summary: 'Obtener las metas de salud del usuario' }),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], HealthController.prototype, "findGoal", null);
+__decorate([
+    (0, common_1.Post)('goals'),
+    (0, swagger_1.ApiOperation)({ summary: 'Crear o actualizar metas de salud' }),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], HealthController.prototype, "updateGoal", null);
+__decorate([
+    (0, common_1.Get)('admin/met'),
+    (0, swagger_1.ApiOperation)({ summary: 'Obtener lista maestra de valores MET' }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], HealthController.prototype, "getMETs", null);
+__decorate([
+    (0, common_1.Post)('admin/met'),
+    (0, swagger_1.ApiOperation)({ summary: 'Crear o actualizar valor MET de actividad' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], HealthController.prototype, "upsertMET", null);
+__decorate([
+    (0, common_1.Delete)('admin/met/:id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Eliminar configuración MET de actividad' }),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], HealthController.prototype, "deleteMET", null);
+__decorate([
+    (0, common_1.Post)('recommendations'),
+    (0, swagger_1.ApiOperation)({ summary: 'Registrar recomendación/observación de coach para un atleta' }),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], HealthController.prototype, "addRecommendation", null);
+__decorate([
+    (0, common_1.Get)('recommendations/:athleteId'),
+    (0, swagger_1.ApiOperation)({ summary: 'Obtener recomendaciones de coach de un atleta' }),
+    __param(0, (0, common_1.Param)('athleteId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], HealthController.prototype, "getRecommendations", null);
+__decorate([
+    (0, common_1.Get)('coach/athletes'),
+    (0, swagger_1.ApiOperation)({ summary: 'Obtener listado y rendimiento de atletas del coach' }),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], HealthController.prototype, "getCoachAthletes", null);
+__decorate([
+    (0, common_1.Get)('owner/stats'),
+    (0, swagger_1.ApiOperation)({ summary: 'Obtener analíticas del gimnasio para dueños' }),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], HealthController.prototype, "getOwnerStats", null);
 exports.HealthController = HealthController = __decorate([
     (0, swagger_1.ApiTags)('health'),
     (0, swagger_1.ApiBearerAuth)(),
