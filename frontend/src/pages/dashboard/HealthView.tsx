@@ -45,6 +45,68 @@ const HealthView: React.FC = () => {
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [coachComments, setCoachComments] = useState<any[]>([]);
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [simulationInterval, setSimulationInterval] = useState<any>(null);
+
+  // Cleanup simulation on unmount
+  useEffect(() => {
+    return () => {
+      if (simulationInterval) {
+        clearInterval(simulationInterval);
+      }
+    };
+  }, [simulationInterval]);
+
+  const toggleSimulation = () => {
+    if (isSimulating) {
+      if (simulationInterval) {
+        clearInterval(simulationInterval);
+        setSimulationInterval(null);
+      }
+      setIsSimulating(false);
+      toast.success('🏃‍♂️ Entrenamiento simulado finalizado y guardado con éxito.');
+    } else {
+      setIsSimulating(true);
+      toast.info('⚡ Sincronización continua de Smartwatch activa. Trotando en tiempo real...');
+      
+      const interval = setInterval(() => {
+        setMetrics(prev => {
+          let updated = prev.map(m => {
+            if (m.type === 'STEPS') {
+              return { ...m, value: m.value + Math.floor(Math.random() * 20) + 10 };
+            }
+            if (m.type === 'CALORIES') {
+              return { ...m, value: Number((m.value + (Math.random() * 1.5 + 0.5)).toFixed(1)) };
+            }
+            return m;
+          });
+
+          // Si no existían métricas de pasos/calorías, las agregamos
+          if (!updated.some(m => m.type === 'STEPS')) {
+            updated.push({
+              id: 'sim-steps-' + Date.now(),
+              type: 'STEPS',
+              value: 10,
+              unit: 'pasos',
+              date: getLocalDateString()
+            });
+          }
+          if (!updated.some(m => m.type === 'CALORIES')) {
+            updated.push({
+              id: 'sim-cal-' + Date.now(),
+              type: 'CALORIES',
+              value: 1,
+              unit: 'kcal',
+              date: getLocalDateString()
+            });
+          }
+          return updated;
+        });
+      }, 1200);
+      
+      setSimulationInterval(interval);
+    }
+  };
 
   const getLocalDateString = () => {
     return new Date().toLocaleDateString('en-CA'); // Returns YYYY-MM-DD in local time
@@ -268,7 +330,27 @@ const HealthView: React.FC = () => {
           </h1>
           <p className="text-slate-400">Tu panel de salud nativo, gamificado y 100% independiente.</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
+          <button 
+            onClick={toggleSimulation}
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold transition-all shadow-md border ${
+              isSimulating 
+                ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 animate-pulse' 
+                : 'bg-indigo-500/10 border-indigo-500/30 hover:bg-indigo-500/20 text-indigo-400'
+            }`}
+          >
+            {isSimulating ? (
+              <>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block shrink-0" />
+                <span>Simulando...</span>
+              </>
+            ) : (
+              <>
+                <Activity className="w-5 h-5 text-indigo-400" />
+                <span>⚡ Simular Smartwatch</span>
+              </>
+            )}
+          </button>
           <button 
             onClick={() => setShowGoalModal(true)}
             className="flex items-center gap-2 bg-slate-900 border border-white/10 hover:bg-slate-800 text-white px-5 py-3 rounded-xl font-bold transition-all shadow-md"
