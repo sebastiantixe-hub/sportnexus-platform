@@ -226,19 +226,6 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </div>
           </div>
 
-          {user?.roles && user.roles.length > 1 && (
-            <button
-              onClick={() => {
-                sessionStorage.removeItem('profileSelected');
-                navigate('/select-profile');
-              }}
-              className="flex items-center gap-3 w-full px-4 py-3 text-primary-light hover:bg-primary/10 rounded-xl transition-all"
-            >
-              <Users className="w-5 h-5" />
-              <span className="font-medium">Cambiar Perfil</span>
-            </button>
-          )}
-
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 w-full px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-xl transition-all"

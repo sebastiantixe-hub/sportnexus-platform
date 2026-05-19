@@ -4,7 +4,6 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
-import ProfileSelectorPage from './pages/auth/ProfileSelectorPage';
 import Dashboard from './pages/dashboard/Dashboard';
 import GymsPage from './pages/gyms/GymsPage';
 import GymShowroom from './pages/gyms/GymShowroom';
@@ -43,12 +42,6 @@ const HomeRedirect = () => {
     return <Navigate to="/login" replace />;
   }
 
-  // Si tiene múltiples roles y no ha seleccionado perfil en esta sesión, ir al selector de Netflix
-  const hasSelected = sessionStorage.getItem('profileSelected') === 'true';
-  if (user.roles && user.roles.length > 1 && !hasSelected) {
-    return <Navigate to="/select-profile" replace />;
-  }
-
   // Redireccionar al URL dedicado del Rol correspondiente
   if (user.role === 'ADMIN') return <Navigate to="/super-admin" replace />;
   if (user.role === 'GYM_OWNER') return <Navigate to="/owner-dashboard" replace />;
@@ -64,7 +57,6 @@ function App() {
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/select-profile" element={<ProtectedRoute><ProfileSelectorPage /></ProtectedRoute>} />
           
           {/* 
               Redirección Dinámica a cada panel dedicado según el rol de la cuenta
