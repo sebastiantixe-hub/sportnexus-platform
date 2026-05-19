@@ -96,7 +96,8 @@ const HealthView: React.FC = () => {
 
     } catch (err: any) {
       console.error(err);
-      toast.error('Error al cargar datos de salud');
+      const msg = err.response?.data?.message;
+      toast.error(msg || err.message || 'Error al cargar datos de salud');
     } finally {
       setLoading(false);
     }
