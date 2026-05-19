@@ -131,13 +131,20 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navItems = [
     // ── Todos ────────────────────────────────────────────────────
     { to: '/dashboard',          icon: LayoutDashboard, label: 'Dashboard',          roles: ['USER', 'GYM_OWNER', 'TRAINER', 'ADMIN'] },
+    { 
+      to: '/discovery',          
+      icon: Map,             
+      label: user?.role === 'ADMIN' ? 'Descubrir' :
+             user?.role === 'GYM_OWNER' ? 'Mapa de Competidores' :
+             user?.role === 'TRAINER' ? 'Centros de Entrenamiento' : 'Buscador General',                
+      roles: ['USER', 'GYM_OWNER', 'TRAINER', 'ADMIN'] 
+    },
 
     // ── ADMIN exclusivo ───────────────────────────────────────────
     { to: '/dashboard/users',    icon: Users,           label: 'Cuentas',                 roles: ['ADMIN'] },
 
     { to: '/gyms',               icon: Building2,       label: 'Todos los Negocios',       roles: ['ADMIN'] },
     { to: '/classes',            icon: Calendar,        label: 'Todas las Clases',         roles: ['ADMIN'] },
-    { to: '/discovery',          icon: Map,             label: 'Descubrir',                roles: ['ADMIN'] },
     { to: '/sport-store',        icon: ShoppingBag,     label: 'Tienda Deportiva',         roles: ['ADMIN'] },
     { to: '/professionals',      icon: Users,           label: 'Servicios Profesionales',  roles: ['ADMIN'] },
     { to: '/events',             icon: Trophy,          label: 'Eventos',                  roles: ['ADMIN'] },
@@ -166,7 +173,6 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { to: '/sport-store',        icon: ShoppingBag,     label: 'Tienda Deportiva',         roles: ['TRAINER'] },
 
     // ── ATLETA (USER) — NO accede a Mis Negocios ──────────────────
-    { to: '/discovery',          icon: Map,             label: 'Buscador General',         roles: ['USER'] },
     { to: '/classes',            icon: Calendar,        label: 'Mis Reservas',             roles: ['USER'] },
     { to: '/sport-store',        icon: ShoppingBag,     label: 'Tienda Deportiva',         roles: ['USER'] },
     { to: '/professionals',      icon: Users,           label: 'Servicios Profesionales',  roles: ['USER'] },
