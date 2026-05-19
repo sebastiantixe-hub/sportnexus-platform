@@ -326,7 +326,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       {/* Complete Profile Onboarding Modal */}
       <CompleteProfileModal 
-        isOpen={!!user && (!user.dni || !user.phone)} 
+        isOpen={!!user && user.role !== 'ADMIN' && (!user.dni || !user.phone)} 
         onSuccess={() => console.log('Perfil completado con éxito')}
       />
 
