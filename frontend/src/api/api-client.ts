@@ -95,7 +95,9 @@ api.interceptors.response.use(
           console.warn('Refresh falló. Redirigiendo a login...');
           localStorage.removeItem('token');
           localStorage.removeItem('refreshToken');
-          window.location.href = '/login?expired=true';
+          if (!window.location.pathname.includes('/login')) {
+            window.location.href = '/login?expired=true';
+          }
           return Promise.reject(refreshError);
         }
       } else {
@@ -103,7 +105,9 @@ api.interceptors.response.use(
           console.warn('Sesión expirada sin token. Redirigiendo a login...');
           localStorage.removeItem('token');
           localStorage.removeItem('refreshToken');
-          window.location.href = '/login?expired=true';
+          if (!window.location.pathname.includes('/login')) {
+            window.location.href = '/login?expired=true';
+          }
       }
     }
 
