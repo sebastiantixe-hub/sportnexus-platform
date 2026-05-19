@@ -15,6 +15,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
     name: user?.name || '',
     phone: user?.phone || '',
     dni: user?.dni || '',
+    role: user?.role || 'USER',
   });
 
   const [loading, setLoading] = useState(false);
@@ -128,7 +129,39 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                 />
               </div>
 
-
+              {/* Dynamic Premium Role Selector */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-primary-light" /> Tipo de Cuenta Solicitada
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { value: 'USER', label: 'Atleta', emoji: '👤' },
+                    { value: 'TRAINER', label: 'Entrenador', emoji: '⏱️' },
+                    { value: 'GYM_OWNER', label: 'Dueño', emoji: '🏢' }
+                  ].map(r => (
+                    <button
+                      key={r.value}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, role: r.value })}
+                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition-all text-xs font-bold uppercase tracking-wider ${
+                        formData.role === r.value 
+                          ? 'bg-primary/20 border-primary text-white shadow-lg shadow-primary/10' 
+                          : 'bg-white/5 border-white/10 text-slate-400 hover:border-white/20'
+                      }`}
+                    >
+                      <span className="text-2xl select-none">{r.emoji}</span>
+                      <span>{r.label}</span>
+                    </button>
+                  ))}
+                </div>
+                {formData.role !== 'USER' && (
+                  <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 text-[10px] text-yellow-400 mt-2 flex items-center gap-2">
+                    <span className="animate-pulse text-base shrink-0">⚠️</span>
+                    <span>Los roles de **Entrenador** y **Dueño** no se activarán de forma directa en producción. Tu solicitud quedará en estado **PENDIENTE** hasta la validación y firma del CISO. Para esta demo interna, tu acceso se habilitará de forma inmediata.</span>
+                  </div>
+                )}
+              </div>
 
               {/* Submit Button */}
               <button
