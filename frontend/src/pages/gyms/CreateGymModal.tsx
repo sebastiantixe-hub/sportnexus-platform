@@ -133,6 +133,11 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
+                      // Validar límite de 5MB
+                      if (file.size > 5 * 1024 * 1024) {
+                        alert("La imagen es demasiado grande. Para mantener una carga veloz en móviles y excelente calidad, el límite es de 5MB (Recomendado: menos de 2MB).");
+                        return;
+                      }
                       const reader = new FileReader();
                       reader.onloadend = () => {
                         setFormData({ ...formData, logoUrl: reader.result as string });
