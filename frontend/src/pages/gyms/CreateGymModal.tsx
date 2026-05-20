@@ -36,6 +36,7 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
     openDays: initialData?.openDays || 'Lunes a Sábado',
     openTime: initialData?.openTime || '06:00 AM',
     closeTime: initialData?.closeTime || '10:00 PM',
+    logoUrl: initialData?.logoUrl || '',
   });
 
   const [loading, setLoading] = useState(false);
@@ -103,6 +104,20 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
               onChange={e => setFormData({ ...formData, description: e.target.value })}
               className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 px-4 border rounded-xl text-white outline-none min-h-[80px]"
               placeholder="Cuenta un poco sobre tu gimnasio..."
+            />
+          </div>
+
+          {/* Imagen de Portada / Logo (URL) */}
+          <div className="space-y-2">
+            <label className="text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+              <span>🖼️ URL de Imagen de Portada / Logo</span>
+              <span className="text-[10px] text-slate-500 normal-case">(Opcional - link de imagen de internet)</span>
+            </label>
+            <input
+              value={formData.logoUrl}
+              onChange={e => setFormData({ ...formData, logoUrl: e.target.value })}
+              className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 px-4 border rounded-xl text-white outline-none"
+              placeholder="Ej: https://images.unsplash.com/... o un link local"
             />
           </div>
 

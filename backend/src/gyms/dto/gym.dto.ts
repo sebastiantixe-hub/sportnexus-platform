@@ -59,6 +59,10 @@ export class CreateGymDto {
   @IsString()
   @IsOptional()
   openDays?: string;
+
+  @IsString()
+  @IsOptional()
+  logoUrl?: string;
 }
 
 export class UpdateGymDto {
@@ -118,4 +122,8 @@ export class UpdateGymDto {
   @IsEnum(GymStatus)
   @IsOptional()
   status?: GymStatus;
+
+  @IsString()
+  @IsOptional()
+  logoUrl?: string;
 }

@@ -16,6 +16,7 @@ import { motion } from 'framer-motion';
 import CreateGymModal from './CreateGymModal';
 
 const getGymCardBanner = (gym: any) => {
+  if (gym.logoUrl) return gym.logoUrl;
   if (gym.bannerUrl) return gym.bannerUrl;
   if (gym.imageUrl) return gym.imageUrl;
   

@@ -51,6 +51,7 @@ const GymShowroom: React.FC = () => {
   const isMyGym = isOwner && gym && gym.ownerId === user?.id;
 
   const getBannerImage = () => {
+    if (gym?.logoUrl) return gym.logoUrl;
     if (gym?.bannerUrl) return gym.bannerUrl;
     if (gym?.imageUrl) return gym.imageUrl;
     
