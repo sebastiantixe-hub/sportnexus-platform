@@ -50,6 +50,21 @@ const GymShowroom: React.FC = () => {
   const isOwner = user?.role === 'GYM_OWNER' || user?.role === 'ADMIN';
   const isMyGym = isOwner && gym && gym.ownerId === user?.id;
 
+  const getBannerImage = () => {
+    if (gym?.bannerUrl) return gym.bannerUrl;
+    if (gym?.imageUrl) return gym.imageUrl;
+    
+    const name = gym?.name || '';
+    if (name.includes('Fútbol')) return 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1200&auto=format&fit=crop';
+    if (name.includes('Box')) return 'https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?q=80&w=1200&auto=format&fit=crop';
+    if (name.includes('Natación')) return 'https://images.unsplash.com/photo-1519315901367-f34ff9154487?q=80&w=1200&auto=format&fit=crop';
+    if (name.includes('Tenis')) return 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=1200&auto=format&fit=crop';
+    if (name.includes('Básquet')) return 'https://images.unsplash.com/photo-1544698310-74ea9d1c8258?q=80&w=1200&auto=format&fit=crop';
+    
+    // Default high-end gym background
+    return 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1200&auto=format&fit=crop';
+  };
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -72,12 +87,14 @@ const GymShowroom: React.FC = () => {
     } catch (err) {
       console.error('Error cargando vitrina:', err);
     } finally {
-      setLoading(false);
+      if (isMounted) setLoading(false);
     }
   };
 
+  let isMounted = true;
   useEffect(() => {
     fetchData();
+    return () => { isMounted = false; };
   }, [id]);
 
   const handleBook = async (classId: string) => {
@@ -161,10 +178,15 @@ const GymShowroom: React.FC = () => {
 
       {/* Hero Section */}
       <div className="relative h-64 md:h-80 rounded-[2.5rem] overflow-hidden group">
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/60 to-transparent z-10"></div>
-        <div className="absolute inset-0 bg-slate-900 group-hover:scale-105 transition-transform duration-1000">
-           <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary via-transparent to-transparent"></div>
+        {/* Beautiful Dynamic Cover Image */}
+        <div className="absolute inset-0 bg-slate-950">
+          <img 
+            src={getBannerImage()} 
+            alt={gym.name}
+            className="w-full h-full object-cover opacity-40 group-hover:scale-105 group-hover:opacity-50 transition-all duration-1000" 
+          />
         </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/40 to-transparent z-10"></div>
         
         <div className="absolute bottom-10 left-10 right-10 z-20 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-4">

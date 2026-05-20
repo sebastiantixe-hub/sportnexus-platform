@@ -15,6 +15,20 @@ import {
 import { motion } from 'framer-motion';
 import CreateGymModal from './CreateGymModal';
 
+const getGymCardBanner = (gym: any) => {
+  if (gym.bannerUrl) return gym.bannerUrl;
+  if (gym.imageUrl) return gym.imageUrl;
+  
+  const name = gym.name || '';
+  if (name.includes('Fútbol')) return 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=600&auto=format&fit=crop';
+  if (name.includes('Box')) return 'https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?q=80&w=600&auto=format&fit=crop';
+  if (name.includes('Natación')) return 'https://images.unsplash.com/photo-1519315901367-f34ff9154487?q=80&w=600&auto=format&fit=crop';
+  if (name.includes('Tenis')) return 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?q=80&w=600&auto=format&fit=crop';
+  if (name.includes('Básquet')) return 'https://images.unsplash.com/photo-1544698310-74ea9d1c8258?q=80&w=600&auto=format&fit=crop';
+  
+  return 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=600&auto=format&fit=crop';
+};
+
 const GymCard: React.FC<{
   gym: any;
   isOwner: boolean;
@@ -23,10 +37,16 @@ const GymCard: React.FC<{
 }> = ({ gym, isOwner, onEdit, onDelete }) => (
   <motion.div
     whileHover={{ y: -5 }}
-    className="glass-card overflow-hidden group border-white/5 hover:border-primary/30 transition-all"
+    onClick={() => (window.location.href = `/gyms/${gym.id}`)}
+    className="glass-card overflow-hidden group border-white/5 hover:border-primary/30 transition-all cursor-pointer"
   >
-    <div className="h-40 bg-slate-800 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-t from-background-darker/80 to-transparent"></div>
+    <div className="h-40 bg-slate-950 relative overflow-hidden">
+      <img 
+        src={getGymCardBanner(gym)} 
+        alt={gym.name}
+        className="w-full h-full object-cover opacity-50 group-hover:scale-105 transition-all duration-700" 
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
       <div className="absolute bottom-4 left-4">
         <span className="bg-primary/80 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">
           {gym.status || 'Activo'}
