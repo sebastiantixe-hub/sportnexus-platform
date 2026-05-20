@@ -107,18 +107,60 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
             />
           </div>
 
-          {/* Imagen de Portada / Logo (URL) */}
+          {/* Imagen de Portada / Logo */}
           <div className="space-y-2">
-            <label className="text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-              <span>🖼️ URL de Imagen de Portada / Logo</span>
-              <span className="text-[10px] text-slate-500 normal-case">(Opcional - link de imagen de internet)</span>
+            <label className="text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center justify-between">
+              <span>🖼️ Imagen de Portada / Logo</span>
+              <span className="text-[10px] text-slate-500 normal-case">(Subir archivo local o pegar URL)</span>
             </label>
-            <input
-              value={formData.logoUrl}
-              onChange={e => setFormData({ ...formData, logoUrl: e.target.value })}
-              className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 px-4 border rounded-xl text-white outline-none"
-              placeholder="Ej: https://images.unsplash.com/... o un link local"
-            />
+            
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* Paste URL */}
+              <input
+                value={formData.logoUrl}
+                onChange={e => setFormData({ ...formData, logoUrl: e.target.value })}
+                className="bg-white/5 border-white/10 focus:border-primary-light flex-grow py-3 px-4 border rounded-xl text-white outline-none text-sm"
+                placeholder="Pegar enlace https://..."
+              />
+              
+              {/* Local File Selector Button */}
+              <label className="bg-primary/20 hover:bg-primary text-primary-light hover:text-white border border-primary/30 px-4 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0">
+                <span>📁 Subir desde mi PC</span>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setFormData({ ...formData, logoUrl: reader.result as string });
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }} 
+                />
+              </label>
+            </div>
+
+            {/* Premium Preview */}
+            {formData.logoUrl && (
+              <div className="relative h-28 w-full rounded-xl overflow-hidden mt-3 border border-white/10 group">
+                <img 
+                  src={formData.logoUrl} 
+                  alt="Vista previa" 
+                  className="w-full h-full object-cover" 
+                />
+                <button 
+                  type="button"
+                  onClick={() => setFormData({ ...formData, logoUrl: '' })}
+                  className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-lg text-xs font-bold transition-colors"
+                >
+                  ✕ Quitar
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Dirección */}

@@ -63,7 +63,7 @@ model Gym {
   longitude       Float?
   phone           String?          @db.VarChar(20)
   email           String?          @db.VarChar(255)
-  logoUrl         String?          @map("logo_url") @db.VarChar(500)
+  logoUrl         String?          @map("logo_url") @db.Text
   website         String?          @db.VarChar(300)
   openTime        String?          @default("06:00 AM") @map("open_time") @db.VarChar(20)
   closeTime       String?          @default("10:00 PM") @map("close_time") @db.VarChar(20)
