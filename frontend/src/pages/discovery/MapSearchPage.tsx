@@ -667,115 +667,148 @@ const MapSearchPage: React.FC = () => {
                     {/* ═══ PANEL GEOMARKETING INTELLIGENCE — Solo GYM_OWNER ═══ */}
                     {user?.role === 'GYM_OWNER' && (
                       <div className="mt-4 space-y-3">
-
                         {loadingRoute ? (
                           <div className="bg-slate-950/80 border border-indigo-500/20 rounded-xl p-4 flex items-center justify-center gap-2 text-xs text-slate-400">
                             <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
-                            <span>Calculando inteligencia comercial...</span>
+                            <span>Calculando ruta por calles reales...</span>
                           </div>
                         ) : mobilityData ? (
                           <>
-                            {/* Mobility Score Banner */}
-                            {(() => {
-                              const s = mobilityData.mobilityScore;
-                              const label = s >= 71 ? 'Movilidad Alta' : s >= 41 ? 'Movilidad Media' : 'Movilidad Baja';
-                              const bg = s >= 71 ? 'bg-green-500/10 border-green-500/30' : s >= 41 ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-red-500/10 border-red-500/30';
-                              const text = s >= 71 ? 'text-green-400' : s >= 41 ? 'text-yellow-400' : 'text-red-400';
-                              return (
-                                <div className={`${bg} border rounded-xl p-3 flex items-center justify-between`}>
-                                  <div className="flex items-center gap-2">
-                                    <BarChart2 className={`w-4 h-4 ${text}`} />
+                            {/* ── FUENTE DE DATOS REAL ── */}
+                            <div className="flex items-center gap-2 bg-emerald-500/5 border border-emerald-500/20 px-3 py-1.5 rounded-lg">
+                              <span className="relative flex h-2 w-2 shrink-0">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                              </span>
+                              <span className="text-emerald-400 text-[9px] font-bold uppercase tracking-wider">Datos reales · OpenStreetMap OSRM · Rutas viales verificadas</span>
+                            </div>
+
+                            {/* ── BLOQUE PRINCIPAL: DISTANCIA + TIEMPOS REALES ── */}
+                            <div className="bg-slate-950/80 border border-white/10 rounded-xl overflow-hidden">
+                              <div className="px-3 py-2 bg-white/5 border-b border-white/5">
+                                <p className="text-slate-400 text-[9px] font-bold uppercase tracking-widest">📡 Trazado de Ruta Real por Calles</p>
+                              </div>
+                              <div className="grid grid-cols-3 divide-x divide-white/5">
+                                <div className="p-3 text-center">
+                                  <p className="text-slate-500 text-[9px] mb-1">📍 Distancia</p>
+                                  <p className="text-white font-black text-lg leading-none">{mobilityData.distanceKm.toFixed(1)}</p>
+                                  <p className="text-slate-500 text-[9px] mt-0.5">km por calles</p>
+                                </div>
+                                <div className="p-3 text-center">
+                                  <p className="text-slate-500 text-[9px] mb-1">🚗 En Auto</p>
+                                  <p className="text-white font-black text-lg leading-none">{mobilityData.baseETA}</p>
+                                  <p className="text-slate-500 text-[9px] mt-0.5">mins (ruta real)</p>
+                                </div>
+                                <div className="p-3 text-center">
+                                  <p className="text-slate-500 text-[9px] mb-1">🏃 A Pie</p>
+                                  <p className="text-white font-black text-lg leading-none">{mobilityData.walkingMin}</p>
+                                  <p className="text-slate-500 text-[9px] mt-0.5">mins caminando</p>
+                                </div>
+                              </div>
+
+                              {/* Instrucciones de calles reales */}
+                              <div className="px-3 py-2 border-t border-white/5 flex items-start gap-2">
+                                <Navigation2 className="w-3 h-3 text-indigo-400 shrink-0 mt-0.5 rotate-45" />
+                                <p className="text-slate-300 text-[10px] leading-relaxed">{mobilityData.steps}</p>
+                              </div>
+                            </div>
+
+                            {/* ── BLOQUE ANÁLISIS COMERCIAL ── */}
+                            <div className="bg-slate-950/60 border border-white/5 rounded-xl overflow-hidden">
+                              <div className="px-3 py-2 bg-white/5 border-b border-white/5">
+                                <p className="text-slate-400 text-[9px] font-bold uppercase tracking-widest">🧠 Análisis Comercial de Movilidad</p>
+                              </div>
+                              <div className="p-3 space-y-3">
+                                {/* Mobility Score */}
+                                {(() => {
+                                  const s = mobilityData.mobilityScore;
+                                  const label = s >= 71 ? 'Alta' : s >= 41 ? 'Media' : 'Baja';
+                                  const barColor = s >= 71 ? 'bg-green-500' : s >= 41 ? 'bg-yellow-500' : 'bg-red-500';
+                                  const textColor = s >= 71 ? 'text-green-400' : s >= 41 ? 'text-yellow-400' : 'text-red-400';
+                                  return (
                                     <div>
-                                      <p className={`text-[10px] font-bold uppercase tracking-widest ${text}`}>🧠 Mobility Score</p>
-                                      <p className="text-white font-bold text-xs mt-0.5">{label}</p>
+                                      <div className="flex items-center justify-between mb-1">
+                                        <p className="text-slate-400 text-[9px]">Mobility Score · Movilidad {label}</p>
+                                        <p className={`font-black text-sm ${textColor}`}>{s}<span className="text-slate-600 text-[9px] font-normal">/100</span></p>
+                                      </div>
+                                      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                        <motion.div
+                                          initial={{ width: 0 }}
+                                          animate={{ width: `${s}%` }}
+                                          transition={{ duration: 0.8, ease: 'easeOut' }}
+                                          className={`h-full ${barColor} rounded-full`}
+                                        />
+                                      </div>
                                     </div>
+                                  );
+                                })()}
+
+                                {/* Tiempo con tráfico */}
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-slate-400 text-[9px]">🚗 Con tráfico actual ({mobilityData.trafficLevel})</p>
+                                    <p className="text-white text-xs font-bold">{mobilityData.commercialETA} mins estimados</p>
                                   </div>
-                                  <div className="text-right">
-                                    <p className={`text-3xl font-black ${text}`}>{s}</p>
-                                    <p className="text-slate-500 text-[9px]">/100</p>
+                                  <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${
+                                    mobilityData.trafficLevel === 'alto' ? 'bg-red-500/20 text-red-400' :
+                                    mobilityData.trafficLevel === 'moderado' ? 'bg-yellow-500/20 text-yellow-400' :
+                                    'bg-green-500/20 text-green-400'
+                                  }`}>
+                                    🚦 Tráfico {mobilityData.trafficLevel}
+                                  </span>
+                                </div>
+
+                                {/* 4 badges */}
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div className={`rounded-lg p-2 text-center border ${
+                                    mobilityData.commercialFlow === 'alto' ? 'bg-indigo-500/10 border-indigo-500/20' :
+                                    mobilityData.commercialFlow === 'medio' ? 'bg-blue-500/10 border-blue-500/20' :
+                                    'bg-slate-500/10 border-slate-500/20'
+                                  }`}>
+                                    <p className="text-slate-400 text-[9px]">📈 Flujo Comercial</p>
+                                    <p className={`font-bold text-xs capitalize mt-0.5 ${
+                                      mobilityData.commercialFlow === 'alto' ? 'text-indigo-400' :
+                                      mobilityData.commercialFlow === 'medio' ? 'text-blue-400' : 'text-slate-400'
+                                    }`}>{mobilityData.commercialFlow}</p>
+                                  </div>
+                                  <div className={`rounded-lg p-2 text-center border ${
+                                    mobilityData.accessibility === 'alta' ? 'bg-green-500/10 border-green-500/20' :
+                                    mobilityData.accessibility === 'media' ? 'bg-yellow-500/10 border-yellow-500/20' :
+                                    'bg-red-500/10 border-red-500/20'
+                                  }`}>
+                                    <p className="text-slate-400 text-[9px]">⚡ Accesibilidad</p>
+                                    <p className={`font-bold text-xs capitalize mt-0.5 ${
+                                      mobilityData.accessibility === 'alta' ? 'text-green-400' :
+                                      mobilityData.accessibility === 'media' ? 'text-yellow-400' : 'text-red-400'
+                                    }`}>{mobilityData.accessibility}</p>
                                   </div>
                                 </div>
-                              );
-                            })()}
 
-                            {/* 6-Factor Grid */}
-                            <div className="grid grid-cols-3 gap-2">
-                              <div className="bg-white/5 border border-white/5 rounded-lg p-2 text-center">
-                                <p className="text-slate-400 text-[9px] mb-0.5">📍 Distancia</p>
-                                <p className="text-white font-bold text-xs">~ {mobilityData.distanceKm.toFixed(1)} km</p>
-                              </div>
-                              <div className="bg-white/5 border border-white/5 rounded-lg p-2 text-center">
-                                <p className="text-slate-400 text-[9px] mb-0.5">🚗 Tiempo Comercial</p>
-                                <p className="text-white font-bold text-xs">{mobilityData.commercialETA} mins</p>
-                              </div>
-                              <div className="bg-white/5 border border-white/5 rounded-lg p-2 text-center">
-                                <p className="text-slate-400 text-[9px] mb-0.5">🏃 Caminando</p>
-                                <p className="text-white font-bold text-xs">{mobilityData.walkingMin} mins</p>
-                              </div>
-                              <div className={`border rounded-lg p-2 text-center ${
-                                mobilityData.trafficLevel === 'alto' ? 'bg-red-500/10 border-red-500/20' :
-                                mobilityData.trafficLevel === 'moderado' ? 'bg-yellow-500/10 border-yellow-500/20' :
-                                'bg-green-500/10 border-green-500/20'
-                              }`}>
-                                <p className="text-slate-400 text-[9px] mb-0.5">🚦 Tráfico</p>
-                                <p className={`font-bold text-xs capitalize ${
-                                  mobilityData.trafficLevel === 'alto' ? 'text-red-400' :
-                                  mobilityData.trafficLevel === 'moderado' ? 'text-yellow-400' : 'text-green-400'
-                                }`}>{mobilityData.trafficLevel}</p>
-                              </div>
-                              <div className={`border rounded-lg p-2 text-center ${
-                                mobilityData.commercialFlow === 'alto' ? 'bg-indigo-500/10 border-indigo-500/20' :
-                                mobilityData.commercialFlow === 'medio' ? 'bg-blue-500/10 border-blue-500/20' :
-                                'bg-slate-500/10 border-slate-500/20'
-                              }`}>
-                                <p className="text-slate-400 text-[9px] mb-0.5">📈 Flujo Comercial</p>
-                                <p className={`font-bold text-xs capitalize ${
-                                  mobilityData.commercialFlow === 'alto' ? 'text-indigo-400' :
-                                  mobilityData.commercialFlow === 'medio' ? 'text-blue-400' : 'text-slate-400'
-                                }`}>{mobilityData.commercialFlow}</p>
-                              </div>
-                              <div className={`border rounded-lg p-2 text-center ${
-                                mobilityData.accessibility === 'alta' ? 'bg-green-500/10 border-green-500/20' :
-                                mobilityData.accessibility === 'media' ? 'bg-yellow-500/10 border-yellow-500/20' :
-                                'bg-red-500/10 border-red-500/20'
-                              }`}>
-                                <p className="text-slate-400 text-[9px] mb-0.5">⚡ Accesibilidad</p>
-                                <p className={`font-bold text-xs capitalize ${
-                                  mobilityData.accessibility === 'alta' ? 'text-green-400' :
-                                  mobilityData.accessibility === 'media' ? 'text-yellow-400' : 'text-red-400'
-                                }`}>{mobilityData.accessibility}</p>
+                                {/* Peak hour */}
+                                {mobilityData.peakHour && (
+                                  <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 px-2 py-1.5 rounded-lg">
+                                    <AlertTriangle className="w-3 h-3 text-orange-400 shrink-0" />
+                                    <span className="text-orange-300 text-[9px]">Hora pico activa — +{mobilityData.trafficFactor} mins al trayecto</span>
+                                  </div>
+                                )}
                               </div>
                             </div>
 
-                            {/* Peak Hour Alert */}
-                            {mobilityData.peakHour && (
-                              <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 px-3 py-2 rounded-lg">
-                                <AlertTriangle className="w-3.5 h-3.5 text-orange-400 shrink-0" />
-                                <span className="text-orange-300 text-[10px] font-medium">Hora pico activa — tiempo comercial incrementado</span>
-                              </div>
-                            )}
-
-                            {/* Step by Step */}
-                            <div className="flex items-start gap-2 bg-indigo-500/5 border border-indigo-500/10 px-3 py-2 rounded-lg">
-                              <Navigation2 className="w-3 h-3 text-indigo-400 shrink-0 mt-0.5 rotate-45" />
-                              <span className="text-slate-300 text-[10px] leading-relaxed">{mobilityData.steps}</span>
-                            </div>
-
-                            {/* Intelligence Questions */}
+                            {/* ── INTELIGENCIA COMERCIAL ── */}
                             <div className="bg-slate-950/60 border border-white/5 rounded-xl p-3">
                               <p className="text-slate-400 text-[9px] font-bold uppercase tracking-widest mb-2 flex items-center gap-1">
-                                <TrendingUp className="w-3 h-3" /> Inteligencia Comercial
+                                <TrendingUp className="w-3 h-3" /> Inteligencia de Negocio
                               </p>
-                              <ul className="space-y-1.5">
+                              <ul className="space-y-2">
                                 {[
                                   { q: '¿Conviene abrir aquí?', a: mobilityData.mobilityScore >= 60 ? '✅ Sí, buena movilidad' : '⚠️ Analizar con cuidado' },
-                                  { q: '¿Los clientes llegarán rápido?', a: mobilityData.commercialETA <= 15 ? '✅ Sí, acceso rápido' : mobilityData.commercialETA <= 30 ? '🟡 Tiempo moderado' : '🔴 Acceso lento' },
+                                  { q: '¿Los clientes llegarán rápido?', a: mobilityData.baseETA <= 10 ? '✅ Acceso rápido' : mobilityData.baseETA <= 20 ? '🟡 Tiempo moderado' : '🔴 Acceso lento' },
                                   { q: '¿Existe saturación comercial?', a: gyms.length > 5 ? '🔴 Alta densidad de competidores' : gyms.length > 2 ? '🟡 Competencia moderada' : '✅ Zona poco saturada' },
                                   { q: '¿Buena accesibilidad vial?', a: mobilityData.accessibility === 'alta' ? '✅ Alta accesibilidad' : mobilityData.accessibility === 'media' ? '🟡 Accesibilidad media' : '🔴 Accesibilidad limitada' },
                                 ].map((item, i) => (
-                                  <li key={i} className="flex flex-col">
+                                  <li key={i} className="flex justify-between items-center border-b border-white/5 pb-1.5 last:border-0 last:pb-0">
                                     <span className="text-slate-500 text-[9px]">{item.q}</span>
-                                    <span className="text-white text-[10px] font-semibold">{item.a}</span>
+                                    <span className="text-white text-[10px] font-semibold ml-2 shrink-0">{item.a}</span>
                                   </li>
                                 ))}
                               </ul>
