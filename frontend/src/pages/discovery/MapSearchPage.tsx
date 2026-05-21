@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MapPin, Map as MapIcon, Navigation2, Search, X, 
   Calendar, Users, Clock, ChevronRight, Loader2,
-  TrendingUp, BarChart2, AlertTriangle
+  TrendingUp, AlertTriangle
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
