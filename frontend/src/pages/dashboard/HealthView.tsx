@@ -74,14 +74,14 @@ const HealthView: React.FC = () => {
       let stepsInc = 0;
       let kcalInc = 0;
       if (simulationPace === 'slow') {
-        stepsInc = Math.floor(Math.random() * 6) + 5; // 5-10 pasos/seg
-        kcalInc = Math.random() * 0.2 + 0.1; // 0.1-0.3 kcal
+        stepsInc = Math.floor(Math.random() * 2) + 1; // 1-2 pasos por segundo (Paseo real)
+        kcalInc = Math.random() * 0.04 + 0.04; // ~0.04-0.08 kcal/seg
       } else if (simulationPace === 'medium') {
-        stepsInc = Math.floor(Math.random() * 11) + 10; // 10-20 pasos/seg
-        kcalInc = Math.random() * 0.7 + 0.5; // 0.5-1.2 kcal
+        stepsInc = Math.floor(Math.random() * 2) + 2; // 2-3 pasos por segundo (Trote real)
+        kcalInc = Math.random() * 0.08 + 0.12; // ~0.12-0.20 kcal/seg
       } else {
-        stepsInc = Math.floor(Math.random() * 21) + 25; // 25-45 pasos/seg
-        kcalInc = Math.random() * 1.5 + 1.5; // 1.5-3.0 kcal
+        stepsInc = Math.floor(Math.random() * 2) + 3; // 3-4 pasos por segundo (Sprint/Carrera)
+        kcalInc = Math.random() * 0.15 + 0.25; // ~0.25-0.40 kcal/seg
       }
 
       setMetrics(prev => {
@@ -90,7 +90,7 @@ const HealthView: React.FC = () => {
             return { ...m, value: m.value + stepsInc };
           }
           if (m.type === 'CALORIES_BURNED') {
-            return { ...m, value: Number((m.value + kcalInc).toFixed(1)) };
+            return { ...m, value: Number((m.value + kcalInc).toFixed(2)) };
           }
           return m;
         });
