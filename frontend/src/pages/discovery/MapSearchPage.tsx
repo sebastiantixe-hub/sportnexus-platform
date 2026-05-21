@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MapPin, Map as MapIcon, Navigation2, Search, X, 
   Calendar, Users, Clock, ChevronRight, Loader2,
-  TrendingUp, Zap, BarChart2, AlertTriangle
+  TrendingUp, BarChart2, AlertTriangle
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -275,11 +275,17 @@ const MapSearchPage: React.FC = () => {
 
         setMobilityData({
           distanceKm: distKm,
-          baseETA,
           walkingMin,
           steps: stepText,
           coordinates: coords,
-          ...commercial,
+          baseETA: commercial.baseETA,
+          commercialETA: commercial.commercialETA,
+          trafficLevel: commercial.trafficLevel,
+          trafficFactor: commercial.trafficFactor,
+          peakHour: commercial.peakHour,
+          commercialFlow: commercial.commercialFlow,
+          accessibility: commercial.accessibility,
+          mobilityScore: commercial.mobilityScore,
         });
       } else {
         applyFallbackMobility(gymLat, gymLng);
@@ -302,11 +308,17 @@ const MapSearchPage: React.FC = () => {
     const commercial = calculateCommercialMobility(distKm, baseETA, gyms.length, gymLat, gymLng);
     setMobilityData({
       distanceKm: distKm,
-      baseETA,
       walkingMin,
       steps: 'Incorporarse a las avenidas principales de la zona hacia el local.',
       coordinates: [userCoords, [gymLat, gymLng]],
-      ...commercial,
+      baseETA: commercial.baseETA,
+      commercialETA: commercial.commercialETA,
+      trafficLevel: commercial.trafficLevel,
+      trafficFactor: commercial.trafficFactor,
+      peakHour: commercial.peakHour,
+      commercialFlow: commercial.commercialFlow,
+      accessibility: commercial.accessibility,
+      mobilityScore: commercial.mobilityScore,
     });
   };
 
@@ -666,7 +678,6 @@ const MapSearchPage: React.FC = () => {
                             {/* Mobility Score Banner */}
                             {(() => {
                               const s = mobilityData.mobilityScore;
-                              const color = s >= 71 ? 'green' : s >= 41 ? 'yellow' : 'red';
                               const label = s >= 71 ? 'Movilidad Alta' : s >= 41 ? 'Movilidad Media' : 'Movilidad Baja';
                               const bg = s >= 71 ? 'bg-green-500/10 border-green-500/30' : s >= 41 ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-red-500/10 border-red-500/30';
                               const text = s >= 71 ? 'text-green-400' : s >= 41 ? 'text-yellow-400' : 'text-red-400';
