@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Building2, 
   Flame, 
@@ -18,6 +19,7 @@ interface OwnerStats {
 }
 
 const OwnerHealthView: React.FC = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<OwnerStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -148,7 +150,7 @@ const OwnerHealthView: React.FC = () => {
                 </p>
               </div>
               <button 
-                onClick={() => window.location.href = '/dashboard/marketplace'}
+                onClick={() => navigate('/sport-store')}
                 className="mt-6 w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold transition-all text-xs"
               >
                 Ir a Tienda Deportiva
