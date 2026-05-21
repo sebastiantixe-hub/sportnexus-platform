@@ -8,15 +8,6 @@ const LoginPage: React.FC = () => {
 
   const roles = [
     {
-      title: 'Super Admin',
-      icon: ShieldCheck,
-      desc: 'Acceso y control central de la plataforma Hercix Health.',
-      color: 'from-red-500/20 to-red-600/10 border-red-500/20 text-red-400Hover',
-      accent: 'bg-red-500',
-      image: '/assets/super_admin_gateway.png',
-      allowSignUp: false,
-    },
-    {
       title: 'Dueño (Owner)',
       icon: Building2,
       desc: 'Administración de gimnasios, academias, ingresos y membresías.',
@@ -50,7 +41,7 @@ const LoginPage: React.FC = () => {
       {/* Background glowing design */}
       <div className="absolute -top-40 -left-40 rounded-full w-[600px] h-[600px] bg-primary/10 blur-3xl"></div>
       <div className="absolute -bottom-40 -right-40 rounded-full w-[600px] h-[600px] bg-accent/10 blur-3xl"></div>
-
+ 
       {/* Header Info */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -64,8 +55,8 @@ const LoginPage: React.FC = () => {
         </p>
       </motion.div>
 
-      {/* Interactive Gateway Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl relative z-10 mb-10">
+      {/* Interactive Gateway Cards Grid - Symmetric 3-column Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl relative z-10 mb-10">
         {roles.map((r, i) => {
           const Icon = r.icon;
           return (
