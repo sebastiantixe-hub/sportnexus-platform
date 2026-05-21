@@ -48,8 +48,113 @@ const HealthView: React.FC = () => {
   const [isSimulating, setIsSimulating] = useState(false);
   const [simulationInterval, setSimulationInterval] = useState<any>(null);
   const [simulationSeconds, setSimulationSeconds] = useState(0);
+  
+  // Nuevos estados premium para ajuste de ritmo y alertas de agua
+  const [simulationPace, setSimulationPace] = useState<'slow' | 'medium' | 'fast'>('medium');
+  const [hydrationAlertFrequency, setHydrationAlertFrequency] = useState<number>(0); // 0 = off, 10 = 10s, 1800 = 30m
+  const [showWaterAlert, setShowWaterAlert] = useState(false);
 
-  // Cleanup simulation on unmount
+  // Efecto para la simulación del Smartwatch con ritmos dinámicos
+  useEffect(() => {
+    if (!isSimulating) {
+      if (simulationInterval) {
+        clearInterval(simulationInterval);
+        setSimulationInterval(null);
+      }
+      return;
+    }
+
+    if (simulationInterval) {
+      clearInterval(simulationInterval);
+    }
+
+    const interval = setInterval(() => {
+      setSimulationSeconds(prevSec => prevSec + 1);
+      
+      let stepsInc = 0;
+      let kcalInc = 0;
+      if (simulationPace === 'slow') {
+        stepsInc = Math.floor(Math.random() * 6) + 5; // 5-10 pasos/seg
+        kcalInc = Math.random() * 0.2 + 0.1; // 0.1-0.3 kcal
+      } else if (simulationPace === 'medium') {
+        stepsInc = Math.floor(Math.random() * 11) + 10; // 10-20 pasos/seg
+        kcalInc = Math.random() * 0.7 + 0.5; // 0.5-1.2 kcal
+      } else {
+        stepsInc = Math.floor(Math.random() * 21) + 25; // 25-45 pasos/seg
+        kcalInc = Math.random() * 1.5 + 1.5; // 1.5-3.0 kcal
+      }
+
+      setMetrics(prev => {
+        let updated = prev.map(m => {
+          if (m.type === 'STEPS') {
+            return { ...m, value: m.value + stepsInc };
+          }
+          if (m.type === 'CALORIES_BURNED') {
+            return { ...m, value: Number((m.value + kcalInc).toFixed(1)) };
+          }
+          return m;
+        });
+
+        const todayStr = getLocalDateString();
+        if (!updated.some(m => m.type === 'STEPS' && m.date.startsWith(todayStr))) {
+          updated.push({
+            id: 'sim-steps-' + Date.now(),
+            type: 'STEPS',
+            value: stepsInc,
+            unit: 'pasos',
+            date: todayStr
+          });
+        }
+        if (!updated.some(m => m.type === 'CALORIES_BURNED' && m.date.startsWith(todayStr))) {
+          updated.push({
+            id: 'sim-cal-' + Date.now(),
+            type: 'CALORIES_BURNED',
+            value: Number(kcalInc.toFixed(1)),
+            unit: 'kcal',
+            date: todayStr
+          });
+        }
+        return updated;
+      });
+    }, 1000);
+
+    setSimulationInterval(interval);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isSimulating, simulationPace]);
+
+  // Efecto para la alarma interactiva de hidratación con Web Audio API
+  useEffect(() => {
+    if (hydrationAlertFrequency <= 0) return;
+
+    const interval = setInterval(() => {
+      setShowWaterAlert(true);
+      
+      // Sintetizar sonido sutil de burbuja de agua mediante AudioContext nativo
+      try {
+        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(650, audioCtx.currentTime); // Frecuencia agradable
+        gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.12);
+      } catch (e) {
+        console.log('AudioContext silenciado por interacción inicial del navegador');
+      }
+    }, hydrationAlertFrequency * 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [hydrationAlertFrequency]);
+
+  // Limpieza de intervalos
   useEffect(() => {
     return () => {
       if (simulationInterval) {
@@ -60,54 +165,12 @@ const HealthView: React.FC = () => {
 
   const toggleSimulation = () => {
     if (isSimulating) {
-      if (simulationInterval) {
-        clearInterval(simulationInterval);
-        setSimulationInterval(null);
-      }
       setIsSimulating(false);
-      toast.success('🏃‍♂️ Entrenamiento simulado finalizado y guardado con éxito.');
+      toast.success('🏃‍♂️ Sincronización de Smartwatch finalizada y entrenamiento guardado.');
     } else {
       setIsSimulating(true);
       setSimulationSeconds(0);
-      toast.info('⚡ Sincronización continua de Smartwatch activa. Trotando en tiempo real...');
-      
-      const interval = setInterval(() => {
-        setSimulationSeconds(prevSec => prevSec + 1);
-        setMetrics(prev => {
-          let updated = prev.map(m => {
-            if (m.type === 'STEPS') {
-              return { ...m, value: m.value + Math.floor(Math.random() * 20) + 10 };
-            }
-            if (m.type === 'CALORIES_BURNED') {
-              return { ...m, value: Number((m.value + (Math.random() * 1.5 + 0.5)).toFixed(1)) };
-            }
-            return m;
-          });
-
-          // Si no existían métricas de pasos/calorías, las agregamos
-          if (!updated.some(m => m.type === 'STEPS')) {
-            updated.push({
-              id: 'sim-steps-' + Date.now(),
-              type: 'STEPS',
-              value: 10,
-              unit: 'pasos',
-              date: getLocalDateString()
-            });
-          }
-          if (!updated.some(m => m.type === 'CALORIES_BURNED')) {
-            updated.push({
-              id: 'sim-cal-' + Date.now(),
-              type: 'CALORIES_BURNED',
-              value: 1,
-              unit: 'kcal',
-              date: getLocalDateString()
-            });
-          }
-          return updated;
-        });
-      }, 1000); // 1-second interval matches simulationSeconds perfectly!
-      
-      setSimulationInterval(interval);
+      toast.info(`⚡ Smartwatch vinculado. Iniciando ritmo de simulación: ${simulationPace === 'slow' ? 'Paseo' : simulationPace === 'medium' ? 'Trote' : 'Sprint'}`);
     }
   };
 
@@ -339,37 +402,85 @@ const HealthView: React.FC = () => {
           </h1>
           <p className="text-slate-400">Tu panel de salud nativo, gamificado y 100% independiente.</p>
         </div>
-        <div className="flex flex-wrap gap-3">
-          <button 
-            onClick={toggleSimulation}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold transition-all shadow-md border ${
-              isSimulating 
-                ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 animate-pulse' 
-                : 'bg-indigo-500/10 border-indigo-500/30 hover:bg-indigo-500/20 text-indigo-400'
-            }`}
-          >
-            {isSimulating ? (
-              <>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block shrink-0" />
-                <span>Simulando... ({formatTime(simulationSeconds)})</span>
-              </>
-            ) : (
-              <>
-                <Activity className="w-5 h-5 text-indigo-400" />
-                <span>⚡ Simular Smartwatch</span>
-              </>
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Smartwatch Simulation with adjustable intensity */}
+          <div className="flex items-center bg-slate-900 border border-white/10 rounded-xl p-1 gap-1">
+            <button 
+              onClick={toggleSimulation}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all shadow-sm ${
+                isSimulating 
+                  ? 'bg-emerald-500/20 text-emerald-400 animate-pulse border border-emerald-500/30' 
+                  : 'bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-transparent'
+              }`}
+            >
+              {isSimulating ? (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block shrink-0" />
+                  <span>Simulando... ({formatTime(simulationSeconds)})</span>
+                </>
+              ) : (
+                <>
+                  <Activity className="w-4 h-4 text-indigo-400" />
+                  <span>⚡ Simular Smartwatch</span>
+                </>
+              )}
+            </button>
+
+            {isSimulating && (
+              <div className="flex items-center gap-1 border-l border-white/10 pl-1">
+                <button
+                  onClick={() => {
+                    setSimulationPace('slow');
+                    toast.info('🚶 Ritmo de simulación cambiado a Paseo (Caminata)');
+                  }}
+                  className={`px-2 py-1.5 rounded-md text-[10px] uppercase tracking-wider font-extrabold transition-all ${
+                    simulationPace === 'slow' 
+                      ? 'bg-indigo-500 text-white shadow-sm' 
+                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  🚶 Paseo
+                </button>
+                <button
+                  onClick={() => {
+                    setSimulationPace('medium');
+                    toast.info('🏃 Ritmo de simulación cambiado a Trote (Correr medio)');
+                  }}
+                  className={`px-2 py-1.5 rounded-md text-[10px] uppercase tracking-wider font-extrabold transition-all ${
+                    simulationPace === 'medium' 
+                      ? 'bg-indigo-500 text-white shadow-sm' 
+                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  🏃 Trote
+                </button>
+                <button
+                  onClick={() => {
+                    setSimulationPace('fast');
+                    toast.info('⚡ Ritmo de simulación cambiado a Sprint (Carrera rápida)');
+                  }}
+                  className={`px-2 py-1.5 rounded-md text-[10px] uppercase tracking-wider font-extrabold transition-all ${
+                    simulationPace === 'fast' 
+                      ? 'bg-indigo-500 text-white shadow-sm' 
+                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  ⚡ Sprint
+                </button>
+              </div>
             )}
-          </button>
+          </div>
+
           <button 
             onClick={() => setShowGoalModal(true)}
-            className="flex items-center gap-2 bg-slate-900 border border-white/10 hover:bg-slate-800 text-white px-5 py-3 rounded-xl font-bold transition-all shadow-md"
+            className="flex items-center gap-2 bg-slate-900 border border-white/10 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md"
           >
             <Sliders className="w-5 h-5" />
             Configurar Metas
           </button>
           <button 
             onClick={() => setShowLogModal(true)}
-            className="flex items-center gap-2 bg-primary hover:bg-primary-light text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-primary/20 group"
+            className="flex items-center gap-2 bg-primary hover:bg-primary-light text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-primary/20 group"
           >
             <Plus className="w-5 h-5 transition-transform group-hover:rotate-90" />
             Registrar Actividad
@@ -404,37 +515,67 @@ const HealthView: React.FC = () => {
           color="emerald"
         />
         {/* Interactive Hydration Card */}
-        <div className="bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-3xl p-6 relative overflow-hidden group hover:border-white/10 transition-all">
-          <div className="flex items-start justify-between mb-4">
-            <div className="p-3 bg-white/5 rounded-2xl group-hover:scale-115 transition-transform">
-              <Droplets className="text-cyan-400 w-6 h-6 animate-pulse" />
-            </div>
-            <button 
-              onClick={handleQuickWaterAdd}
-              className="text-[10px] bg-cyan-400/20 text-cyan-400 font-bold px-3 py-1.5 rounded-full hover:bg-cyan-400/30 transition-all flex items-center gap-1"
-            >
-              <Plus className="w-3 h-3" /> Tomar Vaso
-            </button>
-          </div>
+        <div className="bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-3xl p-6 relative overflow-hidden group hover:border-white/10 transition-all flex flex-col justify-between">
           <div>
-            <p className="text-slate-400 text-sm font-medium">Hidratación Diaria</p>
-            <div className="flex items-baseline gap-1 mt-1">
-              <span className="text-3xl font-bold">{todayMetrics.water}</span>
-              <span className="text-slate-500 text-sm font-medium">/ {goal.targetWater} vasos</span>
+            <div className="flex items-start justify-between mb-4">
+              <div className="p-3 bg-white/5 rounded-2xl group-hover:scale-115 transition-transform">
+                <Droplets className="text-cyan-400 w-6 h-6 animate-pulse" />
+              </div>
+              <button 
+                onClick={handleQuickWaterAdd}
+                className="text-[10px] bg-cyan-400/20 text-cyan-400 font-bold px-3 py-1.5 rounded-full hover:bg-cyan-400/30 transition-all flex items-center gap-1"
+              >
+                <Plus className="w-3 h-3" /> Tomar Vaso
+              </button>
+            </div>
+            <div>
+              <p className="text-slate-400 text-sm font-medium">Hidratación Diaria</p>
+              <div className="flex items-baseline gap-1 mt-1">
+                <span className="text-3xl font-bold">{todayMetrics.water}</span>
+                <span className="text-slate-500 text-sm font-medium">/ {goal.targetWater} vasos</span>
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="flex items-center justify-between text-[10px] text-slate-500 mb-1.5 uppercase font-bold tracking-wider">
+                <span>Nivel de Agua</span>
+                <span>{Math.round(Math.min((todayMetrics.water / goal.targetWater) * 100, 100))}%</span>
+              </div>
+              {/* Animated filling water cup bar */}
+              <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                <div 
+                  className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-400 transition-all duration-700"
+                  style={{ width: `${Math.min((todayMetrics.water / goal.targetWater) * 100, 100)}%` }}
+                />
+              </div>
             </div>
           </div>
-          <div className="mt-6">
-            <div className="flex items-center justify-between text-[10px] text-slate-500 mb-1.5 uppercase font-bold tracking-wider">
-              <span>Nivel de Agua</span>
-              <span>{Math.round(Math.min((todayMetrics.water / goal.targetWater) * 100, 100))}%</span>
-            </div>
-            {/* Animated filling water cup bar */}
-            <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-              <div 
-                className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-400 transition-all duration-700"
-                style={{ width: `${Math.min((todayMetrics.water / goal.targetWater) * 100, 100)}%` }}
-              />
-            </div>
+          
+          {/* Alarma de Hidratación programada por el usuario */}
+          <div className="mt-4 pt-3 border-t border-white/5">
+            <label className="block text-[9px] text-slate-400 uppercase font-extrabold tracking-wider mb-2">
+              🚨 Programar Alertas de Agua
+            </label>
+            <select
+              className="w-full bg-slate-800/80 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-cyan-500/50 cursor-pointer"
+              value={hydrationAlertFrequency}
+              onChange={(e) => {
+                const val = parseInt(e.target.value);
+                setHydrationAlertFrequency(val);
+                if (val === 10) {
+                  toast.info('⏱️ Alerta rápida programada cada 10 seg (Modo Demo) para tu presentación.');
+                } else if (val > 0) {
+                  toast.success(`💧 Recordatorio programado cada ${val / 60} minutos.`);
+                } else {
+                  toast.info('🔕 Alertas de hidratación desactivadas.');
+                }
+              }}
+            >
+              <option value="0">🔕 Desactivadas</option>
+              <option value="10">⏱️ Cada 10 seg (Modo Demo 🚀)</option>
+              <option value="1800">💧 Cada 30 minutos</option>
+              <option value="3600">💧 Cada 1 hora</option>
+              <option value="7200">💧 Cada 2 horas</option>
+            </select>
           </div>
         </div>
       </div>
@@ -667,6 +808,23 @@ const HealthView: React.FC = () => {
                   value={editGoal.targetCalories}
                   onChange={(e) => setEditGoal({...editGoal, targetCalories: parseInt(e.target.value)})}
                 />
+                
+                {/* Asistente Inteligente de Calorías recomendado por el Gerente */}
+                <div className="mt-2.5 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-center justify-between gap-3">
+                  <div className="text-[10px] text-indigo-300 leading-relaxed font-medium">
+                    💡 <strong>Sugerencia Hercix:</strong> Basado en tu peso de <strong>{editGoal.targetWeight || 70} kg</strong>, tu meta diaria ideal activa es de <strong>{Math.round((editGoal.targetWeight || 70) * 8)} kcal</strong>.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditGoal({ ...editGoal, targetCalories: Math.round((editGoal.targetWeight || 70) * 8) });
+                      toast.success('🎯 Sugerencia calórica aplicada a tu meta.');
+                    }}
+                    className="shrink-0 text-[9px] uppercase tracking-wider font-extrabold bg-indigo-500 hover:bg-indigo-400 text-white px-2.5 py-1.5 rounded-lg transition-all"
+                  >
+                    Usar
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Meta de Pasos</label>
@@ -715,6 +873,38 @@ const HealthView: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Alerta Interactiva y Premium de Hidratación (Water Intake Reminder Alert Popup) */}
+      {showWaterAlert && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-cyan-950/80 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-slate-900 border-2 border-cyan-500/30 w-full max-w-sm rounded-3xl p-6 text-center shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 mx-auto bg-cyan-500/20 rounded-full flex items-center justify-center mb-4 border border-cyan-500/30">
+              <Droplets className="text-cyan-400 w-8 h-8 animate-bounce" />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2">💧 ¡Alerta de Hidratación!</h3>
+            <p className="text-slate-300 text-sm mb-6 leading-relaxed">
+              Es hora de beber un vaso de agua. Mantente hidratado para potenciar tu metabolismo y rendimiento deportivo.
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={async () => {
+                  setShowWaterAlert(false);
+                  await handleQuickWaterAdd();
+                }}
+                className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-bold rounded-2xl transition-all shadow-lg shadow-cyan-500/20"
+              >
+                ¡Vaso Tomado! 💧
+              </button>
+              <button
+                onClick={() => setShowWaterAlert(false)}
+                className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-400 font-bold rounded-2xl transition-all border border-white/5"
+              >
+                Recordar más tarde
+              </button>
+            </div>
           </div>
         </div>
       )}
