@@ -378,8 +378,8 @@ const MapSearchPage: React.FC = () => {
               </Popup>
             </Marker>
 
-            {/* Glowing Active Delivery-Style Route Polyline */}
-            {selectedGym && routeInfo && routeInfo.coordinates.length > 0 && (
+            {/* Glowing Active Delivery-Style Route Polyline (Solo visible para DUEÑOS / GYM_OWNER) */}
+            {user?.role === 'GYM_OWNER' && selectedGym && routeInfo && routeInfo.coordinates.length > 0 && (
               <Polyline 
                 positions={routeInfo.coordinates}
                 color="#ef4444"
@@ -549,46 +549,48 @@ const MapSearchPage: React.FC = () => {
                       </a>
                     </div>
 
-                    {/* Delivery-Style Dynamic Routing / Steps Card */}
-                    <div className="bg-slate-950/80 border border-red-500/20 rounded-xl p-4 mt-4 shadow-inner relative overflow-hidden">
-                      <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 rounded-full blur-xl pointer-events-none"></div>
-                      <h4 className="text-red-400 font-bold text-[11px] flex items-center gap-1.5 uppercase tracking-wider mb-3">
-                        <Navigation2 className="w-3.5 h-3.5 animate-bounce rotate-45 text-red-500" /> 
-                        Trazado de Ruta Activo (Estilo Delivery)
-                      </h4>
-                      {loadingRoute ? (
-                        <div className="flex items-center justify-center py-4 gap-2 text-xs text-slate-400">
-                          <Loader2 className="w-4 h-4 animate-spin text-red-500" />
-                          <span>Calculando ruta óptima por calles...</span>
-                        </div>
-                      ) : routeInfo ? (
-                        <>
-                          <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                            <div className="bg-white/5 p-2 rounded-lg border border-white/5">
-                              <p className="text-slate-400 text-[10px] mb-0.5">Distancia</p>
-                              <p className="text-white font-bold text-sm">{routeInfo.distance}</p>
-                            </div>
-                            <div className="bg-white/5 p-2 rounded-lg border border-white/5">
-                              <p className="text-slate-400 text-[10px] mb-0.5">🚗 En Auto</p>
-                              <p className="text-white font-bold text-sm">{routeInfo.drivingTime}</p>
-                            </div>
-                            <div className="bg-white/5 p-2 rounded-lg border border-white/5">
-                              <p className="text-slate-400 text-[10px] mb-0.5">🏃 A Pie</p>
-                              <p className="text-white font-bold text-sm">{routeInfo.walkingTime}</p>
-                            </div>
+                    {/* Delivery-Style Dynamic Routing / Steps Card (Solo visible para DUEÑOS / GYM_OWNER) */}
+                    {user?.role === 'GYM_OWNER' && (
+                      <div className="bg-slate-950/80 border border-red-500/20 rounded-xl p-4 mt-4 shadow-inner relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 rounded-full blur-xl pointer-events-none"></div>
+                        <h4 className="text-red-400 font-bold text-[11px] flex items-center gap-1.5 uppercase tracking-wider mb-3">
+                          <Navigation2 className="w-3.5 h-3.5 animate-bounce rotate-45 text-red-500" /> 
+                          Trazado de Ruta Activo (Estilo Delivery)
+                        </h4>
+                        {loadingRoute ? (
+                          <div className="flex items-center justify-center py-4 gap-2 text-xs text-slate-400">
+                            <Loader2 className="w-4 h-4 animate-spin text-red-500" />
+                            <span>Calculando ruta óptima por calles...</span>
                           </div>
-                          <div className="mt-3 flex items-center gap-2 bg-red-500/10 px-3 py-2 rounded-lg border border-red-500/10 text-[10px] text-red-300">
-                            <span className="font-bold shrink-0">📍 PASO A PASO:</span>
-                            <span className="truncate">{routeInfo.steps}</span>
-                            <span className="animate-pulse font-bold ml-auto shrink-0">Sincronizado</span>
-                          </div>
-                        </>
-                      ) : (
-                        <p className="text-slate-500 text-[10px] italic text-center py-2">
-                          Ruta no disponible para este local.
-                        </p>
-                      )}
-                    </div>
+                        ) : routeInfo ? (
+                          <>
+                            <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                              <div className="bg-white/5 p-2 rounded-lg border border-white/5">
+                                <p className="text-slate-400 text-[10px] mb-0.5">Distancia</p>
+                                <p className="text-white font-bold text-sm">{routeInfo.distance}</p>
+                              </div>
+                              <div className="bg-white/5 p-2 rounded-lg border border-white/5">
+                                <p className="text-slate-400 text-[10px] mb-0.5">🚗 En Auto</p>
+                                <p className="text-white font-bold text-sm">{routeInfo.drivingTime}</p>
+                              </div>
+                              <div className="bg-white/5 p-2 rounded-lg border border-white/5">
+                                <p className="text-slate-400 text-[10px] mb-0.5">🏃 A Pie</p>
+                                <p className="text-white font-bold text-sm">{routeInfo.walkingTime}</p>
+                              </div>
+                            </div>
+                            <div className="mt-3 flex items-center gap-2 bg-red-500/10 px-3 py-2 rounded-lg border border-red-500/10 text-[10px] text-red-300">
+                              <span className="font-bold shrink-0">📍 PASO A PASO:</span>
+                              <span className="truncate">{routeInfo.steps}</span>
+                              <span className="animate-pulse font-bold ml-auto shrink-0">Sincronizado</span>
+                            </div>
+                          </>
+                        ) : (
+                          <p className="text-slate-500 text-[10px] italic text-center py-2">
+                            Ruta no disponible para este local.
+                          </p>
+                        )}
+                      </div>
+                    )}
 
                     {selectedGym.description && <p className="text-slate-400 text-sm mt-4 line-clamp-2">{selectedGym.description}</p>}
                   </div>
