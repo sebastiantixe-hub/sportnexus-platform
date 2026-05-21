@@ -4,13 +4,130 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MapPin, Map as MapIcon, Navigation2, Search, X, 
-  Calendar, Users, Clock, ChevronRight, Loader2
+  Calendar, Users, Clock, ChevronRight, Loader2,
+  TrendingUp, Zap, BarChart2, AlertTriangle
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { PayMeModal } from '../../components/payment/PayMeModal';
 import { useAuth } from '../../context/auth-context';
+
+// ─── Tipos de Movilidad Comercial ────────────────────────────────────────────
+interface MobilityData {
+  distanceKm: number;
+  baseETA: number;          // minutos OSRM base
+  commercialETA: number;    // ETA con factores comerciales
+  walkingMin: number;
+  trafficLevel: 'bajo' | 'moderado' | 'alto';
+  trafficFactor: number;
+  peakHour: boolean;
+  commercialFlow: 'bajo' | 'medio' | 'alto';
+  accessibility: 'baja' | 'media' | 'alta';
+  mobilityScore: number;    // 0-100
+  steps: string;
+  coordinates: [number, number][];
+}
+
+// ─── Motor de Inteligencia Comercial ─────────────────────────────────────────
+const calculateCommercialMobility = (
+  distanceKm: number,
+  baseETA: number,
+  nearbyGymsCount: number,
+  gymLat: number,
+  gymLng: number
+): Omit<MobilityData, 'steps' | 'coordinates' | 'walkingMin' | 'distanceKm'> => {
+  const now = new Date();
+  const hour = now.getHours();
+  const dayOfWeek = now.getDay(); // 0=Dom, 6=Sab
+
+  // ── Factor Hora Pico ─────────────────────────────────────────────────
+  const peakHour =
+    (hour >= 7 && hour <= 9) ||
+    (hour >= 12 && hour <= 14) ||
+    (hour >= 17 && hour <= 20);
+  const peakHourFactor = peakHour ? (dayOfWeek >= 1 && dayOfWeek <= 5 ? 4.5 : 2.0) : 0;
+
+  // ── Factor Tráfico por Hora ──────────────────────────────────────────
+  let trafficFactor: number;
+  let trafficLevel: 'bajo' | 'moderado' | 'alto';
+  if (hour >= 7 && hour <= 9 || hour >= 17 && hour <= 20) {
+    trafficFactor = distanceKm * 1.8;
+    trafficLevel = 'alto';
+  } else if (hour >= 10 && hour <= 16) {
+    trafficFactor = distanceKm * 0.9;
+    trafficLevel = 'moderado';
+  } else {
+    trafficFactor = distanceKm * 0.3;
+    trafficLevel = 'bajo';
+  }
+
+  // ── Factor Densidad Urbana (por zona geográfica) ─────────────────────
+  const isUrbanCenter = Math.abs(gymLat - (-12.085)) < 0.05 && Math.abs(gymLng - (-77.03)) < 0.05;
+  const densityFactor = isUrbanCenter ? distanceKm * 0.7 : distanceKm * 0.3;
+
+  // ── Factor Saturación Comercial ──────────────────────────────────────
+  const saturationFactor = nearbyGymsCount > 5 ? 2.0 : nearbyGymsCount > 2 ? 1.0 : 0;
+
+  // ── Accesibilidad Vial ───────────────────────────────────────────────
+  let accessibilityBonus: number;
+  let accessibility: 'baja' | 'media' | 'alta';
+  if (distanceKm <= 2) {
+    accessibilityBonus = 2;
+    accessibility = 'alta';
+  } else if (distanceKm <= 5) {
+    accessibilityBonus = 1;
+    accessibility = 'media';
+  } else {
+    accessibilityBonus = 0;
+    accessibility = 'baja';
+  }
+
+  // ── ETA Comercial Final ──────────────────────────────────────────────
+  const commercialETA = Math.max(
+    2,
+    Math.round(baseETA + trafficFactor + densityFactor + peakHourFactor + saturationFactor - accessibilityBonus)
+  );
+
+  // ── Flujo Comercial ──────────────────────────────────────────────────
+  let commercialFlow: 'bajo' | 'medio' | 'alto';
+  if (hour >= 9 && hour <= 12 || hour >= 16 && hour <= 20) {
+    commercialFlow = 'alto';
+  } else if (hour >= 13 && hour <= 15) {
+    commercialFlow = 'medio';
+  } else {
+    commercialFlow = 'bajo';
+  }
+
+  // ── Mobility Score (0-100) ────────────────────────────────────────────
+  let score = 100;
+  // Penalizar por distancia
+  score -= Math.min(30, distanceKm * 5);
+  // Penalizar por tráfico
+  if (trafficLevel === 'alto') score -= 20;
+  else if (trafficLevel === 'moderado') score -= 10;
+  // Penalizar por saturación
+  score -= Math.min(15, nearbyGymsCount * 2);
+  // Penalizar por hora pico
+  if (peakHour) score -= 10;
+  // Bonificar por accesibilidad
+  if (accessibility === 'alta') score += 8;
+  else if (accessibility === 'media') score += 3;
+  // Bonificar por flujo alto
+  if (commercialFlow === 'alto') score += 5;
+  const mobilityScore = Math.max(0, Math.min(100, Math.round(score)));
+
+  return {
+    baseETA,
+    commercialETA,
+    trafficLevel,
+    trafficFactor: Math.round(trafficFactor),
+    peakHour,
+    commercialFlow,
+    accessibility,
+    mobilityScore,
+  };
+};
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -81,13 +198,7 @@ const MapSearchPage: React.FC = () => {
 
   // Coordenadas fijas por defecto del usuario (Sede central Hercix, San Isidro)
   const [userCoords, setUserCoords] = useState<[number, number]>([-12.085, -77.03]);
-  const [routeInfo, setRouteInfo] = useState<{
-    distance: string;
-    drivingTime: string;
-    walkingTime: string;
-    steps: string;
-    coordinates: [number, number][];
-  } | null>(null);
+  const [mobilityData, setMobilityData] = useState<MobilityData | null>(null);
   const [loadingRoute, setLoadingRoute] = useState(false);
 
   useEffect(() => {
@@ -131,79 +242,71 @@ const MapSearchPage: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Función de cálculo de ruta por calles con la API Gratuita OSRM (100% Free y Real)
+  // ─── Motor de Ruta Real con OSRM + Inteligencia Comercial ─────────────────
   const fetchRealRoute = async (gymLat: number, gymLng: number) => {
     try {
       setLoadingRoute(true);
       const startLng = userCoords[1];
       const startLat = userCoords[0];
       const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${gymLng},${gymLat}?overview=full&geometries=geojson&steps=true`;
-      
       const res = await fetch(url);
       const data = await res.json();
-      
-      if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+
+      if (data.code === 'Ok' && data.routes?.length > 0) {
         const route = data.routes[0];
-        const distanceKm = (route.distance / 1000).toFixed(1);
-        const drivingMin = Math.round(route.duration / 60);
-        // Caminata estimando 5km/h
-        const walkingMin = Math.round(((route.distance / 1000) / 5) * 60);
-        
+        const distKm = route.distance / 1000;
+        const baseETA = Math.round(route.duration / 60);
+        const walkingMin = Math.max(2, Math.round((distKm / 5) * 60));
+
         let stepText = 'Avanzar recto hacia el destino.';
-        if (route.legs && route.legs[0].steps && route.legs[0].steps.length > 1) {
-          const mainSteps = route.legs[0].steps
-            .filter((s: any) => s.name && s.name.trim() !== '')
+        if (route.legs?.[0]?.steps?.length > 1) {
+          const named = route.legs[0].steps
+            .filter((s: any) => s.name?.trim())
             .map((s: any) => {
-              const modifier = s.maneuver.modifier ? ` a la ${s.maneuver.modifier === 'right' ? 'derecha' : 'izquierda'}` : '';
-              return `Girar${modifier} por ${s.name}`;
+              const mod = s.maneuver.modifier;
+              const dir = mod === 'right' ? 'derecha' : mod === 'left' ? 'izquierda' : '';
+              return dir ? `Girar a la ${dir} por ${s.name}` : `Continuar por ${s.name}`;
             });
-          if (mainSteps.length > 0) {
-            stepText = mainSteps.slice(0, 3).join(', ') + '.';
-          }
+          if (named.length) stepText = named.slice(0, 3).join('. ') + '.';
         }
 
         const coords = route.geometry.coordinates.map((c: any) => [c[1], c[0]] as [number, number]);
+        const commercial = calculateCommercialMobility(distKm, baseETA, gyms.length, gymLat, gymLng);
 
-        setRouteInfo({
-          distance: `~ ${distanceKm} km`,
-          drivingTime: `${Math.max(1, drivingMin)} mins`,
-          walkingTime: `${Math.max(2, walkingMin)} mins`,
+        setMobilityData({
+          distanceKm: distKm,
+          baseETA,
+          walkingMin,
           steps: stepText,
-          coordinates: coords
+          coordinates: coords,
+          ...commercial,
         });
       } else {
-        calculateFallbackRoute(gymLat, gymLng);
+        applyFallbackMobility(gymLat, gymLng);
       }
-    } catch (err) {
-      console.error('OSRM route fetch failed, using fallback:', err);
-      calculateFallbackRoute(gymLat, gymLng);
+    } catch {
+      applyFallbackMobility(gymLat, gymLng);
     } finally {
       setLoadingRoute(false);
     }
   };
 
-  const calculateFallbackRoute = (gymLat: number, gymLng: number) => {
-    // Trigonometría Haversine con coeficiente urbano de 1.35x para simular calles reales de Lima
+  const applyFallbackMobility = (gymLat: number, gymLng: number) => {
     const R = 6371;
     const dLat = (gymLat - userCoords[0]) * Math.PI / 180;
     const dLon = (gymLng - userCoords[1]) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(userCoords[0] * Math.PI / 180) * Math.cos(gymLat * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    const directDist = R * c;
-    const realDist = directDist * 1.35; // Desvío urbano real
-
-    const drivingMin = Math.round(realDist / 25 * 60); // 25km/h tráfico
-    const walkingMin = Math.round(realDist / 5 * 60); // 5km/h a pie
-
-    setRouteInfo({
-      distance: `~ ${realDist.toFixed(1)} km`,
-      drivingTime: `${Math.max(2, drivingMin)} mins`,
-      walkingTime: `${Math.max(5, walkingMin)} mins`,
-      steps: `Avanzar en dirección al local. Incorporarse a avenidas principales de la zona.`,
-      coordinates: [userCoords, [gymLat, gymLng]]
+    const a = Math.sin(dLat/2)**2 + Math.cos(userCoords[0]*Math.PI/180)*Math.cos(gymLat*Math.PI/180)*Math.sin(dLon/2)**2;
+    const distKm = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)) * 1.35;
+    const baseETA = Math.max(2, Math.round(distKm / 25 * 60));
+    const walkingMin = Math.max(5, Math.round(distKm / 5 * 60));
+    const commercial = calculateCommercialMobility(distKm, baseETA, gyms.length, gymLat, gymLng);
+    setMobilityData({
+      distanceKm: distKm,
+      baseETA,
+      walkingMin,
+      steps: 'Incorporarse a las avenidas principales de la zona hacia el local.',
+      coordinates: [userCoords, [gymLat, gymLng]],
+      ...commercial,
     });
   };
 
@@ -256,11 +359,11 @@ const MapSearchPage: React.FC = () => {
       map.flyTo([gym.latitude, gym.longitude], 15);
     }
     
-    // Disparar búsqueda de ruta real en la calle en tiempo real
+    // Disparar motor de inteligencia comercial
     if (gym.latitude && gym.longitude) {
       fetchRealRoute(gym.latitude, gym.longitude);
     } else {
-      setRouteInfo(null);
+      setMobilityData(null);
     }
 
     setLoadingClasses(true);
@@ -378,13 +481,13 @@ const MapSearchPage: React.FC = () => {
               </Popup>
             </Marker>
 
-            {/* Glowing Active Delivery-Style Route Polyline (Solo visible para DUEÑOS / GYM_OWNER) */}
-            {user?.role === 'GYM_OWNER' && selectedGym && routeInfo && routeInfo.coordinates.length > 0 && (
-              <Polyline 
-                positions={routeInfo.coordinates}
-                color="#ef4444"
+            {/* Ruta por calles reales — solo GYM_OWNER */}
+            {user?.role === 'GYM_OWNER' && selectedGym && mobilityData && mobilityData.coordinates.length > 0 && (
+              <Polyline
+                positions={mobilityData.coordinates}
+                color={mobilityData.mobilityScore >= 71 ? '#22c55e' : mobilityData.mobilityScore >= 41 ? '#f59e0b' : '#ef4444'}
                 weight={4}
-                opacity={0.85}
+                opacity={0.9}
                 className="animate-route-path"
               />
             )}
@@ -549,45 +652,126 @@ const MapSearchPage: React.FC = () => {
                       </a>
                     </div>
 
-                    {/* Delivery-Style Dynamic Routing / Steps Card (Solo visible para DUEÑOS / GYM_OWNER) */}
+                    {/* ═══ PANEL GEOMARKETING INTELLIGENCE — Solo GYM_OWNER ═══ */}
                     {user?.role === 'GYM_OWNER' && (
-                      <div className="bg-slate-950/80 border border-red-500/20 rounded-xl p-4 mt-4 shadow-inner relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 rounded-full blur-xl pointer-events-none"></div>
-                        <h4 className="text-red-400 font-bold text-[11px] flex items-center gap-1.5 uppercase tracking-wider mb-3">
-                          <Navigation2 className="w-3.5 h-3.5 animate-bounce rotate-45 text-red-500" /> 
-                          Trazado de Ruta Activo (Estilo Delivery)
-                        </h4>
+                      <div className="mt-4 space-y-3">
+
                         {loadingRoute ? (
-                          <div className="flex items-center justify-center py-4 gap-2 text-xs text-slate-400">
-                            <Loader2 className="w-4 h-4 animate-spin text-red-500" />
-                            <span>Calculando ruta óptima por calles...</span>
+                          <div className="bg-slate-950/80 border border-indigo-500/20 rounded-xl p-4 flex items-center justify-center gap-2 text-xs text-slate-400">
+                            <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+                            <span>Calculando inteligencia comercial...</span>
                           </div>
-                        ) : routeInfo ? (
+                        ) : mobilityData ? (
                           <>
-                            <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                              <div className="bg-white/5 p-2 rounded-lg border border-white/5">
-                                <p className="text-slate-400 text-[10px] mb-0.5">Distancia</p>
-                                <p className="text-white font-bold text-sm">{routeInfo.distance}</p>
+                            {/* Mobility Score Banner */}
+                            {(() => {
+                              const s = mobilityData.mobilityScore;
+                              const color = s >= 71 ? 'green' : s >= 41 ? 'yellow' : 'red';
+                              const label = s >= 71 ? 'Movilidad Alta' : s >= 41 ? 'Movilidad Media' : 'Movilidad Baja';
+                              const bg = s >= 71 ? 'bg-green-500/10 border-green-500/30' : s >= 41 ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-red-500/10 border-red-500/30';
+                              const text = s >= 71 ? 'text-green-400' : s >= 41 ? 'text-yellow-400' : 'text-red-400';
+                              return (
+                                <div className={`${bg} border rounded-xl p-3 flex items-center justify-between`}>
+                                  <div className="flex items-center gap-2">
+                                    <BarChart2 className={`w-4 h-4 ${text}`} />
+                                    <div>
+                                      <p className={`text-[10px] font-bold uppercase tracking-widest ${text}`}>🧠 Mobility Score</p>
+                                      <p className="text-white font-bold text-xs mt-0.5">{label}</p>
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className={`text-3xl font-black ${text}`}>{s}</p>
+                                    <p className="text-slate-500 text-[9px]">/100</p>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+
+                            {/* 6-Factor Grid */}
+                            <div className="grid grid-cols-3 gap-2">
+                              <div className="bg-white/5 border border-white/5 rounded-lg p-2 text-center">
+                                <p className="text-slate-400 text-[9px] mb-0.5">📍 Distancia</p>
+                                <p className="text-white font-bold text-xs">~ {mobilityData.distanceKm.toFixed(1)} km</p>
                               </div>
-                              <div className="bg-white/5 p-2 rounded-lg border border-white/5">
-                                <p className="text-slate-400 text-[10px] mb-0.5">🚗 En Auto</p>
-                                <p className="text-white font-bold text-sm">{routeInfo.drivingTime}</p>
+                              <div className="bg-white/5 border border-white/5 rounded-lg p-2 text-center">
+                                <p className="text-slate-400 text-[9px] mb-0.5">🚗 Tiempo Comercial</p>
+                                <p className="text-white font-bold text-xs">{mobilityData.commercialETA} mins</p>
                               </div>
-                              <div className="bg-white/5 p-2 rounded-lg border border-white/5">
-                                <p className="text-slate-400 text-[10px] mb-0.5">🏃 A Pie</p>
-                                <p className="text-white font-bold text-sm">{routeInfo.walkingTime}</p>
+                              <div className="bg-white/5 border border-white/5 rounded-lg p-2 text-center">
+                                <p className="text-slate-400 text-[9px] mb-0.5">🏃 Caminando</p>
+                                <p className="text-white font-bold text-xs">{mobilityData.walkingMin} mins</p>
+                              </div>
+                              <div className={`border rounded-lg p-2 text-center ${
+                                mobilityData.trafficLevel === 'alto' ? 'bg-red-500/10 border-red-500/20' :
+                                mobilityData.trafficLevel === 'moderado' ? 'bg-yellow-500/10 border-yellow-500/20' :
+                                'bg-green-500/10 border-green-500/20'
+                              }`}>
+                                <p className="text-slate-400 text-[9px] mb-0.5">🚦 Tráfico</p>
+                                <p className={`font-bold text-xs capitalize ${
+                                  mobilityData.trafficLevel === 'alto' ? 'text-red-400' :
+                                  mobilityData.trafficLevel === 'moderado' ? 'text-yellow-400' : 'text-green-400'
+                                }`}>{mobilityData.trafficLevel}</p>
+                              </div>
+                              <div className={`border rounded-lg p-2 text-center ${
+                                mobilityData.commercialFlow === 'alto' ? 'bg-indigo-500/10 border-indigo-500/20' :
+                                mobilityData.commercialFlow === 'medio' ? 'bg-blue-500/10 border-blue-500/20' :
+                                'bg-slate-500/10 border-slate-500/20'
+                              }`}>
+                                <p className="text-slate-400 text-[9px] mb-0.5">📈 Flujo Comercial</p>
+                                <p className={`font-bold text-xs capitalize ${
+                                  mobilityData.commercialFlow === 'alto' ? 'text-indigo-400' :
+                                  mobilityData.commercialFlow === 'medio' ? 'text-blue-400' : 'text-slate-400'
+                                }`}>{mobilityData.commercialFlow}</p>
+                              </div>
+                              <div className={`border rounded-lg p-2 text-center ${
+                                mobilityData.accessibility === 'alta' ? 'bg-green-500/10 border-green-500/20' :
+                                mobilityData.accessibility === 'media' ? 'bg-yellow-500/10 border-yellow-500/20' :
+                                'bg-red-500/10 border-red-500/20'
+                              }`}>
+                                <p className="text-slate-400 text-[9px] mb-0.5">⚡ Accesibilidad</p>
+                                <p className={`font-bold text-xs capitalize ${
+                                  mobilityData.accessibility === 'alta' ? 'text-green-400' :
+                                  mobilityData.accessibility === 'media' ? 'text-yellow-400' : 'text-red-400'
+                                }`}>{mobilityData.accessibility}</p>
                               </div>
                             </div>
-                            <div className="mt-3 flex items-center gap-2 bg-red-500/10 px-3 py-2 rounded-lg border border-red-500/10 text-[10px] text-red-300">
-                              <span className="font-bold shrink-0">📍 PASO A PASO:</span>
-                              <span className="truncate">{routeInfo.steps}</span>
-                              <span className="animate-pulse font-bold ml-auto shrink-0">Sincronizado</span>
+
+                            {/* Peak Hour Alert */}
+                            {mobilityData.peakHour && (
+                              <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 px-3 py-2 rounded-lg">
+                                <AlertTriangle className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+                                <span className="text-orange-300 text-[10px] font-medium">Hora pico activa — tiempo comercial incrementado</span>
+                              </div>
+                            )}
+
+                            {/* Step by Step */}
+                            <div className="flex items-start gap-2 bg-indigo-500/5 border border-indigo-500/10 px-3 py-2 rounded-lg">
+                              <Navigation2 className="w-3 h-3 text-indigo-400 shrink-0 mt-0.5 rotate-45" />
+                              <span className="text-slate-300 text-[10px] leading-relaxed">{mobilityData.steps}</span>
+                            </div>
+
+                            {/* Intelligence Questions */}
+                            <div className="bg-slate-950/60 border border-white/5 rounded-xl p-3">
+                              <p className="text-slate-400 text-[9px] font-bold uppercase tracking-widest mb-2 flex items-center gap-1">
+                                <TrendingUp className="w-3 h-3" /> Inteligencia Comercial
+                              </p>
+                              <ul className="space-y-1.5">
+                                {[
+                                  { q: '¿Conviene abrir aquí?', a: mobilityData.mobilityScore >= 60 ? '✅ Sí, buena movilidad' : '⚠️ Analizar con cuidado' },
+                                  { q: '¿Los clientes llegarán rápido?', a: mobilityData.commercialETA <= 15 ? '✅ Sí, acceso rápido' : mobilityData.commercialETA <= 30 ? '🟡 Tiempo moderado' : '🔴 Acceso lento' },
+                                  { q: '¿Existe saturación comercial?', a: gyms.length > 5 ? '🔴 Alta densidad de competidores' : gyms.length > 2 ? '🟡 Competencia moderada' : '✅ Zona poco saturada' },
+                                  { q: '¿Buena accesibilidad vial?', a: mobilityData.accessibility === 'alta' ? '✅ Alta accesibilidad' : mobilityData.accessibility === 'media' ? '🟡 Accesibilidad media' : '🔴 Accesibilidad limitada' },
+                                ].map((item, i) => (
+                                  <li key={i} className="flex flex-col">
+                                    <span className="text-slate-500 text-[9px]">{item.q}</span>
+                                    <span className="text-white text-[10px] font-semibold">{item.a}</span>
+                                  </li>
+                                ))}
+                              </ul>
                             </div>
                           </>
                         ) : (
-                          <p className="text-slate-500 text-[10px] italic text-center py-2">
-                            Ruta no disponible para este local.
-                          </p>
+                          <p className="text-slate-500 text-[10px] italic text-center py-3">Sin datos de movilidad para este local.</p>
                         )}
                       </div>
                     )}
