@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../context/auth-context';
-import { ShieldCheck, Building2, Dumbbell, Users, LogIn } from 'lucide-react';
+import { Building2, Dumbbell, Users, LogIn } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const LoginPage: React.FC = () => {
