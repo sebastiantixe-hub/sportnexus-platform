@@ -70,7 +70,7 @@ const MapSearchPage: React.FC = () => {
   const [gyms, setGyms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [usingLocation, setUsingLocation] = useState(false);
-  const [centerMap, setCenterMap] = useState<[number, number]>([-12.0464, -77.0428]);
+  const [centerMap, setCenterMap] = useState<[number, number]>([-12.085, -77.03]); // Por defecto en centro de San Isidro
   const [search, setSearch] = useState('');
   const [sportFilter, setSportFilter] = useState('');
   const [selectedGym, setSelectedGym] = useState<any>(null);
@@ -78,6 +78,17 @@ const MapSearchPage: React.FC = () => {
   const [loadingClasses, setLoadingClasses] = useState(false);
   const [map, setMap] = useState<L.Map | null>(null);
   const [mapLayer, setMapLayer] = useState<'dark' | 'satellite'>('dark');
+
+  // Coordenadas fijas por defecto del usuario (Sede central Hercix, San Isidro)
+  const [userCoords, setUserCoords] = useState<[number, number]>([-12.085, -77.03]);
+  const [routeInfo, setRouteInfo] = useState<{
+    distance: string;
+    drivingTime: string;
+    walkingTime: string;
+    steps: string;
+    coordinates: [number, number][];
+  } | null>(null);
+  const [loadingRoute, setLoadingRoute] = useState(false);
 
   useEffect(() => {
     let activeGyms: any[] = [];
@@ -120,12 +131,89 @@ const MapSearchPage: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Función de cálculo de ruta por calles con la API Gratuita OSRM (100% Free y Real)
+  const fetchRealRoute = async (gymLat: number, gymLng: number) => {
+    try {
+      setLoadingRoute(true);
+      const startLng = userCoords[1];
+      const startLat = userCoords[0];
+      const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${gymLng},${gymLat}?overview=full&geometries=geojson&steps=true`;
+      
+      const res = await fetch(url);
+      const data = await res.json();
+      
+      if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+        const route = data.routes[0];
+        const distanceKm = (route.distance / 1000).toFixed(1);
+        const drivingMin = Math.round(route.duration / 60);
+        // Caminata estimando 5km/h
+        const walkingMin = Math.round(((route.distance / 1000) / 5) * 60);
+        
+        let stepText = 'Avanzar recto hacia el destino.';
+        if (route.legs && route.legs[0].steps && route.legs[0].steps.length > 1) {
+          const mainSteps = route.legs[0].steps
+            .filter((s: any) => s.name && s.name.trim() !== '')
+            .map((s: any) => {
+              const modifier = s.maneuver.modifier ? ` a la ${s.maneuver.modifier === 'right' ? 'derecha' : 'izquierda'}` : '';
+              return `Girar${modifier} por ${s.name}`;
+            });
+          if (mainSteps.length > 0) {
+            stepText = mainSteps.slice(0, 3).join(', ') + '.';
+          }
+        }
+
+        const coords = route.geometry.coordinates.map((c: any) => [c[1], c[0]] as [number, number]);
+
+        setRouteInfo({
+          distance: `~ ${distanceKm} km`,
+          drivingTime: `${Math.max(1, drivingMin)} mins`,
+          walkingTime: `${Math.max(2, walkingMin)} mins`,
+          steps: stepText,
+          coordinates: coords
+        });
+      } else {
+        calculateFallbackRoute(gymLat, gymLng);
+      }
+    } catch (err) {
+      console.error('OSRM route fetch failed, using fallback:', err);
+      calculateFallbackRoute(gymLat, gymLng);
+    } finally {
+      setLoadingRoute(false);
+    }
+  };
+
+  const calculateFallbackRoute = (gymLat: number, gymLng: number) => {
+    // Trigonometría Haversine con coeficiente urbano de 1.35x para simular calles reales de Lima
+    const R = 6371;
+    const dLat = (gymLat - userCoords[0]) * Math.PI / 180;
+    const dLon = (gymLng - userCoords[1]) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(userCoords[0] * Math.PI / 180) * Math.cos(gymLat * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const directDist = R * c;
+    const realDist = directDist * 1.35; // Desvío urbano real
+
+    const drivingMin = Math.round(realDist / 25 * 60); // 25km/h tráfico
+    const walkingMin = Math.round(realDist / 5 * 60); // 5km/h a pie
+
+    setRouteInfo({
+      distance: `~ ${realDist.toFixed(1)} km`,
+      drivingTime: `${Math.max(2, drivingMin)} mins`,
+      walkingTime: `${Math.max(5, walkingMin)} mins`,
+      steps: `Avanzar en dirección al local. Incorporarse a avenidas principales de la zona.`,
+      coordinates: [userCoords, [gymLat, gymLng]]
+    });
+  };
+
   const handleNearbySearch = () => {
     if (!navigator.geolocation) { alert('Tu navegador no soporta geolocalización'); return; }
     setLoading(true); setUsingLocation(true);
     navigator.geolocation.getCurrentPosition(
       async ({ coords: { latitude, longitude } }) => {
         setCenterMap([latitude, longitude]);
+        setUserCoords([latitude, longitude]);
         if (map) map.flyTo([latitude, longitude], 14);
         try { const { data } = await api.get(`/gyms/nearby?lat=${latitude}&lng=${longitude}&radius=10`); setGyms(data); }
         catch { } finally { setLoading(false); }
@@ -167,6 +255,14 @@ const MapSearchPage: React.FC = () => {
     if (map && gym.latitude && gym.longitude) {
       map.flyTo([gym.latitude, gym.longitude], 15);
     }
+    
+    // Disparar búsqueda de ruta real en la calle en tiempo real
+    if (gym.latitude && gym.longitude) {
+      fetchRealRoute(gym.latitude, gym.longitude);
+    } else {
+      setRouteInfo(null);
+    }
+
     setLoadingClasses(true);
     try {
       const { data } = await api.get(`/classes?gymId=${gym.id}`);
@@ -283,12 +379,9 @@ const MapSearchPage: React.FC = () => {
             </Marker>
 
             {/* Glowing Active Delivery-Style Route Polyline */}
-            {selectedGym && selectedGym.latitude && selectedGym.longitude && (
+            {selectedGym && routeInfo && routeInfo.coordinates.length > 0 && (
               <Polyline 
-                positions={[
-                  [-12.085, -77.03],
-                  [selectedGym.latitude, selectedGym.longitude]
-                ]}
+                positions={routeInfo.coordinates}
                 color="#ef4444"
                 weight={4}
                 opacity={0.85}
@@ -463,25 +556,38 @@ const MapSearchPage: React.FC = () => {
                         <Navigation2 className="w-3.5 h-3.5 animate-bounce rotate-45 text-red-500" /> 
                         Trazado de Ruta Activo (Estilo Delivery)
                       </h4>
-                      <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                        <div className="bg-white/5 p-2 rounded-lg border border-white/5">
-                          <p className="text-slate-400 text-[10px] mb-0.5">Distancia</p>
-                          <p className="text-white font-bold text-sm">~ 3.2 km</p>
+                      {loadingRoute ? (
+                        <div className="flex items-center justify-center py-4 gap-2 text-xs text-slate-400">
+                          <Loader2 className="w-4 h-4 animate-spin text-red-500" />
+                          <span>Calculando ruta óptima por calles...</span>
                         </div>
-                        <div className="bg-white/5 p-2 rounded-lg border border-white/5">
-                          <p className="text-slate-400 text-[10px] mb-0.5">🚗 En Auto</p>
-                          <p className="text-white font-bold text-sm">8 mins</p>
-                        </div>
-                        <div className="bg-white/5 p-2 rounded-lg border border-white/5">
-                          <p className="text-slate-400 text-[10px] mb-0.5">🏃 A Pie</p>
-                          <p className="text-white font-bold text-sm">22 mins</p>
-                        </div>
-                      </div>
-                      <div className="mt-3 flex items-center gap-2 bg-red-500/10 px-3 py-2 rounded-lg border border-red-500/10 text-[10px] text-red-300">
-                        <span className="font-bold shrink-0">📍 PASO A PASO:</span>
-                        <span className="truncate">Avanzar por Av. Javier Prado Este hacia Av. Principal. Girar a la derecha.</span>
-                        <span className="animate-pulse font-bold ml-auto shrink-0">Sincronizado</span>
-                      </div>
+                      ) : routeInfo ? (
+                        <>
+                          <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                            <div className="bg-white/5 p-2 rounded-lg border border-white/5">
+                              <p className="text-slate-400 text-[10px] mb-0.5">Distancia</p>
+                              <p className="text-white font-bold text-sm">{routeInfo.distance}</p>
+                            </div>
+                            <div className="bg-white/5 p-2 rounded-lg border border-white/5">
+                              <p className="text-slate-400 text-[10px] mb-0.5">🚗 En Auto</p>
+                              <p className="text-white font-bold text-sm">{routeInfo.drivingTime}</p>
+                            </div>
+                            <div className="bg-white/5 p-2 rounded-lg border border-white/5">
+                              <p className="text-slate-400 text-[10px] mb-0.5">🏃 A Pie</p>
+                              <p className="text-white font-bold text-sm">{routeInfo.walkingTime}</p>
+                            </div>
+                          </div>
+                          <div className="mt-3 flex items-center gap-2 bg-red-500/10 px-3 py-2 rounded-lg border border-red-500/10 text-[10px] text-red-300">
+                            <span className="font-bold shrink-0">📍 PASO A PASO:</span>
+                            <span className="truncate">{routeInfo.steps}</span>
+                            <span className="animate-pulse font-bold ml-auto shrink-0">Sincronizado</span>
+                          </div>
+                        </>
+                      ) : (
+                        <p className="text-slate-500 text-[10px] italic text-center py-2">
+                          Ruta no disponible para este local.
+                        </p>
+                      )}
                     </div>
 
                     {selectedGym.description && <p className="text-slate-400 text-sm mt-4 line-clamp-2">{selectedGym.description}</p>}
