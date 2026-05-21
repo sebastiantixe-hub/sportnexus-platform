@@ -636,36 +636,45 @@ const MapSearchPage: React.FC = () => {
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 30 }}
               className="relative bg-slate-900 border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
               
-              {/* Header */}
-              <div className="bg-gradient-to-r from-primary/20 to-slate-900 p-5 border-b border-white/10">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h2 className="text-xl font-bold text-white">{selectedGym.name}</h2>
-                    <p className="text-slate-400 text-sm mt-1 flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5" /> {selectedGym.address}, {selectedGym.city}
-                    </p>
-                    {selectedGym.phone && <p className="text-slate-500 text-xs mt-1">📞 {selectedGym.phone}</p>}
-                    <div className="flex gap-2 mt-3">
-                      <a 
-                        href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${selectedGym.latitude},${selectedGym.longitude}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-yellow-500/20 transition-all"
-                      >
-                        📍 Street View 360°
-                      </a>
-                      <a 
-                        href={`https://www.google.com/maps/search/?api=1&query=${selectedGym.latitude},${selectedGym.longitude}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 bg-primary/10 text-primary-light border border-primary/20 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-primary/20 transition-all"
-                      >
-                        🚗 Cómo llegar
-                      </a>
-                    </div>
+              {/* Header - Estático */}
+              <div className="bg-gradient-to-r from-primary/20 to-slate-900 p-5 border-b border-white/10 flex justify-between items-start shrink-0">
+                <div className="min-w-0 flex-grow">
+                  <h2 className="text-xl font-bold text-white truncate">{selectedGym.name}</h2>
+                  <p className="text-slate-400 text-sm mt-1 flex items-center gap-1 truncate">
+                    <MapPin className="w-3.5 h-3.5 shrink-0" /> {selectedGym.address}, {selectedGym.city}
+                  </p>
+                  {selectedGym.phone && <p className="text-slate-500 text-xs mt-1">📞 {selectedGym.phone}</p>}
+                </div>
+                <button onClick={() => setSelectedGym(null)} className="text-slate-400 hover:text-white p-1 shrink-0 ml-4">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
-                    {/* ═══ PANEL GEOMARKETING INTELLIGENCE — Solo GYM_OWNER ═══ */}
-                    {user?.role === 'GYM_OWNER' && (
+              {/* Scrollable Container - Contiene todo el contenido dinámico de forma fluida */}
+              <div className="overflow-y-auto flex-grow p-5 space-y-6 custom-scrollbar">
+                
+                {/* Botones de Navegación Rápida */}
+                <div className="flex gap-2">
+                  <a 
+                    href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${selectedGym.latitude},${selectedGym.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-yellow-500/20 transition-all"
+                  >
+                    📍 Street View 360°
+                  </a>
+                  <a 
+                    href={`https://www.google.com/maps/search/?api=1&query=${selectedGym.latitude},${selectedGym.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 bg-primary/10 text-primary-light border border-primary/20 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-primary/20 transition-all"
+                  >
+                    🚗 Cómo llegar
+                  </a>
+                </div>
+
+                {/* ═══ PANEL GEOMARKETING INTELLIGENCE — Solo GYM_OWNER ═══ */}
+                {user?.role === 'GYM_OWNER' && (
                       <div className="mt-4 space-y-3">
                         {loadingRoute ? (
                           <div className="bg-slate-950/80 border border-indigo-500/20 rounded-xl p-4 flex items-center justify-center gap-2 text-xs text-slate-400">
@@ -820,15 +829,15 @@ const MapSearchPage: React.FC = () => {
                       </div>
                     )}
 
-                    {selectedGym.description && <p className="text-slate-400 text-sm mt-4 line-clamp-2">{selectedGym.description}</p>}
+                {selectedGym.description && (
+                  <div className="border-t border-white/5 pt-4">
+                    <p className="text-slate-400 text-sm leading-relaxed">{selectedGym.description}</p>
                   </div>
-                  <button onClick={() => setSelectedGym(null)} className="text-slate-400 hover:text-white p-1"><X className="w-5 h-5" /></button>
-                </div>
-              </div>
+                )}
 
-              {/* Classes */}
-              <div className="p-5 overflow-y-auto flex-grow">
-                <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+                {/* Classes Section inside unified scroll */}
+                <div className="border-t border-white/5 pt-4">
+                  <h3 className="text-white font-bold mb-4 flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-primary-light" /> Clases Disponibles
                 </h3>
                 {loadingClasses ? (
@@ -878,7 +887,8 @@ const MapSearchPage: React.FC = () => {
                     ))}
                   </div>
                 )}
-              </div>
+                </div> {/* End Classes Section */}
+              </div> {/* End Scrollable Container */}
             </motion.div>
           </div>
         )}
