@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Package, Loader2, Link } from 'lucide-react';
 import api from '../../api/api-client';
+import { useAuth } from '../../context/auth-context';
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface AddProductModalProps {
 }
 
 export const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClose, onSuccess, initialData }) => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [gyms, setGyms] = useState<any[]>([]);
   const [formData, setFormData] = useState({
@@ -27,7 +29,8 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClos
     if (isOpen) {
       const fetchGyms = async () => {
         try {
-          const { data } = await api.get('/gyms'); // Backend checks ownership/admin usually or returns all user related gyms
+          const ownerParam = user?.role === 'GYM_OWNER' ? `?ownerId=${user.id}` : '';
+          const { data } = await api.get(`/gyms${ownerParam}`);
           setGyms(data);
           if (data.length > 0 && !initialData) {
             setFormData(prev => ({ ...prev, gymId: data[0].id }));
@@ -38,7 +41,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClos
       };
       fetchGyms();
     }
-  }, [isOpen]);
+  }, [isOpen, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

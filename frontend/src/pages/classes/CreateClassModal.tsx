@@ -3,6 +3,7 @@ import api from '../../api/api-client';
 import { X, Loader2, Calendar, MapPin, Plus, Video } from 'lucide-react';
 
 import { motion } from 'framer-motion';
+import { useAuth } from '../../context/auth-context';
 
 interface CreateClassModalProps {
   onClose: () => void;
@@ -11,6 +12,7 @@ interface CreateClassModalProps {
 }
 
 const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onCreated, initialData }) => {
+  const { user } = useAuth();
   const [gyms, setGyms] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     title: initialData?.title || '',
@@ -29,8 +31,6 @@ const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onCreated,
   useEffect(() => {
     const fetchMyGyms = async () => {
       try {
-        const authData = JSON.parse(localStorage.getItem('auth_data') || '{}');
-        const user = authData.user;
         const ownerParam = user?.role === 'GYM_OWNER' ? `?ownerId=${user.id}` : '';
         const { data } = await api.get(`/gyms${ownerParam}`);
         setGyms(data);
@@ -43,7 +43,7 @@ const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onCreated,
       }
     };
     fetchMyGyms();
-  }, []);
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
