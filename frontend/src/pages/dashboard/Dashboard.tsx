@@ -326,21 +326,13 @@ const Dashboard: React.FC = () => {
           <div className="flex bg-slate-950/80 p-1 rounded-xl border border-white/5 w-fit gap-1">
             <button
               onClick={() => setActiveView('dashboard')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                activeView === 'dashboard'
-                  ? 'bg-primary text-white shadow-lg'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
+              className="px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-white/5"
             >
               📊 Resumen de Negocio
             </button>
             <button
               onClick={() => setActiveView('suite')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                activeView === 'suite'
-                  ? 'bg-primary text-white shadow-lg'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
+              className="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-primary text-white shadow-lg"
             >
               ✨ Suite de Control
             </button>
@@ -980,21 +972,13 @@ const Dashboard: React.FC = () => {
             <div className="flex bg-slate-950/80 p-1 rounded-xl border border-white/5 w-fit gap-1">
               <button
                 onClick={() => setActiveView('dashboard')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                  activeView === 'dashboard'
-                    ? 'bg-primary text-white shadow-lg'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
-                }`}
+                className="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-primary text-white shadow-lg"
               >
                 📊 Resumen de Negocio
               </button>
               <button
                 onClick={() => setActiveView('suite')}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                  activeView === 'suite'
-                    ? 'bg-primary text-white shadow-lg'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
-                }`}
+                className="px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-white/5"
               >
                 ✨ Suite de Control
               </button>
