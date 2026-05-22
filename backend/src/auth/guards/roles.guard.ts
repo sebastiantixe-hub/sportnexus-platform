@@ -37,11 +37,11 @@ export class RolesGuard implements CanActivate {
     if (!hasRole) {
       if (user?.role === UserRole.GYM_OWNER && requiredRoles.includes(UserRole.USER)) {
         throw new ForbiddenException(
-          'Esta acción o beneficio es exclusivo para atletas registrados.'
+          'Acceso Restringido: Como dueño del local, tu cuenta tiene un rol B2B para gestionar sedes, clases y finanzas. Esta sección de entrenamiento interactivo, wearables y registro de marcas personales está optimizada y reservada exclusivamente para el perfil de tus Atletas.'
         );
       }
       throw new ForbiddenException(
-        `Acceso denegado. Roles requeridos: ${requiredRoles.join(', ')}`,
+        `Acceso restringido. Esta funcionalidad requiere el rol de: ${requiredRoles.join(', ')}.`,
       );
     }
     return true;

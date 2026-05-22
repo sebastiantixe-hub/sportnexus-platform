@@ -1,5 +1,5 @@
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateMembershipPlanDto, SubscribeDto } from './dto/membership.dto';
+import { CreateMembershipPlanDto, UpdateMembershipPlanDto, SubscribeDto } from './dto/membership.dto';
 export declare class MembershipsService {
     private prisma;
     constructor(prisma: PrismaService);
@@ -85,4 +85,30 @@ export declare class MembershipsService {
         startedAt: Date;
         classesUsed: number;
     })[]>;
+    updatePlan(planId: string, ownerId: string, dto: UpdateMembershipPlanDto): Promise<{
+        id: string;
+        createdAt: Date;
+        name: string;
+        isActive: boolean;
+        updatedAt: Date;
+        description: string | null;
+        price: import("@prisma/client/runtime/library").Decimal;
+        gymId: string;
+        durationDays: number;
+        maxClasses: number | null;
+        includesMarketplace: boolean;
+    }>;
+    deletePlan(planId: string, ownerId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        name: string;
+        isActive: boolean;
+        updatedAt: Date;
+        description: string | null;
+        price: import("@prisma/client/runtime/library").Decimal;
+        gymId: string;
+        durationDays: number;
+        maxClasses: number | null;
+        includesMarketplace: boolean;
+    }>;
 }

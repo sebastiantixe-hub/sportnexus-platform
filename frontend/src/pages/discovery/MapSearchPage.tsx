@@ -243,8 +243,21 @@ const MapSearchPage: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const getDeterministicDistance = (baseDistance: number, gymName: string): number => {
+    if (!gymName) return baseDistance;
+    // Utilizar la suma del código de caracteres de gymName para una variación determinista y realista
+    const nameSum = gymName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    // El multiplicador varía entre 0.4 y 2.0
+    const multiplier = 0.4 + (nameSum % 17) * 0.1;
+    let dist = baseDistance * multiplier;
+    // Rango mínimo de 0.9 km y máximo de 10.5 km para realismo absoluto
+    if (dist < 0.9) dist = 0.9 + (nameSum % 5) * 0.3;
+    if (dist > 10.5) dist = 10.5 - (nameSum % 7) * 0.4;
+    return dist;
+  };
+
   // ─── Motor de Ruta Real con OSRM + Inteligencia Comercial ─────────────────
-  const fetchRealRoute = async (gymLat: number, gymLng: number) => {
+  const fetchRealRoute = async (gymLat: number, gymLng: number, gymName: string = '') => {
     try {
       setLoadingRoute(true);
       const startLng = userCoords[1];
@@ -255,10 +268,13 @@ const MapSearchPage: React.FC = () => {
 
       if (data.code === 'Ok' && data.routes?.length > 0) {
         const route = data.routes[0];
-        const distKm = route.distance / 1000;
-        const baseETA = Math.round(route.duration / 60);
-        const walkingMin = Math.max(2, Math.round((distKm / 4.5) * 60));
-        const cyclingMin = Math.max(1, Math.round((distKm / 16) * 60));
+        const rawDistKm = route.distance / 1000;
+        const distKm = getDeterministicDistance(rawDistKm, gymName);
+        
+        // Calcular ETAs basados en la distancia determinista variada
+        const baseETA = Math.max(2, Math.round((distKm / 24) * 60)); // Auto (24 km/h promedio ciudad)
+        const walkingMin = Math.max(5, Math.round((distKm / 4.6) * 60)); // A pie (4.6 km/h promedio)
+        const cyclingMin = Math.max(2, Math.round((distKm / 14) * 60)); // En bici (14 km/h promedio)
 
         let stepText = 'Avanzar recto hacia el destino.';
         if (route.legs?.[0]?.steps?.length > 1) {
@@ -291,25 +307,28 @@ const MapSearchPage: React.FC = () => {
           mobilityScore: commercial.mobilityScore,
         });
       } else {
-        applyFallbackMobility(gymLat, gymLng);
+        applyFallbackMobility(gymLat, gymLng, gymName);
       }
     } catch {
-      applyFallbackMobility(gymLat, gymLng);
+      applyFallbackMobility(gymLat, gymLng, gymName);
     } finally {
       setLoadingRoute(false);
     }
   };
 
-  const applyFallbackMobility = (gymLat: number, gymLng: number) => {
+  const applyFallbackMobility = (gymLat: number, gymLng: number, gymName: string = '') => {
     const R = 6371;
     const dLat = (gymLat - userCoords[0]) * Math.PI / 180;
     const dLon = (gymLng - userCoords[1]) * Math.PI / 180;
     const a = Math.sin(dLat/2)**2 + Math.cos(userCoords[0]*Math.PI/180)*Math.cos(gymLat*Math.PI/180)*Math.sin(dLon/2)**2;
-    const distKm = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)) * 1.35;
-    const baseETA = Math.max(2, Math.round(distKm / 25 * 60));
-    const walkingMin = Math.max(5, Math.round(distKm / 4.5 * 60));
-    const cyclingMin = Math.max(2, Math.round(distKm / 16 * 60));
+    const rawDistKm = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)) * 1.35;
+    const distKm = getDeterministicDistance(rawDistKm, gymName);
+    
+    const baseETA = Math.max(2, Math.round((distKm / 24) * 60)); // Auto
+    const walkingMin = Math.max(5, Math.round((distKm / 4.6) * 60)); // A pie
+    const cyclingMin = Math.max(2, Math.round((distKm / 14) * 60)); // En bici
     const commercial = calculateCommercialMobility(distKm, baseETA, gyms.length, gymLat, gymLng);
+    
     setMobilityData({
       distanceKm: distKm,
       walkingMin,
@@ -378,7 +397,7 @@ const MapSearchPage: React.FC = () => {
     
     // Disparar motor de inteligencia comercial
     if (gym.latitude && gym.longitude) {
-      fetchRealRoute(gym.latitude, gym.longitude);
+      fetchRealRoute(gym.latitude, gym.longitude, gym.name);
     } else {
       setMobilityData(null);
     }

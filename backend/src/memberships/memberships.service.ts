@@ -117,4 +117,36 @@ export class MembershipsService {
       orderBy: { createdAt: 'desc' },
     });
   }
+
+  async updatePlan(planId: string, ownerId: string, dto: UpdateMembershipPlanDto) {
+    const plan = await this.prisma.membershipPlan.findUnique({
+      where: { id: planId },
+      include: { gym: true }
+    });
+    if (!plan) throw new NotFoundException('Plan no encontrado');
+    if (plan.gym.ownerId !== ownerId) {
+      throw new ForbiddenException('No tienes permisos para modificar este plan');
+    }
+
+    return this.prisma.membershipPlan.update({
+      where: { id: planId },
+      data: dto,
+    });
+  }
+
+  async deletePlan(planId: string, ownerId: string) {
+    const plan = await this.prisma.membershipPlan.findUnique({
+      where: { id: planId },
+      include: { gym: true }
+    });
+    if (!plan) throw new NotFoundException('Plan no encontrado');
+    if (plan.gym.ownerId !== ownerId) {
+      throw new ForbiddenException('No tienes permisos para eliminar este plan');
+    }
+
+    return this.prisma.membershipPlan.update({
+      where: { id: planId },
+      data: { isActive: false },
+    });
+  }
 }

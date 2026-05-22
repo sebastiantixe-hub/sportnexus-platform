@@ -108,6 +108,36 @@ let MembershipsService = class MembershipsService {
             orderBy: { createdAt: 'desc' },
         });
     }
+    async updatePlan(planId, ownerId, dto) {
+        const plan = await this.prisma.membershipPlan.findUnique({
+            where: { id: planId },
+            include: { gym: true }
+        });
+        if (!plan)
+            throw new common_1.NotFoundException('Plan no encontrado');
+        if (plan.gym.ownerId !== ownerId) {
+            throw new common_1.ForbiddenException('No tienes permisos para modificar este plan');
+        }
+        return this.prisma.membershipPlan.update({
+            where: { id: planId },
+            data: dto,
+        });
+    }
+    async deletePlan(planId, ownerId) {
+        const plan = await this.prisma.membershipPlan.findUnique({
+            where: { id: planId },
+            include: { gym: true }
+        });
+        if (!plan)
+            throw new common_1.NotFoundException('Plan no encontrado');
+        if (plan.gym.ownerId !== ownerId) {
+            throw new common_1.ForbiddenException('No tienes permisos para eliminar este plan');
+        }
+        return this.prisma.membershipPlan.update({
+            where: { id: planId },
+            data: { isActive: false },
+        });
+    }
 };
 exports.MembershipsService = MembershipsService;
 exports.MembershipsService = MembershipsService = __decorate([

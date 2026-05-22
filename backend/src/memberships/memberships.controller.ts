@@ -6,6 +6,8 @@ import {
   Param,
   UseGuards,
   Query,
+  Patch,
+  Delete,
 } from '@nestjs/common';
 import { MembershipsService } from './memberships.service';
 import {
@@ -65,5 +67,30 @@ export class MembershipsController {
   @ApiOperation({ summary: 'Obtener mis membresías actuales' })
   getMyMemberships(@CurrentUser() user: any) {
     return this.membershipsService.getUserMemberships(user.id);
+  }
+
+  @Patch('plans/:planId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.GYM_OWNER, UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Actualizar un plan de membresía (Dueño)' })
+  updatePlan(
+    @Param('planId') planId: string,
+    @CurrentUser() user: any,
+    @Body() dto: UpdateMembershipPlanDto,
+  ) {
+    return this.membershipsService.updatePlan(planId, user.id, dto);
+  }
+
+  @Delete('plans/:planId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.GYM_OWNER, UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Eliminar un plan de membresía (Dueño)' })
+  deletePlan(
+    @Param('planId') planId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.membershipsService.deletePlan(planId, user.id);
   }
 }

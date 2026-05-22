@@ -1111,7 +1111,7 @@ const Dashboard: React.FC = () => {
             <h2 className="text-lg font-bold text-white mb-3">Accesos Rápidos</h2>
             <div className="space-y-2">
               <QuickAction label="Ver Clases" icon={Calendar} to="/classes" desc="Reserva tu próxima sesión" />
-              <QuickAction label="Explorar Tienda" icon={ShoppingBag} to="/marketplace" desc="Equipamiento deportivo" />
+              <QuickAction label="Explorar Tienda" icon={ShoppingBag} to={isOwner || isTrainer ? '/sport-store' : '/marketplace'} desc="Equipamiento deportivo" />
               <QuickAction label="Próximos Eventos" icon={Trophy} to="/events" desc="Torneos y masterclasses" />
               {!isOwner && !isTrainer && (
                 <>

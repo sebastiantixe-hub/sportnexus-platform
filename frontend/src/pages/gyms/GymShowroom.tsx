@@ -25,6 +25,7 @@ import {
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AddProductModal } from '../../components/marketplace/AddProductModal';
+import { AddPlanModal } from '../../components/gyms/AddPlanModal';
 
 const GymShowroom: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -47,8 +48,34 @@ const GymShowroom: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
 
+  // Owner membership plan state
+  const [showPlanModal, setShowPlanModal] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<any>(null);
+
   const isOwner = user?.role === 'GYM_OWNER' || user?.role === 'ADMIN';
   const isMyGym = isOwner && gym && gym.ownerId === user?.id;
+
+  const handlePlanSuccess = async () => {
+    toast.success(editingPlan ? 'Plan actualizado ✅' : '¡Plan de membresía creado exitosamente! ✅');
+    const { data } = await api.get(`/memberships/plans?gymId=${id}`);
+    setPlans(data);
+  };
+
+  const handleDeletePlan = async (planId: string, planName: string) => {
+    if (!window.confirm(`¿Eliminar el plan de membresía "${planName}"? Esta acción no se puede deshacer.`)) return;
+    try {
+      await api.delete(`/memberships/plans/${planId}`);
+      toast.success('Plan de membresía eliminado correctamente');
+      setPlans(prev => prev.filter(p => p.id !== planId));
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Error al eliminar el plan');
+    }
+  };
+
+  const handleEditPlan = (plan: any) => {
+    setEditingPlan(plan);
+    setShowPlanModal(true);
+  };
 
   const getBannerImage = () => {
     if (gym?.logoUrl) return gym.logoUrl;
@@ -223,10 +250,19 @@ const GymShowroom: React.FC = () => {
           <div className="flex gap-3">
             {isMyGym ? (
               <button
-                onClick={() => { setEditingProduct(null); setShowProductModal(true); }}
+                onClick={() => {
+                  if (activeTab === 'plans') {
+                    setEditingPlan(null);
+                    setShowPlanModal(true);
+                  } else {
+                    setEditingProduct(null);
+                    setShowProductModal(true);
+                  }
+                }}
                 className="bg-primary text-white font-black px-6 py-3 rounded-2xl shadow-xl hover:bg-primary-dark transition-all text-sm flex items-center gap-2"
               >
-                <Plus className="w-4 h-4" /> Añadir Producto
+                <Plus className="w-4 h-4" />
+                <span>{activeTab === 'plans' ? 'Añadir Membresía' : 'Añadir Producto'}</span>
               </button>
             ) : (
               <>
@@ -375,37 +411,61 @@ const GymShowroom: React.FC = () => {
                   initial={{ opacity: 0, y: 10 }} 
                   animate={{ opacity: 1, y: 0 }} 
                   exit={{ opacity: 0, y: -10 }}
-                  className="grid grid-cols-1 sm:grid-cols-2 gap-6"
+                  className="space-y-4"
                 >
-                  {plans.length > 0 ? plans.map(p => (
-                    <div key={p.id} className="glass-card p-8 border-white/5 relative overflow-hidden group">
-                      <div className="absolute -right-4 -bottom-4 p-8 opacity-5">
-                         <CreditCard className="w-24 h-24 text-white" />
-                      </div>
-                      <h4 className="text-2xl font-black text-white">{p.name}</h4>
-                      <p className="text-slate-400 text-sm mt-2">{p.description}</p>
-                      <div className="mt-8 flex items-baseline gap-1">
-                        <span className="text-4xl font-black text-white px-2">${Number(p.price).toFixed(0)}</span>
-                        <span className="text-slate-500 text-sm uppercase font-bold tracking-widest">/ {p.durationDays} Días</span>
-                      </div>
-                      <ul className="mt-6 space-y-3">
-                         {[
-                           'Acceso completo a instalaciones', 
-                           'Entrenador de piso corporativo', 
-                           'App de seguimiento incluida'
-                         ].map((f, i) => (
-                           <li key={i} className="flex items-center gap-2 text-xs text-slate-400">
-                             <CheckCircle2 className="w-3.5 h-3.5 text-primary-light" /> {f}
-                           </li>
-                         ))}
-                      </ul>
-                      <button className="w-full mt-8 py-3 bg-primary hover:bg-primary-dark text-white font-black rounded-xl transition-all shadow-lg shadow-primary/20 active:scale-95">
-                        Suscribirme Hoy
-                      </button>
-                    </div>
-                  )) : (
-                    <div className="col-span-full py-20 text-center text-slate-500 italic">No hay planes de membresía activos.</div>
+                  {/* Owner: Add Plan Banner */}
+                  {isMyGym && (
+                    <button
+                      onClick={() => { setEditingPlan(null); setShowPlanModal(true); }}
+                      className="w-full border-2 border-dashed border-primary/30 hover:border-primary/60 bg-primary/5 hover:bg-primary/10 rounded-2xl py-5 flex items-center justify-center gap-3 text-primary-light font-bold transition-all group"
+                    >
+                      <Plus className="w-5 h-5 group-hover:scale-125 transition-transform" />
+                      Añadir Nuevo Plan de Membresía
+                    </button>
                   )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {plans.length > 0 ? plans.map(p => (
+                      <div key={p.id} className="glass-card p-8 border-white/5 relative overflow-hidden group">
+                        {/* Owner Controls */}
+                        {isMyGym && (
+                          <div className="absolute top-3 right-3 flex gap-1.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => handleEditPlan(p)} className="p-1.5 bg-slate-700 hover:bg-primary rounded-lg text-white transition-colors" title="Editar">
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button onClick={() => handleDeletePlan(p.id, p.name)} className="p-1.5 bg-slate-700 hover:bg-red-500 rounded-lg text-white transition-colors" title="Eliminar">
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        )}
+                        <div className="absolute -right-4 -bottom-4 p-8 opacity-5">
+                           <CreditCard className="w-24 h-24 text-white" />
+                        </div>
+                        <h4 className="text-2xl font-black text-white">{p.name}</h4>
+                        <p className="text-slate-400 text-sm mt-2">{p.description}</p>
+                        <div className="mt-8 flex items-baseline gap-1">
+                          <span className="text-4xl font-black text-white px-2">${Number(p.price).toFixed(0)}</span>
+                          <span className="text-slate-500 text-sm uppercase font-bold tracking-widest">/ {p.durationDays} Días</span>
+                        </div>
+                        <ul className="mt-6 space-y-3">
+                           {[
+                             'Acceso completo a instalaciones', 
+                             'Entrenador de piso corporativo', 
+                             'App de seguimiento incluida'
+                           ].map((f, i) => (
+                             <li key={i} className="flex items-center gap-2 text-xs text-slate-400">
+                               <CheckCircle2 className="w-3.5 h-3.5 text-primary-light" /> {f}
+                             </li>
+                           ))}
+                        </ul>
+                        <button className="w-full mt-8 py-3 bg-primary hover:bg-primary-dark text-white font-black rounded-xl transition-all shadow-lg shadow-primary/20 active:scale-95">
+                          Suscribirme Hoy
+                        </button>
+                      </div>
+                    )) : (
+                      <div className="col-span-full py-20 text-center text-slate-500 italic">No hay planes de membresía activos.</div>
+                    )}
+                  </div>
                 </motion.div>
               )}
 
@@ -517,6 +577,13 @@ const GymShowroom: React.FC = () => {
           </motion.div>
         </div>
       )}
+      <AddPlanModal
+        isOpen={showPlanModal}
+        onClose={() => { setShowPlanModal(false); setEditingPlan(null); }}
+        onSuccess={handlePlanSuccess}
+        gymId={id || ''}
+        initialData={editingPlan}
+      />
     </div>
   );
 };

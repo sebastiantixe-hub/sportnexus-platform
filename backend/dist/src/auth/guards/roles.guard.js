@@ -28,9 +28,9 @@ let RolesGuard = class RolesGuard {
         const hasRole = requiredRoles.some((role) => user?.role === role);
         if (!hasRole) {
             if (user?.role === client_1.UserRole.GYM_OWNER && requiredRoles.includes(client_1.UserRole.USER)) {
-                throw new common_1.ForbiddenException('Esta acción o beneficio es exclusivo para atletas registrados.');
+                throw new common_1.ForbiddenException('Acceso Restringido: Como dueño del local, tu cuenta tiene un rol B2B para gestionar sedes, clases y finanzas. Esta sección de entrenamiento interactivo, wearables y registro de marcas personales está optimizada y reservada exclusivamente para el perfil de tus Atletas.');
             }
-            throw new common_1.ForbiddenException(`Acceso denegado. Roles requeridos: ${requiredRoles.join(', ')}`);
+            throw new common_1.ForbiddenException(`Acceso restringido. Esta funcionalidad requiere el rol de: ${requiredRoles.join(', ')}.`);
         }
         return true;
     }

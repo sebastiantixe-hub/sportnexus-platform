@@ -39,6 +39,12 @@ let MembershipsController = class MembershipsController {
     getMyMemberships(user) {
         return this.membershipsService.getUserMemberships(user.id);
     }
+    updatePlan(planId, user, dto) {
+        return this.membershipsService.updatePlan(planId, user.id, dto);
+    }
+    deletePlan(planId, user) {
+        return this.membershipsService.deletePlan(planId, user.id);
+    }
 };
 exports.MembershipsController = MembershipsController;
 __decorate([
@@ -85,6 +91,31 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], MembershipsController.prototype, "getMyMemberships", null);
+__decorate([
+    (0, common_1.Patch)('plans/:planId'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.GYM_OWNER, client_1.UserRole.ADMIN),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Actualizar un plan de membresía (Dueño)' }),
+    __param(0, (0, common_1.Param)('planId')),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, membership_dto_1.UpdateMembershipPlanDto]),
+    __metadata("design:returntype", void 0)
+], MembershipsController.prototype, "updatePlan", null);
+__decorate([
+    (0, common_1.Delete)('plans/:planId'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.GYM_OWNER, client_1.UserRole.ADMIN),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Eliminar un plan de membresía (Dueño)' }),
+    __param(0, (0, common_1.Param)('planId')),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], MembershipsController.prototype, "deletePlan", null);
 exports.MembershipsController = MembershipsController = __decorate([
     (0, swagger_1.ApiTags)('memberships'),
     (0, common_1.Controller)('memberships'),
