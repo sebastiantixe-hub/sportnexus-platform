@@ -404,6 +404,7 @@ const ClassesPage: React.FC = () => {
         onClose={() => setAttendanceClass(null)}
         classItem={attendanceClass}
         onSuccess={fetchClasses}
+        allClasses={classes}
       />
     </div>
   );

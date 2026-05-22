@@ -22,9 +22,16 @@ interface AttendanceListModalProps {
   onClose: () => void;
   classItem: any;
   onSuccess: () => void;
+  allClasses?: any[];
 }
 
-const AttendanceListModal: React.FC<AttendanceListModalProps> = ({ isOpen, onClose, classItem, onSuccess }) => {
+const AttendanceListModal: React.FC<AttendanceListModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  classItem, 
+  onSuccess,
+  allClasses = []
+}) => {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [localReservations, setLocalReservations] = useState<any[]>([]);
   const [initialized, setInitialized] = useState(false);
@@ -92,20 +99,20 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({ isOpen, onClo
   const attended = localReservations.filter(r => r.status === 'ATTENDED');
   const total = localReservations.length;
 
-  // ── Weekly Calendar & Dates Generator ──
+  // ── Dynamic Production-Ready Weekly Calendar Generator ──
   const classDate = classItem?.scheduledAt ? new Date(classItem.scheduledAt) : new Date();
   
   // Calculate Monday of the current class week
   const getMonday = (d: Date) => {
     const date = new Date(d);
     const day = date.getDay();
-    const diff = date.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Sunday
     return new Date(date.setDate(diff));
   };
   
   const monday = getMonday(classDate);
 
-  // Generate 7 days (Lunes a Domingo)
+  // Generate 7 days (Lunes a Domingo) for the actual week of this class (supports December and beyond!)
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
@@ -117,14 +124,26 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({ isOpen, onClo
     };
   });
 
-  // Define which days are active class sessions (Lunes: 1, Miércoles: 3, Viernes: 5)
-  // But also dynamically include the day index of the current class if it's different!
-  const currentClassDayIndex = classDate.getDay() === 0 ? 7 : classDate.getDay();
-  const activeClassDays = [1, 3, 5];
-  if (!activeClassDays.includes(currentClassDayIndex)) {
-    activeClassDays.push(currentClassDayIndex);
-    activeClassDays.sort();
-  }
+  // Calculate the dates in this week to query the database/classes list dynamically
+  const weekStart = new Date(monday);
+  weekStart.setHours(0, 0, 0, 0);
+
+  const weekEnd = new Date(monday);
+  weekEnd.setDate(monday.getDate() + 6);
+  weekEnd.setHours(23, 59, 59, 999);
+
+  // Fetch actual classes scheduled in this same week for this academy
+  const weekClasses = allClasses.filter((c: any) => {
+    const schedDate = new Date(c.scheduledAt);
+    return (
+      c.gymId === classItem?.gymId &&
+      schedDate >= weekStart &&
+      schedDate <= weekEnd
+    );
+  });
+
+  // If no other classes were fetched or found, fallback to the current classItem so it remains functional
+  const activeWeekClasses = weekClasses.length > 0 ? weekClasses : [classItem];
 
   return (
     <AnimatePresence>
@@ -203,7 +222,7 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({ isOpen, onClo
                   <div className="bg-slate-950/50 border border-white/5 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
                     <div className="flex items-center gap-2 text-slate-400">
                       <AlertCircle className="w-4 h-4 text-indigo-400" />
-                      <span>Las clases se programan de <b>Lunes a Domingo</b>. Los días con clase activa tienen badges de acción.</span>
+                      <span>Planilla dinámica. Detecta automáticamente todas las clases de tu base de datos para esta semana.</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-1">
@@ -234,14 +253,19 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({ isOpen, onClo
                           <tr className="border-b border-white/5 bg-slate-950/50 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                             <th className="p-4 pl-6 w-56">Atleta</th>
                             {weekDays.map(day => {
-                              const isActiveDay = activeClassDays.includes(day.dayIndex);
-                              const isToday = day.dayIndex === currentClassDayIndex;
+                              // Check if there is any class scheduled in the DB for this weekday
+                              const classOnThisDay = activeWeekClasses.find((c: any) => {
+                                const d = new Date(c.scheduledAt);
+                                const idx = d.getDay() === 0 ? 7 : d.getDay();
+                                return idx === day.dayIndex;
+                              });
+
                               return (
-                                <th key={day.dayIndex} className={`p-4 text-center ${isToday ? 'bg-indigo-600/10 text-indigo-300 font-bold border-x border-white/5' : ''}`}>
+                                <th key={day.dayIndex} className={`p-4 text-center ${classOnThisDay ? 'bg-indigo-600/5' : ''}`}>
                                   <div className="flex flex-col items-center">
                                     <span className="capitalize text-xs text-white">{day.name}</span>
                                     <span className="text-[10px] text-slate-500 font-mono mt-0.5">{day.dateString}</span>
-                                    {isActiveDay && (
+                                    {classOnThisDay && (
                                       <span className="mt-1 px-1.5 py-0.5 rounded bg-indigo-500/10 text-[8px] text-indigo-400 font-black uppercase tracking-widest border border-indigo-500/10">Clase</span>
                                     )}
                                   </div>
@@ -253,7 +277,6 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({ isOpen, onClo
                         <tbody className="divide-y divide-white/5 text-xs text-slate-300">
                           {localReservations.map(reservation => {
                             const isAttended = reservation.status === 'ATTENDED';
-                            const isLoading = loadingId === reservation.id;
 
                             return (
                               <tr key={reservation.id} className="hover:bg-white/5 transition-all">
@@ -274,11 +297,15 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({ isOpen, onClo
 
                                 {/* Monday to Sunday Columns */}
                                 {weekDays.map(day => {
-                                  const isActiveDay = activeClassDays.includes(day.dayIndex);
-                                  const isCurrentClassDay = day.dayIndex === currentClassDayIndex;
+                                  // Find if there is a class in this gym on this specific day of the week
+                                  const classOnThisDay = activeWeekClasses.find((c: any) => {
+                                    const d = new Date(c.scheduledAt);
+                                    const idx = d.getDay() === 0 ? 7 : d.getDay();
+                                    return idx === day.dayIndex;
+                                  });
 
-                                  // If there is no class scheduled on this day
-                                  if (!isActiveDay) {
+                                  // If there is no class in the database for this day of the week
+                                  if (!classOnThisDay) {
                                     return (
                                       <td key={day.dayIndex} className="p-4 text-center text-slate-600 font-mono text-sm">
                                         -
@@ -286,28 +313,37 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({ isOpen, onClo
                                     );
                                   }
 
-                                  // For the actual current class date (the one fetched from DB)
-                                  if (isCurrentClassDay) {
+                                  // If there is a class, find the athlete's real database reservation
+                                  const athleteRes = classOnThisDay.reservations?.find(
+                                    (r: any) => r.userId === reservation.userId
+                                  );
+
+                                  const cellIsLoading = loadingId === athleteRes?.id;
+
+                                  // Case 1: Athlete has booked this class
+                                  if (athleteRes) {
+                                    const resAttended = athleteRes.status === 'ATTENDED';
+
                                     return (
-                                      <td key={day.dayIndex} className="p-4 text-center bg-indigo-600/5 border-x border-white/5">
+                                      <td key={day.dayIndex} className="p-4 text-center bg-indigo-600/5">
                                         <div className="flex justify-center">
-                                          {isAttended ? (
+                                          {resAttended ? (
                                             <button
-                                              onClick={() => handleUnmarkPresent(reservation.id)}
-                                              disabled={isLoading}
+                                              onClick={() => handleUnmarkPresent(athleteRes.id)}
+                                              disabled={loadingId !== null}
                                               className="flex items-center gap-1 bg-green-500/20 hover:bg-red-500/20 text-green-400 hover:text-red-400 border border-green-500/30 hover:border-red-500/30 px-2.5 py-1.5 rounded-xl text-[10px] font-bold transition-all"
-                                              title="Haga clic para revertir asistencia"
+                                              title="Haga clic para deshacer asistencia"
                                             >
-                                              {isLoading ? <Loader2 className="w-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                                              {cellIsLoading ? <Loader2 className="w-3 animate-spin" /> : <Check className="w-3 h-3" />}
                                               Asistió
                                             </button>
                                           ) : (
                                             <button
-                                              onClick={() => handleMarkPresent(reservation.id)}
-                                              disabled={isLoading}
+                                              onClick={() => handleMarkPresent(athleteRes.id)}
+                                              disabled={loadingId !== null}
                                               className="flex items-center gap-1 bg-yellow-500/10 hover:bg-primary/20 text-yellow-500 hover:text-white border border-yellow-500/20 hover:border-primary/30 px-2.5 py-1.5 rounded-xl text-[10px] font-bold transition-all shadow-md active:scale-95"
                                             >
-                                              {isLoading ? <Loader2 className="w-3 animate-spin" /> : <UserCheck className="w-3 h-3" />}
+                                              {cellIsLoading ? <Loader2 className="w-3 animate-spin" /> : <UserCheck className="w-3 h-3" />}
                                               Pendiente
                                             </button>
                                           )}
@@ -316,41 +352,24 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({ isOpen, onClo
                                     );
                                   }
 
-                                  // For OTHER simulated class days (Lunes/Miércoles/Viernes)
-                                  // We display mock historical attendances to look like a fully fledged calendar log
-                                  // e.g. Day 1: Attended, Day 3: Confirmed / Attended
-                                  const isPastDay = day.dayIndex < currentClassDayIndex;
+                                  // Case 2: Athlete did NOT book this class
+                                  const isPastDay = day.fullDate < new Date();
                                   
-                                  if (isPastDay) {
-                                    // Generate a stable mock status based on reservation ID hash
-                                    const charCodeSum = reservation.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
-                                    const mockAttended = (charCodeSum + day.dayIndex) % 3 !== 0; // 66% attended rate for mock
-                                    
-                                    return (
-                                      <td key={day.dayIndex} className="p-4 text-center">
-                                        <div className="flex justify-center">
-                                          {mockAttended ? (
-                                            <span className="inline-flex items-center gap-0.5 bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-1 rounded-full text-[9px] font-bold">
-                                              <Check className="w-2.5 h-2.5" /> Asistió
-                                            </span>
-                                          ) : (
-                                            <span className="inline-flex items-center gap-0.5 bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-1 rounded-full text-[9px] font-bold">
-                                              ✕ Faltó
-                                            </span>
-                                          )}
-                                        </div>
-                                      </td>
-                                    );
-                                  } else {
-                                    // Future class day
-                                    return (
-                                      <td key={day.dayIndex} className="p-4 text-center text-slate-500">
-                                        <span className="inline-flex items-center gap-1 bg-slate-800 text-slate-400 border border-white/5 px-2 py-1 rounded-full text-[9px] font-bold">
-                                          ⏳ Prox.
-                                        </span>
-                                      </td>
-                                    );
-                                  }
+                                  return (
+                                    <td key={day.dayIndex} className="p-4 text-center">
+                                      <div className="flex justify-center">
+                                        {isPastDay ? (
+                                          <span className="inline-flex items-center gap-0.5 bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-1 rounded-full text-[9px] font-bold">
+                                            ✕ Faltó
+                                          </span>
+                                        ) : (
+                                          <span className="inline-flex items-center gap-1 bg-slate-800 text-slate-500 border border-white/5 px-2 py-1 rounded-full text-[9px] font-bold">
+                                            ⏳ Sin Res.
+                                          </span>
+                                        )}
+                                      </div>
+                                    </td>
+                                  );
                                 })}
                               </tr>
                             );
