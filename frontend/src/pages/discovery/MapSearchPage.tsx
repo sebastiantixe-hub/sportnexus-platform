@@ -19,6 +19,7 @@ interface MobilityData {
   baseETA: number;          // minutos OSRM base
   commercialETA: number;    // ETA con factores comerciales
   walkingMin: number;
+  cyclingMin: number;       // minutos en bicicleta realistas
   trafficLevel: 'bajo' | 'moderado' | 'alto';
   trafficFactor: number;
   peakHour: boolean;
@@ -36,7 +37,7 @@ const calculateCommercialMobility = (
   nearbyGymsCount: number,
   gymLat: number,
   gymLng: number
-): Omit<MobilityData, 'steps' | 'coordinates' | 'walkingMin' | 'distanceKm'> => {
+): Omit<MobilityData, 'steps' | 'coordinates' | 'walkingMin' | 'cyclingMin' | 'distanceKm'> => {
   const now = new Date();
   const hour = now.getHours();
   const dayOfWeek = now.getDay(); // 0=Dom, 6=Sab
@@ -256,7 +257,8 @@ const MapSearchPage: React.FC = () => {
         const route = data.routes[0];
         const distKm = route.distance / 1000;
         const baseETA = Math.round(route.duration / 60);
-        const walkingMin = Math.max(2, Math.round((distKm / 5) * 60));
+        const walkingMin = Math.max(2, Math.round((distKm / 4.5) * 60));
+        const cyclingMin = Math.max(1, Math.round((distKm / 16) * 60));
 
         let stepText = 'Avanzar recto hacia el destino.';
         if (route.legs?.[0]?.steps?.length > 1) {
@@ -276,6 +278,7 @@ const MapSearchPage: React.FC = () => {
         setMobilityData({
           distanceKm: distKm,
           walkingMin,
+          cyclingMin,
           steps: stepText,
           coordinates: coords,
           baseETA: commercial.baseETA,
@@ -304,11 +307,13 @@ const MapSearchPage: React.FC = () => {
     const a = Math.sin(dLat/2)**2 + Math.cos(userCoords[0]*Math.PI/180)*Math.cos(gymLat*Math.PI/180)*Math.sin(dLon/2)**2;
     const distKm = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)) * 1.35;
     const baseETA = Math.max(2, Math.round(distKm / 25 * 60));
-    const walkingMin = Math.max(5, Math.round(distKm / 5 * 60));
+    const walkingMin = Math.max(5, Math.round(distKm / 4.5 * 60));
+    const cyclingMin = Math.max(2, Math.round(distKm / 16 * 60));
     const commercial = calculateCommercialMobility(distKm, baseETA, gyms.length, gymLat, gymLng);
     setMobilityData({
       distanceKm: distKm,
       walkingMin,
+      cyclingMin,
       steps: 'Incorporarse a las avenidas principales de la zona hacia el local.',
       coordinates: [userCoords, [gymLat, gymLng]],
       baseETA: commercial.baseETA,
@@ -697,21 +702,26 @@ const MapSearchPage: React.FC = () => {
                               <div className="px-3 py-2 bg-white/5 border-b border-white/5">
                                 <p className="text-slate-400 text-[9px] font-bold uppercase tracking-widest">📡 Trazado de Ruta Real por Calles</p>
                               </div>
-                              <div className="grid grid-cols-3 divide-x divide-white/5">
-                                <div className="p-3 text-center">
+                              <div className="grid grid-cols-4 divide-x divide-white/5">
+                                <div className="p-2 text-center">
                                   <p className="text-slate-500 text-[9px] mb-1">📍 Distancia</p>
-                                  <p className="text-white font-black text-lg leading-none">{mobilityData.distanceKm.toFixed(1)}</p>
-                                  <p className="text-slate-500 text-[9px] mt-0.5">km por calles</p>
+                                  <p className="text-white font-black text-md leading-none">{mobilityData.distanceKm.toFixed(1)}</p>
+                                  <p className="text-slate-500 text-[8px] mt-0.5">km por calles</p>
                                 </div>
-                                <div className="p-3 text-center">
+                                <div className="p-2 text-center">
                                   <p className="text-slate-500 text-[9px] mb-1">🚗 En Auto</p>
-                                  <p className="text-white font-black text-lg leading-none">{mobilityData.baseETA}</p>
-                                  <p className="text-slate-500 text-[9px] mt-0.5">mins (ruta real)</p>
+                                  <p className="text-white font-black text-md leading-none">{mobilityData.baseETA}</p>
+                                  <p className="text-slate-500 text-[8px] mt-0.5">mins (ruta)</p>
                                 </div>
-                                <div className="p-3 text-center">
+                                <div className="p-2 text-center">
+                                  <p className="text-slate-500 text-[9px] mb-1">🚲 En Bici</p>
+                                  <p className="text-white font-black text-md leading-none">{mobilityData.cyclingMin}</p>
+                                  <p className="text-slate-500 text-[8px] mt-0.5">mins pedaleando</p>
+                                </div>
+                                <div className="p-2 text-center">
                                   <p className="text-slate-500 text-[9px] mb-1">🏃 A Pie</p>
-                                  <p className="text-white font-black text-lg leading-none">{mobilityData.walkingMin}</p>
-                                  <p className="text-slate-500 text-[9px] mt-0.5">mins caminando</p>
+                                  <p className="text-white font-black text-md leading-none">{mobilityData.walkingMin}</p>
+                                  <p className="text-slate-500 text-[8px] mt-0.5">mins caminando</p>
                                 </div>
                               </div>
 

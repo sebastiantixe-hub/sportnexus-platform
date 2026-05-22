@@ -35,6 +35,11 @@ export class RolesGuard implements CanActivate {
 
     const hasRole = requiredRoles.some((role) => user?.role === role);
     if (!hasRole) {
+      if (user?.role === UserRole.GYM_OWNER && requiredRoles.includes(UserRole.USER)) {
+        throw new ForbiddenException(
+          'Esta acción o beneficio es exclusivo para atletas registrados.'
+        );
+      }
       throw new ForbiddenException(
         `Acceso denegado. Roles requeridos: ${requiredRoles.join(', ')}`,
       );
