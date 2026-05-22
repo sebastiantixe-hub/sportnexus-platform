@@ -206,42 +206,63 @@ const Dashboard: React.FC = () => {
   const [activeView, setActiveView] = useState<'dashboard' | 'suite'>('dashboard');
   const [suiteTab, setSuiteTab] = useState<'clients' | 'classes' | 'crm'>('clients');
   const [ownerClasses, setOwnerClasses] = useState<any[]>([]);
-  const [clients, setClients] = useState<any[]>([
-    {
-      id: 'c1',
-      name: 'Roberto "Tito" Valenzuela',
-      dni: '45879612',
-      birthDate: '1996-09-18',
-      healthStatus: 'HEALTHY',
-      healthDetails: 'Excelente salud, entrenando a tope 💪',
-      history: [
-        { planName: 'Plan Pro Mensual', price: 45, dateCompra: '2026-01-01', dateFin: '2026-02-01', status: 'ACTIVE' },
-        { planName: 'Plan Trimestral', price: 110, dateCompra: '2026-02-02', dateFin: '2026-05-02', status: 'ACTIVE' }
-      ]
-    },
-    {
-      id: 'c2',
-      name: 'Carlos Eduardo Ruiz',
-      dni: '70412589',
-      birthDate: '1990-05-04',
-      healthStatus: 'INJURED',
-      healthDetails: 'Fractura de rodilla en partido local 🩹',
-      history: [
-        { planName: 'Plan Básico Mensual', price: 30, dateCompra: '2025-11-10', dateFin: '2025-12-10', status: 'EXPIRED' }
-      ]
-    },
-    {
-      id: 'c3',
-      name: 'Sofía Milagros Arequipa',
-      dni: '33458912',
-      birthDate: '1998-11-23',
-      healthStatus: 'CHURNED',
-      healthDetails: 'Mudanza a Arequipa por motivos laborales ✈️',
-      history: [
-        { planName: 'Plan Premium Semestral', price: 200, dateCompra: '2025-07-15', dateFin: '2026-01-15', status: 'EXPIRED' }
-      ]
+  
+  // Custom Modals states
+  const [activeModal, setActiveModal] = useState<'history' | 'edit' | 'message' | 'register' | null>(null);
+  const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [editedDni, setEditedDni] = useState('');
+  const [editedBirthDate, setEditedBirthDate] = useState('');
+  const [editedName, setEditedName] = useState('');
+  const [editedHealthStatus, setEditedHealthStatus] = useState('HEALTHY');
+  const [editedHealthDetails, setEditedHealthDetails] = useState('');
+  const [customMessage, setCustomMessage] = useState('');
+
+  const [clients, setClients] = useState<any[]>(() => {
+    const saved = localStorage.getItem(`hercix_owner_crm_${user?.id}`);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
     }
-  ]);
+    return [
+      {
+        id: 'c1',
+        name: 'Roberto "Tito" Valenzuela',
+        dni: '45879612',
+        birthDate: '1996-09-18',
+        healthStatus: 'HEALTHY',
+        healthDetails: 'Excelente salud, entrenando a tope 💪',
+        history: [
+          { planName: 'Plan Pro Mensual', price: 45, dateCompra: '2026-01-01', dateFin: '2026-02-01', status: 'ACTIVE' },
+          { planName: 'Plan Trimestral', price: 110, dateCompra: '2026-02-02', dateFin: '2026-05-02', status: 'ACTIVE' }
+        ]
+      },
+      {
+        id: 'c2',
+        name: 'Carlos Eduardo Ruiz',
+        dni: '70412589',
+        birthDate: '1990-05-04',
+        healthStatus: 'INJURED',
+        healthDetails: 'Fractura de rodilla en partido local 🩹',
+        history: [
+          { planName: 'Plan Básico Mensual', price: 30, dateCompra: '2025-11-10', dateFin: '2025-12-10', status: 'EXPIRED' }
+        ]
+      },
+      {
+        id: 'c3',
+        name: 'Sofía Milagros Arequipa',
+        dni: '33458912',
+        birthDate: '1998-11-23',
+        healthStatus: 'CHURNED',
+        healthDetails: 'Mudanza a Arequipa por motivos laborales ✈️',
+        history: [
+          { planName: 'Plan Premium Semestral', price: 200, dateCompra: '2025-07-15', dateFin: '2026-01-15', status: 'EXPIRED' }
+        ]
+      }
+    ];
+  });
 
   const isOwner = user?.role === 'GYM_OWNER';
   const isTrainer = user?.role === 'TRAINER';
@@ -259,6 +280,13 @@ const Dashboard: React.FC = () => {
       }).catch(console.error);
     }
   }, [user]);
+
+  // Sync with persistent local storage
+  useEffect(() => {
+    if (user?.id && clients.length > 0) {
+      localStorage.setItem(`hercix_owner_crm_${user.id}`, JSON.stringify(clients));
+    }
+  }, [clients, user]);
 
   if (loading) {
     return (
@@ -364,21 +392,12 @@ const Dashboard: React.FC = () => {
               <h3 className="text-lg font-bold text-white">Base de Datos de Atletas</h3>
               <button 
                 onClick={() => {
-                  const name = prompt("Nombre completo del nuevo atleta:");
-                  if (!name) return;
-                  const dni = prompt("DNI:");
-                  const birthDate = prompt("Fecha de Nacimiento (YYYY-MM-DD):");
-                  const healthStatus = prompt("Estado de salud (HEALTHY, INJURED, CHURNED):") || 'HEALTHY';
-                  const healthDetails = prompt("Detalles del estado de salud:") || 'Excelente salud 💪';
-                  setClients(prev => [...prev, {
-                    id: Math.random().toString(),
-                    name,
-                    dni: dni || 'N/A',
-                    birthDate: birthDate || 'N/A',
-                    healthStatus,
-                    healthDetails,
-                    history: []
-                  }]);
+                  setEditedName('');
+                  setEditedDni('');
+                  setEditedBirthDate('');
+                  setEditedHealthStatus('HEALTHY');
+                  setEditedHealthDetails('Excelente salud, entrenando a tope 💪');
+                  setActiveModal('register');
                 }}
                 className="bg-primary/20 text-primary-light border border-primary/30 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-primary/30 transition-all"
               >
@@ -425,13 +444,8 @@ const Dashboard: React.FC = () => {
                       <td className="p-4">
                         <button 
                           onClick={() => {
-                            if (c.history.length === 0) {
-                              alert("Este cliente no tiene historial de membresías aún.");
-                              return;
-                            }
-                            alert(`Historial de Membresías de ${c.name}:\n\n` + c.history.map((h: any) => 
-                              `- ${h.planName} ($${h.price}): Compra: ${h.dateCompra} | Fin: ${h.dateFin} (${h.status})`
-                            ).join('\n'));
+                            setSelectedClient(c);
+                            setActiveModal('history');
                           }}
                           className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2.5 py-1 rounded-lg text-xs font-semibold hover:bg-indigo-500/20"
                         >
@@ -441,15 +455,13 @@ const Dashboard: React.FC = () => {
                       <td className="p-4 text-right pr-6">
                         <button
                           onClick={() => {
-                            const newDni = prompt("Editar DNI:", c.dni);
-                            const newBirth = prompt("Editar Fecha Nacimiento (YYYY-MM-DD):", c.birthDate);
-                            if (newDni || newBirth) {
-                              setClients(prev => prev.map(item => item.id === c.id ? {
-                                ...item,
-                                dni: newDni !== null ? newDni : item.dni,
-                                birthDate: newBirth !== null ? newBirth : item.birthDate
-                              } : item));
-                            }
+                            setSelectedClient(c);
+                            setEditedName(c.name);
+                            setEditedDni(c.dni);
+                            setEditedBirthDate(c.birthDate);
+                            setEditedHealthStatus(c.healthStatus);
+                            setEditedHealthDetails(c.healthDetails);
+                            setActiveModal('edit');
                           }}
                           className="text-slate-400 hover:text-white text-xs font-bold underline"
                         >
@@ -566,10 +578,13 @@ const Dashboard: React.FC = () => {
                   <div className="mt-6 pt-4 border-t border-white/5 flex gap-2">
                     <button 
                       onClick={() => {
-                        const newDetails = prompt("Modificar motivo o actualizar estado de salud:", c.healthDetails);
-                        if (newDetails) {
-                          setClients(prev => prev.map(item => item.id === c.id ? { ...item, healthDetails: newDetails } : item));
-                        }
+                        setSelectedClient(c);
+                        setEditedName(c.name);
+                        setEditedDni(c.dni);
+                        setEditedBirthDate(c.birthDate);
+                        setEditedHealthStatus(c.healthStatus);
+                        setEditedHealthDetails(c.healthDetails);
+                        setActiveModal('edit');
                       }}
                       className="flex-1 py-2 px-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold transition-colors"
                     >
@@ -577,7 +592,9 @@ const Dashboard: React.FC = () => {
                     </button>
                     <button 
                       onClick={() => {
-                        alert(`¡Mensaje de Aliento enviado con éxito a ${c.name}!\n\n"${mensajeAliento}"`);
+                        setSelectedClient(c);
+                        setCustomMessage(mensajeAliento);
+                        setActiveModal('message');
                       }}
                       className="flex-1 py-2 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
                     >
@@ -587,6 +604,346 @@ const Dashboard: React.FC = () => {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* ── GORGEOUS CUSTOM REACT MODALS OVERLAYS (NO CHEAP BROWSER NATIVE POPUPS!) ── */}
+
+        {/* 1. History Modal */}
+        {activeModal === 'history' && selectedClient && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-300">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }} 
+              animate={{ scale: 1, opacity: 1 }} 
+              className="bg-gradient-to-b from-slate-900 to-slate-950 border border-white/10 rounded-3xl p-6 w-full max-w-lg shadow-2xl relative"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest text-[10px] font-mono">Historial Premium</span>
+                  <h3 className="text-xl font-bold text-white mt-1">Membresías de {selectedClient.name}</h3>
+                </div>
+                <button 
+                  onClick={() => setActiveModal(null)} 
+                  className="text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-xl transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+                {selectedClient.history.length === 0 ? (
+                  <p className="text-slate-500 text-sm text-center py-6">Este atleta no tiene membresías registradas aún.</p>
+                ) : (
+                  selectedClient.history.map((h: any, i: number) => (
+                    <div key={i} className="bg-white/5 border border-white/5 p-4 rounded-2xl flex justify-between items-center">
+                      <div>
+                        <p className="text-white font-bold text-sm">{h.planName}</p>
+                        <p className="text-xs text-slate-400 mt-1">
+                          📅 {new Date(h.dateCompra).toLocaleDateString('es-ES')} al {new Date(h.dateFin).toLocaleDateString('es-ES')}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-indigo-400 font-bold text-sm">${h.price.toFixed(2)}</p>
+                        <span className={`inline-block px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider mt-1.5 ${
+                          h.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                        }`}>
+                          {h.status === 'ACTIVE' ? 'Activo' : 'Expirado'}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-white/5 flex justify-end">
+                <button 
+                  onClick={() => setActiveModal(null)} 
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-2 rounded-xl text-sm transition-all shadow-lg"
+                >
+                  Entendido
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* 2. Edit Modal */}
+        {activeModal === 'edit' && selectedClient && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-300">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }} 
+              animate={{ scale: 1, opacity: 1 }} 
+              className="bg-gradient-to-b from-slate-900 to-slate-955 border border-white/10 rounded-3xl p-6 w-full max-w-md shadow-2xl relative"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <span className="text-xs font-bold text-primary-light uppercase tracking-widest text-[10px] font-mono">Editar Ficha</span>
+                  <h3 className="text-xl font-bold text-white mt-1">{selectedClient.name}</h3>
+                </div>
+                <button 
+                  onClick={() => setActiveModal(null)} 
+                  className="text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-xl transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">Nombre Completo</label>
+                  <input 
+                    type="text" 
+                    value={editedName} 
+                    onChange={(e) => setEditedName(e.target.value)} 
+                    className="w-full mt-1.5 bg-slate-950 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:border-primary-light outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">DNI / Documento</label>
+                    <input 
+                      type="text" 
+                      value={editedDni} 
+                      onChange={(e) => setEditedDni(e.target.value)} 
+                      className="w-full mt-1.5 bg-slate-950 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:border-primary-light outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">Fecha Nacimiento</label>
+                    <input 
+                      type="date" 
+                      value={editedBirthDate} 
+                      onChange={(e) => setEditedBirthDate(e.target.value)} 
+                      className="w-full mt-1.5 bg-slate-950 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:border-primary-light outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">Estado de Salud</label>
+                  <select 
+                    value={editedHealthStatus} 
+                    onChange={(e) => setEditedHealthStatus(e.target.value)} 
+                    className="w-full mt-1.5 bg-slate-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:border-primary-light outline-none"
+                  >
+                    <option value="HEALTHY">Excelente Salud 💪</option>
+                    <option value="INJURED">Lesión / Fractura 🩹</option>
+                    <option value="CHURNED">Mudanza / Retirado ✈️</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">Detalles / Motivo Churn</label>
+                  <textarea 
+                    value={editedHealthDetails} 
+                    onChange={(e) => setEditedHealthDetails(e.target.value)} 
+                    rows={3}
+                    placeholder="ej. Se fracturó el tobillo, se fue a vivir a Arequipa por trabajo..."
+                    className="w-full mt-1.5 bg-slate-950 border border-white/10 rounded-xl p-4 text-xs text-white focus:border-primary-light outline-none resize-none leading-relaxed"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-white/5 flex gap-3">
+                <button 
+                  onClick={() => setActiveModal(null)} 
+                  className="flex-grow py-2.5 border border-white/10 hover:bg-white/5 text-slate-300 hover:text-white rounded-xl text-sm font-bold transition-all"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={() => {
+                    setClients(prev => prev.map(c => c.id === selectedClient.id ? {
+                      ...c,
+                      name: editedName,
+                      dni: editedDni,
+                      birthDate: editedBirthDate,
+                      healthStatus: editedHealthStatus,
+                      healthDetails: editedHealthDetails
+                    } : c));
+                    setActiveModal(null);
+                  }} 
+                  className="flex-grow py-2.5 bg-primary hover:bg-primary-light text-white rounded-xl text-sm font-bold transition-all shadow-lg"
+                >
+                  Guardar
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* 3. Register Modal */}
+        {activeModal === 'register' && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-300">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }} 
+              animate={{ scale: 1, opacity: 1 }} 
+              className="bg-gradient-to-b from-slate-900 to-slate-950 border border-white/10 rounded-3xl p-6 w-full max-w-md shadow-2xl relative"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <span className="text-xs font-bold text-green-400 uppercase tracking-widest text-[10px] font-mono">Nuevo Ingreso</span>
+                  <h3 className="text-xl font-bold text-white mt-1">Registrar Atleta</h3>
+                </div>
+                <button 
+                  onClick={() => setActiveModal(null)} 
+                  className="text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-xl transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">Nombre Completo</label>
+                  <input 
+                    type="text" 
+                    placeholder="ej. Juan Pérez"
+                    value={editedName} 
+                    onChange={(e) => setEditedName(e.target.value)} 
+                    className="w-full mt-1.5 bg-slate-950 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:border-primary-light outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">DNI / Documento</label>
+                    <input 
+                      type="text" 
+                      placeholder="70412589"
+                      value={editedDni} 
+                      onChange={(e) => setEditedDni(e.target.value)} 
+                      className="w-full mt-1.5 bg-slate-950 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:border-primary-light outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">Fecha Nacimiento</label>
+                    <input 
+                      type="date" 
+                      value={editedBirthDate} 
+                      onChange={(e) => setEditedBirthDate(e.target.value)} 
+                      className="w-full mt-1.5 bg-slate-950 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:border-primary-light outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">Estado de Salud</label>
+                  <select 
+                    value={editedHealthStatus} 
+                    onChange={(e) => setEditedHealthStatus(e.target.value)} 
+                    className="w-full mt-1.5 bg-slate-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:border-primary-light outline-none"
+                  >
+                    <option value="HEALTHY">Excelente Salud 💪</option>
+                    <option value="INJURED">Lesión / Fractura 🩹</option>
+                    <option value="CHURNED">Mudanza / Retirado ✈️</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">Detalles del Estado</label>
+                  <textarea 
+                    value={editedHealthDetails} 
+                    onChange={(e) => setEditedHealthDetails(e.target.value)} 
+                    rows={2}
+                    placeholder="Excelente salud, entrenando a tope 💪"
+                    className="w-full mt-1.5 bg-slate-950 border border-white/10 rounded-xl p-4 text-xs text-white focus:border-primary-light outline-none resize-none"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-white/5 flex gap-3">
+                <button 
+                  onClick={() => setActiveModal(null)} 
+                  className="flex-grow py-2.5 border border-white/10 hover:bg-white/5 text-slate-300 hover:text-white rounded-xl text-sm font-bold transition-all"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={() => {
+                    if (!editedName) {
+                      alert("Por favor ingresa un nombre");
+                      return;
+                    }
+                    setClients(prev => [...prev, {
+                      id: Math.random().toString(),
+                      name: editedName,
+                      dni: editedDni || 'N/A',
+                      birthDate: editedBirthDate || 'N/A',
+                      healthStatus: editedHealthStatus,
+                      healthDetails: editedHealthDetails || 'Excelente salud 💪',
+                      history: []
+                    }]);
+                    setActiveModal(null);
+                  }} 
+                  className="flex-grow py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-xl text-sm font-bold transition-all shadow-lg"
+                >
+                  Registrar
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* 4. Send Message Modal */}
+        {activeModal === 'message' && selectedClient && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-300">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }} 
+              animate={{ scale: 1, opacity: 1 }} 
+              className="bg-gradient-to-b from-slate-900 to-slate-955 border border-white/10 rounded-3xl p-6 w-full max-w-md shadow-2xl relative"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest text-[10px] font-mono">Canal de Retención</span>
+                  <h3 className="text-xl font-bold text-white mt-1">Enviar Aliento a {selectedClient.name}</h3>
+                </div>
+                <button 
+                  onClick={() => setActiveModal(null)} 
+                  className="text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-xl transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-slate-950 border border-white/5 p-4 rounded-2xl">
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider font-mono">Motivo Guardado</p>
+                  <p className="text-xs text-slate-300 italic">"{selectedClient.healthDetails}"</p>
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">Mensaje Personalizado</label>
+                  <textarea 
+                    value={customMessage} 
+                    onChange={(e) => setCustomMessage(e.target.value)} 
+                    rows={5}
+                    className="w-full mt-1.5 bg-slate-950 border border-white/10 rounded-xl p-4 text-xs text-indigo-200 focus:border-indigo-500 outline-none resize-none leading-relaxed"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-white/5 flex gap-3">
+                <button 
+                  onClick={() => setActiveModal(null)} 
+                  className="flex-grow py-2.5 border border-white/10 hover:bg-white/5 text-slate-300 hover:text-white rounded-xl text-sm font-bold transition-all"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={() => {
+                    const encodedText = encodeURIComponent(customMessage);
+                    const wsUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
+                    window.open(wsUrl, '_blank');
+                    setActiveModal(null);
+                  }} 
+                  className="flex-grow py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-1.5 shadow-lg"
+                >
+                  <span>💬 Enviar Mensaje</span>
+                </button>
+              </div>
+            </motion.div>
           </div>
         )}
       </div>
