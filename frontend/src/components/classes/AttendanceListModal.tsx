@@ -164,6 +164,13 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
   // If no other classes were fetched or found, fallback to the current classItem so it remains functional
   const activeWeekClasses = weekClasses.length > 0 ? weekClasses : [classItem];
 
+  const getLocalDateString = (d: Date) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Find all unique users who have a reservation in any of the classes of the selected week
   // to show the real active athletes of this navigated week!
   const getWeekReservations = () => {
@@ -288,7 +295,7 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
                       <span className="text-slate-400 text-xs font-medium">Ir a Fecha:</span>
                       <input 
                         type="date"
-                        value={selectedWeekDate.toISOString().split('T')[0]}
+                        value={getLocalDateString(selectedWeekDate)}
                         onChange={(e) => {
                           if (e.target.value) {
                             setSelectedWeekDate(new Date(e.target.value + 'T12:00:00')); // Avoid timezone offset bugs
