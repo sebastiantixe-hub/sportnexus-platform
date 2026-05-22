@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../../api/api-client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -36,6 +36,7 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
   const [localReservations, setLocalReservations] = useState<any[]>([]);
   const [initialized, setInitialized] = useState(false);
   const [activeTab, setActiveTab] = useState<'list' | 'planilla'>('planilla'); // Default to Planilla to wow the manager!
+  const [selectedWeekDate, setSelectedWeekDate] = useState<Date>(new Date());
 
   // Initialize local state when modal opens
   if (isOpen && !initialized && classItem?.reservations) {
@@ -46,6 +47,25 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
     setInitialized(false);
     setLocalReservations([]);
   }
+
+  // Set the selected week date to the class date when modal is opened
+  useEffect(() => {
+    if (isOpen && classItem?.scheduledAt) {
+      setSelectedWeekDate(new Date(classItem.scheduledAt));
+    }
+  }, [isOpen, classItem]);
+
+  const handlePrevWeek = () => {
+    const newDate = new Date(selectedWeekDate);
+    newDate.setDate(selectedWeekDate.getDate() - 7);
+    setSelectedWeekDate(newDate);
+  };
+
+  const handleNextWeek = () => {
+    const newDate = new Date(selectedWeekDate);
+    newDate.setDate(selectedWeekDate.getDate() + 7);
+    setSelectedWeekDate(newDate);
+  };
 
   const handleMarkPresent = async (reservationId: string) => {
     try {
@@ -97,10 +117,9 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
 
   const confirmed = localReservations.filter(r => r.status === 'CONFIRMED');
   const attended = localReservations.filter(r => r.status === 'ATTENDED');
-  const total = localReservations.length;
 
   // ── Dynamic Production-Ready Weekly Calendar Generator ──
-  const classDate = classItem?.scheduledAt ? new Date(classItem.scheduledAt) : new Date();
+  const classDate = selectedWeekDate;
   
   // Calculate Monday of the current class week
   const getMonday = (d: Date) => {
@@ -144,6 +163,27 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
 
   // If no other classes were fetched or found, fallback to the current classItem so it remains functional
   const activeWeekClasses = weekClasses.length > 0 ? weekClasses : [classItem];
+
+  // Find all unique users who have a reservation in any of the classes of the selected week
+  // to show the real active athletes of this navigated week!
+  const getWeekReservations = () => {
+    const weekRes: any[] = [];
+    const seenUserIds = new Set<string>();
+    
+    weekClasses.forEach((c: any) => {
+      c.reservations?.forEach((r: any) => {
+        if (r.userId && !seenUserIds.has(r.userId)) {
+          seenUserIds.add(r.userId);
+          weekRes.push(r);
+        }
+      });
+    });
+    
+    return weekRes.length > 0 ? weekRes : localReservations;
+  };
+  
+  const displayReservations = getWeekReservations();
+  const total = displayReservations.length;
 
   return (
     <AnimatePresence>
@@ -218,11 +258,52 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
               {/* Tab 1: PLANILLA SEMANAL DE LUNES A DOMINGO */}
               {activeTab === 'planilla' && (
                 <div className="space-y-6 animate-in fade-in duration-300">
+                  
+                  {/* Real-time Calendar Week Navigator */}
+                  <div className="flex flex-col sm:flex-row items-center justify-between bg-slate-950/40 border border-white/5 p-4 rounded-2xl gap-4">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handlePrevWeek}
+                        className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center gap-1"
+                      >
+                        ◀ Sem. Anterior
+                      </button>
+                      
+                      <div className="bg-slate-900 border border-white/5 px-4 py-1.5 rounded-xl text-center min-w-[200px]">
+                        <span className="text-xs font-bold text-indigo-400 block uppercase tracking-wider text-[9px] font-mono">Semana Activa</span>
+                        <span className="text-xs text-white font-bold mt-0.5 inline-block">
+                          {monday.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })} - {weekDays[6].fullDate.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </span>
+                      </div>
+                      
+                      <button
+                        onClick={handleNextWeek}
+                        className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center gap-1"
+                      >
+                        Sem. Siguiente ▶
+                      </button>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                      <span className="text-slate-400 text-xs font-medium">Ir a Fecha:</span>
+                      <input 
+                        type="date"
+                        value={selectedWeekDate.toISOString().split('T')[0]}
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            setSelectedWeekDate(new Date(e.target.value + 'T12:00:00')); // Avoid timezone offset bugs
+                          }
+                        }}
+                        className="bg-slate-900 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white font-bold outline-none cursor-pointer hover:border-primary/50 transition-all w-36"
+                      />
+                    </div>
+                  </div>
+
                   {/* Legend / Info card */}
                   <div className="bg-slate-950/50 border border-white/5 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
                     <div className="flex items-center gap-2 text-slate-400">
                       <AlertCircle className="w-4 h-4 text-indigo-400" />
-                      <span>Planilla dinámica. Detecta automáticamente todas las clases de tu base de datos para esta semana.</span>
+                      <span>Planilla en tiempo real. Usa los controles superiores de calendario para navegar entre semanas de todo el año.</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-1">
@@ -243,8 +324,8 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
                   {total === 0 ? (
                     <div className="flex flex-col items-center justify-center py-16 text-center">
                       <Users className="w-12 h-12 text-slate-700 mb-3" />
-                      <p className="text-slate-400 font-medium">Nadie ha reservado esta clase aún.</p>
-                      <p className="text-slate-600 text-xs mt-1">Los atletas aparecerán automáticamente en la planilla al reservar.</p>
+                      <p className="text-slate-400 font-medium">Nadie ha reservado clases para esta semana aún.</p>
+                      <p className="text-slate-600 text-xs mt-1">Usa los controles superiores para volver a la semana de clases activas.</p>
                     </div>
                   ) : (
                     <div className="overflow-x-auto border border-white/5 rounded-2xl bg-slate-950/30">
@@ -275,7 +356,7 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5 text-xs text-slate-300">
-                          {localReservations.map(reservation => {
+                          {displayReservations.map(reservation => {
                             const isAttended = reservation.status === 'ATTENDED';
 
                             return (
@@ -388,7 +469,7 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
                   <div className="flex items-center justify-between bg-slate-950/50 border border-white/5 p-4 rounded-2xl mb-4">
                     <div className="flex items-center gap-1.5 text-xs">
                       <Users className="w-3.5 h-3.5 text-slate-400" />
-                      <span className="text-slate-400">{total} reservados</span>
+                      <span className="text-slate-400">{localReservations.length} reservados</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-xs">
                       <CheckCircle className="w-3.5 h-3.5 text-green-400" />
@@ -400,11 +481,11 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
                     </div>
                   </div>
 
-                  {total > 0 && (
+                  {localReservations.length > 0 && (
                     <div className="bg-slate-950 h-2 rounded-full overflow-hidden border border-white/5 mb-6">
                       <motion.div
                         initial={{ width: 0 }}
-                        animate={{ width: `${(attended.length / total) * 100}%` }}
+                        animate={{ width: `${(attended.length / localReservations.length) * 100}%` }}
                         transition={{ duration: 0.8, ease: 'easeOut' }}
                         className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full"
                       />
@@ -413,7 +494,7 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
 
                   {/* List Container */}
                   <div className="max-h-[300px] overflow-y-auto divide-y divide-white/5 border border-white/5 rounded-2xl bg-slate-950/30">
-                    {total === 0 ? (
+                    {localReservations.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-12 text-center px-6">
                         <Users className="w-10 h-10 text-slate-700 mb-3" />
                         <p className="text-slate-400 font-medium">Nadie ha reservado esta clase aún.</p>
