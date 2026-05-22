@@ -186,7 +186,7 @@ const AdminDashboard: React.FC<{ stats: any; user: any }> = ({ stats, user }) =>
         <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest">🔗 Accesos Directos</h2>
         <div className="space-y-2">
           <QuickAction label="Marketing y CRM" icon={Mail} to="/dashboard/crm" desc="Campañas de email" />
-          <QuickAction label="Tienda" icon={ShoppingBag} to="/marketplace" desc="Productos del marketplace" />
+          <QuickAction label="Tienda" icon={ShoppingBag} to="/sport-store" desc="Productos del marketplace" />
           <QuickAction label="Eventos" icon={Trophy} to="/events" desc="Torneos y masterclasses" />
           <QuickAction label="Membresías" icon={CreditCard} to="/memberships" desc="Planes de suscripción" />
           <QuickAction label="Descubrir" icon={Building2} to="/discovery" desc="Mapa de academias" />
@@ -1121,7 +1121,7 @@ const Dashboard: React.FC = () => {
             <h2 className="text-lg font-bold text-white mb-3">Accesos Rápidos</h2>
             <div className="space-y-2">
               <QuickAction label="Ver Clases" icon={Calendar} to="/classes" desc="Reserva tu próxima sesión" />
-              <QuickAction label="Explorar Tienda" icon={ShoppingBag} to="/marketplace" desc="Equipamiento deportivo" />
+              <QuickAction label="Explorar Tienda" icon={ShoppingBag} to="/sport-store" desc="Equipamiento deportivo" />
               <QuickAction label="Próximos Eventos" icon={Trophy} to="/events" desc="Torneos y masterclasses" />
               {!isOwner && !isTrainer && (
                 <>
