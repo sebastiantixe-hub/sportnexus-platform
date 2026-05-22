@@ -57,6 +57,22 @@ const ClassCard: React.FC<{
       </div>
       
       <div className="p-6 flex-grow space-y-4">
+        {/* Manager Recommendation: Occupation alert / spots left */}
+        {(user?.role === 'GYM_OWNER' || user?.role === 'ADMIN') && (
+          <div className="mt-1">
+            {(classItem.reservationsCount || 0) >= classItem.capacity ? (
+              <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-400 text-[11px] font-bold px-3 py-1.5 rounded-xl animate-pulse">
+                <span className="h-2 w-2 rounded-full bg-red-500"></span>
+                <span>⚠️ Límite de alumnos alcanzado (Aforo lleno)</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[11px] font-bold px-3 py-1.5 rounded-xl">
+                <span className="h-2 w-2 rounded-full bg-indigo-500"></span>
+                <span>⏳ Faltan {classItem.capacity - (classItem.reservationsCount || 0)} alumnos para llenar</span>
+              </div>
+            )}
+          </div>
+        )}
         <p className="text-slate-400 text-sm line-clamp-2">{classItem.description || 'Sin descripción disponible.'}</p>
         
         <div className="grid grid-cols-2 gap-4">
@@ -225,6 +241,18 @@ const ClassesPage: React.FC = () => {
     return fields.some(f => normalize(f || '').includes(s));
   });
 
+  // Calcular métricas recomendadas por el Gerente para el dueño de este gimnasio
+  const ownerGymClasses = classes.filter(c => c.gym?.ownerId === user?.id);
+  const uniqueAthletes = new Set();
+  ownerGymClasses.forEach(c => {
+    c.reservations?.forEach((r: any) => {
+      if (r.userId) uniqueAthletes.add(r.userId);
+    });
+  });
+  const registeredAthletesCount = uniqueAthletes.size;
+  const limitReachedClasses = ownerGymClasses.filter(c => (c.reservationsCount || 0) >= c.capacity).length;
+  const totalSpotsLeft = ownerGymClasses.reduce((acc, c) => acc + Math.max(0, c.capacity - (c.reservationsCount || 0)), 0);
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -251,6 +279,32 @@ const ClassesPage: React.FC = () => {
           </button>
         )}
       </header>
+
+      {/* 📊 Banner de Inteligencia del Dueño (Métricas recomendadas por el Gerente) */}
+      {user?.role === 'GYM_OWNER' && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-gradient-to-br from-indigo-900/20 to-slate-900 border border-indigo-500/20 rounded-2xl p-6 backdrop-blur-md relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl" />
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">👥 Atletas Registrados</p>
+            <p className="text-3xl font-black text-white">{registeredAthletesCount}</p>
+            <p className="text-[10px] text-slate-500 mt-2">Atletas únicos activos en tus academias</p>
+          </div>
+          
+          <div className="bg-gradient-to-br from-red-900/20 to-slate-900 border border-red-500/20 rounded-2xl p-6 backdrop-blur-md relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 rounded-full blur-2xl" />
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">🚨 Clases al Límite</p>
+            <p className="text-3xl font-black text-white">{limitReachedClasses}</p>
+            <p className="text-[10px] text-slate-500 mt-2">Clases que completaron su aforo (100% llenas)</p>
+          </div>
+
+          <div className="bg-gradient-to-br from-emerald-900/20 to-slate-900 border border-emerald-500/20 rounded-2xl p-6 backdrop-blur-md relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl" />
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">⏳ Cupos Libres por Llenar</p>
+            <p className="text-3xl font-black text-white">{totalSpotsLeft}</p>
+            <p className="text-[10px] text-slate-500 mt-2">Alumnos faltantes para llenar todas tus clases</p>
+          </div>
+        </div>
+      )}
 
       {(showCreateModal || editingClass) && (
         <CreateClassModal 

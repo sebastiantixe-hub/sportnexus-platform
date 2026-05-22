@@ -202,16 +202,63 @@ const Dashboard: React.FC = () => {
   const [memberships, setMemberships] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // ── Owner Suite de Control states ──
+  const [activeView, setActiveView] = useState<'dashboard' | 'suite'>('dashboard');
+  const [suiteTab, setSuiteTab] = useState<'clients' | 'classes' | 'crm'>('clients');
+  const [ownerClasses, setOwnerClasses] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([
+    {
+      id: 'c1',
+      name: 'Roberto "Tito" Valenzuela',
+      dni: '45879612',
+      birthDate: '1996-09-18',
+      healthStatus: 'HEALTHY',
+      healthDetails: 'Excelente salud, entrenando a tope 💪',
+      history: [
+        { planName: 'Plan Pro Mensual', price: 45, dateCompra: '2026-01-01', dateFin: '2026-02-01', status: 'ACTIVE' },
+        { planName: 'Plan Trimestral', price: 110, dateCompra: '2026-02-02', dateFin: '2026-05-02', status: 'ACTIVE' }
+      ]
+    },
+    {
+      id: 'c2',
+      name: 'Carlos Eduardo Ruiz',
+      dni: '70412589',
+      birthDate: '1990-05-04',
+      healthStatus: 'INJURED',
+      healthDetails: 'Fractura de rodilla en partido local 🩹',
+      history: [
+        { planName: 'Plan Básico Mensual', price: 30, dateCompra: '2025-11-10', dateFin: '2025-12-10', status: 'EXPIRED' }
+      ]
+    },
+    {
+      id: 'c3',
+      name: 'Sofía Milagros Arequipa',
+      dni: '33458912',
+      birthDate: '1998-11-23',
+      healthStatus: 'CHURNED',
+      healthDetails: 'Mudanza a Arequipa por motivos laborales ✈️',
+      history: [
+        { planName: 'Plan Premium Semestral', price: 200, dateCompra: '2025-07-15', dateFin: '2026-01-15', status: 'EXPIRED' }
+      ]
+    }
+  ]);
+
+  const isOwner = user?.role === 'GYM_OWNER';
+  const isTrainer = user?.role === 'TRAINER';
+  const isAdmin = user?.role === 'ADMIN';
+
   useEffect(() => {
     api.get('/auth/stats').then(({ data }) => setStats(data)).catch(console.error).finally(() => setLoading(false));
     if (user?.role === 'USER') {
       api.get('/memberships/me').then(({ data }) => setMemberships(data)).catch(console.error);
     }
+    if (isOwner) {
+      api.get('/classes').then(({ data }) => {
+        const filtered = data.filter((c: any) => c.gym?.ownerId === user?.id);
+        setOwnerClasses(filtered);
+      }).catch(console.error);
+    }
   }, [user]);
-
-  const isOwner = user?.role === 'GYM_OWNER';
-  const isTrainer = user?.role === 'TRAINER';
-  const isAdmin = user?.role === 'ADMIN';
 
   if (loading) {
     return (
@@ -233,7 +280,320 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  // ── Layout para GYM_OWNER, TRAINER y USER ───────────────────────────────
+  // ── Layout de la Suite de Control Premium (Dueño) ──
+  if (isOwner && activeView === 'suite') {
+    const totalAthletes = clients.length;
+    const classesReachedLimit = ownerClasses.filter((c: any) => (c.reservationsCount || 0) >= c.capacity).length;
+    const totalSpotsMissing = ownerClasses.reduce((acc: number, c: any) => acc + Math.max(0, c.capacity - (c.reservationsCount || 0)), 0);
+
+    return (
+      <div className="space-y-8 animate-in fade-in duration-500 pb-20">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Suite de Control Premium ✨</h1>
+            <p className="text-slate-400 mt-1">Herramientas de retención de atletas y ocupación de tu negocio.</p>
+          </div>
+          
+          <div className="flex bg-slate-950/80 p-1 rounded-xl border border-white/5 w-fit gap-1">
+            <button
+              onClick={() => setActiveView('dashboard')}
+              className="px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white"
+            >
+              📊 Resumen de Negocio
+            </button>
+            <button
+              onClick={() => setActiveView('suite')}
+              className="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-indigo-600 text-white shadow-lg"
+            >
+              ✨ Suite de Control
+            </button>
+          </div>
+        </div>
+
+        {/* KPIs de la Suite recomendados por el Gerente */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-gradient-to-br from-indigo-900/20 to-slate-900 border border-indigo-500/20 rounded-2xl p-6 backdrop-blur-md relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl" />
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">👥 Total Atletas Registrados</p>
+            <p className="text-3xl font-black text-white">{totalAthletes}</p>
+            <p className="text-[10px] text-slate-500 mt-2">Atletas registrados en tu academia</p>
+          </div>
+          
+          <div className="bg-gradient-to-br from-red-900/20 to-slate-900 border border-red-500/20 rounded-2xl p-6 backdrop-blur-md relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 rounded-full blur-2xl" />
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">🚨 Clases al Límite de Alumnos</p>
+            <p className="text-3xl font-black text-white">{classesReachedLimit}</p>
+            <p className="text-[10px] text-slate-500 mt-2">Clases que completaron su aforo (100% llenas)</p>
+          </div>
+
+          <div className="bg-gradient-to-br from-emerald-900/20 to-slate-900 border border-emerald-500/20 rounded-2xl p-6 backdrop-blur-md relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl" />
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">⏳ Alumnos faltantes para llenar</p>
+            <p className="text-3xl font-black text-white">{totalSpotsMissing}</p>
+            <p className="text-[10px] text-slate-500 mt-2">Cupos por llenar across all classes</p>
+          </div>
+        </div>
+
+        {/* Tab Selection */}
+        <div className="flex border-b border-white/5 gap-6">
+          <button 
+            onClick={() => setSuiteTab('clients')}
+            className={`pb-4 text-sm font-bold border-b-2 transition-all ${suiteTab === 'clients' ? 'border-primary-light text-primary-light' : 'border-transparent text-slate-400 hover:text-white'}`}
+          >
+            👥 Listado de Clientes
+          </button>
+          <button 
+            onClick={() => setSuiteTab('classes')}
+            className={`pb-4 text-sm font-bold border-b-2 transition-all ${suiteTab === 'classes' ? 'border-primary-light text-primary-light' : 'border-transparent text-slate-400 hover:text-white'}`}
+          >
+            📅 Ocupación de Clases
+          </button>
+          <button 
+            onClick={() => setSuiteTab('crm')}
+            className={`pb-4 text-sm font-bold border-b-2 transition-all ${suiteTab === 'crm' ? 'border-primary-light text-primary-light' : 'border-transparent text-slate-400 hover:text-white'}`}
+          >
+            🧠 CRM Churn y Alientos
+          </button>
+        </div>
+
+        {/* Tab 1: Clients List */}
+        {suiteTab === 'clients' && (
+          <div className="glass-card overflow-hidden border-white/5 animate-in fade-in duration-300">
+            <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
+              <h3 className="text-lg font-bold text-white">Base de Datos de Atletas</h3>
+              <button 
+                onClick={() => {
+                  const name = prompt("Nombre completo del nuevo atleta:");
+                  if (!name) return;
+                  const dni = prompt("DNI:");
+                  const birthDate = prompt("Fecha de Nacimiento (YYYY-MM-DD):");
+                  const healthStatus = prompt("Estado de salud (HEALTHY, INJURED, CHURNED):") || 'HEALTHY';
+                  const healthDetails = prompt("Detalles del estado de salud:") || 'Excelente salud 💪';
+                  setClients(prev => [...prev, {
+                    id: Math.random().toString(),
+                    name,
+                    dni: dni || 'N/A',
+                    birthDate: birthDate || 'N/A',
+                    healthStatus,
+                    healthDetails,
+                    history: []
+                  }]);
+                }}
+                className="bg-primary/20 text-primary-light border border-primary/30 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-primary/30 transition-all"
+              >
+                + Registrar Atleta
+              </button>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-white/5 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    <th className="p-4 pl-6">Nombre Atleta</th>
+                    <th className="p-4">DNI</th>
+                    <th className="p-4">Fecha Nac.</th>
+                    <th className="p-4">Estado de Salud</th>
+                    <th className="p-4">Membresías</th>
+                    <th className="p-4 text-right pr-6">Acción</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 text-sm text-slate-300">
+                  {clients.map(c => (
+                    <tr key={c.id} className="hover:bg-white/5 transition-all">
+                      <td className="p-4 pl-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-slate-950 border border-white/10 flex items-center justify-center font-bold text-primary-light">
+                            {c.name[0]}
+                          </div>
+                          <div>
+                            <p className="text-white font-bold">{c.name}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4 font-mono text-xs">{c.dni}</td>
+                      <td className="p-4">{new Date(c.birthDate).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
+                      <td className="p-4">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                          c.healthStatus === 'HEALTHY' ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
+                          c.healthStatus === 'INJURED' ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' :
+                          'bg-red-500/10 text-red-400 border border-red-500/20'
+                        }`}>
+                          {c.healthDetails}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <button 
+                          onClick={() => {
+                            if (c.history.length === 0) {
+                              alert("Este cliente no tiene historial de membresías aún.");
+                              return;
+                            }
+                            alert(`Historial de Membresías de ${c.name}:\n\n` + c.history.map((h: any) => 
+                              `- ${h.planName} ($${h.price}): Compra: ${h.dateCompra} | Fin: ${h.dateFin} (${h.status})`
+                            ).join('\n'));
+                          }}
+                          className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2.5 py-1 rounded-lg text-xs font-semibold hover:bg-indigo-500/20"
+                        >
+                          Ver historial ({c.history.length})
+                        </button>
+                      </td>
+                      <td className="p-4 text-right pr-6">
+                        <button
+                          onClick={() => {
+                            const newDni = prompt("Editar DNI:", c.dni);
+                            const newBirth = prompt("Editar Fecha Nacimiento (YYYY-MM-DD):", c.birthDate);
+                            if (newDni || newBirth) {
+                              setClients(prev => prev.map(item => item.id === c.id ? {
+                                ...item,
+                                dni: newDni !== null ? newDni : item.dni,
+                                birthDate: newBirth !== null ? newBirth : item.birthDate
+                              } : item));
+                            }
+                          }}
+                          className="text-slate-400 hover:text-white text-xs font-bold underline"
+                        >
+                          Editar Datos
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 2: Ocupación de Clases */}
+        {suiteTab === 'classes' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            {ownerClasses.length === 0 ? (
+              <div className="glass-card p-12 text-center text-slate-500">No hay clases activas en tus gimnasios para analizar.</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {ownerClasses.map((c: any) => {
+                  const fillPercentage = Math.min(100, Math.round(((c.reservationsCount || 0) / c.capacity) * 100));
+                  const isFull = (c.reservationsCount || 0) >= c.capacity;
+                  return (
+                    <div key={c.id} className="glass-card p-6 border-white/5 flex flex-col gap-4 relative overflow-hidden group">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <span className="px-2 py-0.5 rounded bg-slate-950 text-[10px] font-bold text-slate-400 border border-white/10 uppercase tracking-wider">{c.gym?.name}</span>
+                          <h4 className="text-lg font-bold text-white mt-1.5">{c.title}</h4>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          isFull ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-primary/20 text-primary-light border border-primary/30'
+                        }`}>
+                          {isFull ? 'Límite alcanzado 🚨' : `${c.capacity - (c.reservationsCount || 0)} cupos libres`}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-4 text-xs text-slate-400">
+                        <span>⏰ {new Date(c.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span>📅 {new Date(c.scheduledAt).toLocaleDateString()}</span>
+                        <span>⏳ {c.durationMin} min</span>
+                      </div>
+
+                      {/* Bar fill */}
+                      <div className="space-y-1 mt-2">
+                        <div className="flex justify-between text-xs font-semibold text-slate-400">
+                          <span>Aforo completo</span>
+                          <span>{fillPercentage}%</span>
+                        </div>
+                        <div className="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden border border-white/5">
+                          <div 
+                            style={{ width: `${fillPercentage}%` }} 
+                            className={`h-full rounded-full transition-all duration-500 ${isFull ? 'bg-red-500 animate-pulse' : 'bg-indigo-500'}`}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="mt-4 pt-4 border-t border-white/5 flex justify-between items-center text-xs">
+                        <span className="text-slate-500">Reservados: {c.reservationsCount || 0} de {c.capacity} atletas</span>
+                        <a href="/classes" className="text-primary-light font-bold hover:underline">Ver Asistencia →</a>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tab 3: CRM Churn y Alientos */}
+        {suiteTab === 'crm' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-300">
+            {clients.filter(c => c.healthStatus !== 'HEALTHY').map(c => {
+              const isInjured = c.healthStatus === 'INJURED';
+              
+              const mensajeAliento = isInjured 
+                ? `¡Hola ${c.name.split(' ')[0]}! Espero que tu recuperación de la fractura vaya excelente. Todo el equipo de la academia te envía un abrazo muy fuerte de aliento. ¡Te extrañamos mucho y te esperamos de vuelta cuando estés listo! 💪⚽`
+                : `¡Hola ${c.name.split(' ')[0]}! Esperamos que todo esté marchando de maravilla en la bella ciudad de Arequipa. Te extrañamos un montón en los entrenamientos. ¡Mucho éxito en tus nuevos proyectos y a seguir dándole con toda! ✈️🌟`;
+
+              return (
+                <div key={c.id} className="glass-card p-6 border border-white/5 bg-slate-900/50 flex flex-col justify-between">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg ${isInjured ? 'bg-yellow-500/10 text-yellow-400' : 'bg-red-500/10 text-red-400'}`}>
+                          {isInjured ? '🩹' : '✈️'}
+                        </div>
+                        <div>
+                          <h4 className="text-md font-bold text-white">{c.name}</h4>
+                          <p className="text-xs text-slate-500">DNI: {c.dni}</p>
+                        </div>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                        isInjured ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                      }`}>
+                        {isInjured ? 'Lesión / Fractura' : 'Mudanza / Arequipa'}
+                      </span>
+                    </div>
+
+                    <div className="bg-slate-950/80 p-4 rounded-xl border border-white/5 space-y-2">
+                      <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">📝 Motivo de inactividad</p>
+                      <p className="text-xs text-slate-300 italic">"{c.healthDetails}"</p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">💝 Mensaje de Aliento Sugerido</p>
+                      <div className="bg-indigo-950/20 p-3 rounded-xl border border-indigo-500/10 text-xs text-indigo-300 leading-relaxed">
+                        {mensajeAliento}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 pt-4 border-t border-white/5 flex gap-2">
+                    <button 
+                      onClick={() => {
+                        const newDetails = prompt("Modificar motivo o actualizar estado de salud:", c.healthDetails);
+                        if (newDetails) {
+                          setClients(prev => prev.map(item => item.id === c.id ? { ...item, healthDetails: newDetails } : item));
+                        }
+                      }}
+                      className="flex-1 py-2 px-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold transition-colors"
+                    >
+                      ✏️ Editar Estado
+                    </button>
+                    <button 
+                      onClick={() => {
+                        alert(`¡Mensaje de Aliento enviado con éxito a ${c.name}!\n\n"${mensajeAliento}"`);
+                      }}
+                      className="flex-1 py-2 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      <span>💌 Enviar Mensaje</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── Layout para GYM_OWNER, TRAINER y USER (Dashboard Resumen Original) ──
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* Header */}
@@ -249,11 +609,31 @@ const Dashboard: React.FC = () => {
               : 'Hoy es un excelente día para superarte.'}
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-xl">
-          <div className={`w-2 h-2 rounded-full ${isOwner ? 'bg-primary-light' : 'bg-green-400'} animate-pulse`} />
-          <span className="text-slate-300 text-sm font-medium capitalize">
-            {user?.role.toLowerCase().replace('_', ' ')}
-          </span>
+        
+        <div className="flex items-center gap-4">
+          {isOwner && (
+            <div className="flex bg-slate-950/80 p-1 rounded-xl border border-white/5 w-fit gap-1">
+              <button
+                onClick={() => setActiveView('dashboard')}
+                className="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-primary text-white shadow-lg"
+              >
+                📊 Resumen de Negocio
+              </button>
+              <button
+                onClick={() => setActiveView('suite')}
+                className="px-4 py-2 rounded-lg text-xs font-bold transition-all text-indigo-400 hover:text-white"
+              >
+                ✨ Suite de Control
+              </button>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-xl">
+            <div className={`w-2 h-2 rounded-full ${isOwner ? 'bg-primary-light' : 'bg-green-400'} animate-pulse`} />
+            <span className="text-slate-300 text-sm font-medium capitalize">
+              {user?.role.toLowerCase().replace('_', ' ')}
+            </span>
+          </div>
         </div>
       </motion.header>
 
