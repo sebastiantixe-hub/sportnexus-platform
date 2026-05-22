@@ -26,6 +26,7 @@ class CreateGymDto {
     openTime;
     closeTime;
     openDays;
+    logoUrl;
 }
 exports.CreateGymDto = CreateGymDto;
 __decorate([
@@ -93,6 +94,11 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], CreateGymDto.prototype, "openDays", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateGymDto.prototype, "logoUrl", void 0);
 class UpdateGymDto {
     name;
     description;
@@ -108,6 +114,7 @@ class UpdateGymDto {
     closeTime;
     openDays;
     status;
+    logoUrl;
 }
 exports.UpdateGymDto = UpdateGymDto;
 __decorate([
@@ -181,4 +188,9 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], UpdateGymDto.prototype, "status", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], UpdateGymDto.prototype, "logoUrl", void 0);
 //# sourceMappingURL=gym.dto.js.map

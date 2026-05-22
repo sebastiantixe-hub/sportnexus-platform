@@ -16,7 +16,8 @@ export declare class Auth0JwtStrategy extends Auth0JwtStrategy_base {
     private readonly config;
     private readonly authService;
     constructor(config: ConfigService, authService: AuthService);
-    validate(payload: Auth0JwtPayload): Promise<{
+    private fetchUserInfo;
+    validate(req: any, payload: Auth0JwtPayload): Promise<{
         id: string;
         name: string;
         email: string;

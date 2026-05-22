@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Users, 
-  Search, 
-  MessageSquare, 
-  Send, 
-  Flame, 
-  Footprints, 
-  Scale, 
+import {
+  Users,
+  Search,
+  MessageSquare,
+  Send,
+  Flame,
+  Footprints,
+  Scale,
   ChevronRight,
   Activity
 } from 'lucide-react';
@@ -63,7 +63,7 @@ const CoachHealthView: React.FC = () => {
         observation: observation.trim()
       });
       toast.success('Recomendación enviada con éxito');
-      
+
       // Actualizar el estado local
       const updated = athletes.map(ath => {
         if (ath.id === selectedAthlete.id) {
@@ -81,7 +81,7 @@ const CoachHealthView: React.FC = () => {
     }
   };
 
-  const filteredAthletes = athletes.filter(ath => 
+  const filteredAthletes = athletes.filter(ath =>
     ath.name.toLowerCase().includes(search.toLowerCase()) ||
     ath.email.toLowerCase().includes(search.toLowerCase())
   );
@@ -105,12 +105,12 @@ const CoachHealthView: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
+
         {/* Left Column: Athlete Selector */}
         <div className="bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-3xl p-6 h-[600px] flex flex-col">
           <div className="relative mb-6">
             <Search className="absolute left-4 top-3.5 text-slate-500 w-4 h-4" />
-            <input 
+            <input
               type="text"
               placeholder="Buscar atleta..."
               className="w-full bg-slate-800 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
@@ -125,11 +125,10 @@ const CoachHealthView: React.FC = () => {
                 <button
                   key={ath.id}
                   onClick={() => setSelectedAthlete(ath)}
-                  className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${
-                    selectedAthlete?.id === ath.id 
-                      ? 'bg-primary/20 border border-primary/30 text-white' 
+                  className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${selectedAthlete?.id === ath.id
+                      ? 'bg-primary/20 border border-primary/30 text-white'
                       : 'bg-white/5 border border-transparent text-slate-400 hover:bg-white/10'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     {ath.avatarUrl ? (
@@ -230,7 +229,7 @@ const CoachHealthView: React.FC = () => {
                     <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">
                       Nueva Observación / Recomendación
                     </label>
-                    <textarea 
+                    <textarea
                       rows={4}
                       required
                       placeholder="Ej: Recomiendo bajar intensidad a CrossFit esta semana por fatiga reportada en rodilla. Incrementar hidratación a 10 vasos."
@@ -240,7 +239,7 @@ const CoachHealthView: React.FC = () => {
                     />
                   </div>
                   <div className="flex justify-end">
-                    <button 
+                    <button
                       type="submit"
                       disabled={submitting}
                       className="flex items-center gap-2 bg-primary hover:bg-primary-light text-white px-6 py-3.5 rounded-xl font-bold transition-all shadow-lg shadow-primary/20 disabled:opacity-50"

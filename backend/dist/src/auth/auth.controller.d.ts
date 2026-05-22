@@ -10,10 +10,10 @@ export declare class AuthController {
         refreshToken: string;
         user: {
             id: string;
+            createdAt: Date;
             name: string;
             email: string;
             role: import("@prisma/client").$Enums.UserRole;
-            createdAt: Date;
         };
     }>;
     login(dto: LoginDto): Promise<{
@@ -21,8 +21,9 @@ export declare class AuthController {
         refreshToken: string;
         user: {
             id: string;
-            auth0Id: string | null;
+            createdAt: Date;
             name: string;
+            auth0Id: string | null;
             email: string;
             role: import("@prisma/client").$Enums.UserRole;
             phone: string | null;
@@ -30,7 +31,6 @@ export declare class AuthController {
             avatarUrl: string | null;
             isActive: boolean;
             emailVerified: boolean;
-            createdAt: Date;
             updatedAt: Date;
             weight: number | null;
         };
@@ -43,8 +43,9 @@ export declare class AuthController {
         refreshToken: string;
         user: {
             id: string;
-            auth0Id: string | null;
+            createdAt: Date;
             name: string;
+            auth0Id: string | null;
             email: string;
             role: import("@prisma/client").$Enums.UserRole;
             phone: string | null;
@@ -52,7 +53,6 @@ export declare class AuthController {
             avatarUrl: string | null;
             isActive: boolean;
             emailVerified: boolean;
-            createdAt: Date;
             updatedAt: Date;
             weight: number | null;
         };
@@ -62,6 +62,7 @@ export declare class AuthController {
     }): Promise<{
         roles: string[];
         id: string;
+        createdAt: Date;
         name: string;
         email: string;
         role: import("@prisma/client").$Enums.UserRole;
@@ -70,7 +71,6 @@ export declare class AuthController {
         avatarUrl: string | null;
         isActive: boolean;
         emailVerified: boolean;
-        createdAt: Date;
     } | null>;
     updateProfile(user: {
         id: string;

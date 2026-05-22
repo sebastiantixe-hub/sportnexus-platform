@@ -13,6 +13,7 @@ export declare class CreateGymDto {
     openTime?: string;
     closeTime?: string;
     openDays?: string;
+    logoUrl?: string;
 }
 export declare class UpdateGymDto {
     name?: string;
@@ -29,4 +30,5 @@ export declare class UpdateGymDto {
     closeTime?: string;
     openDays?: string;
     status?: GymStatus;
+    logoUrl?: string;
 }

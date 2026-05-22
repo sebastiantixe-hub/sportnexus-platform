@@ -59,7 +59,7 @@ let PaymentsService = class PaymentsService {
             purchaseAmount,
             purchaseCurrencyCode,
             purchaseVerification,
-            description: description || 'Compra en SportNexus'
+            description: description || 'Compra en Hercix'
         };
     }
 };

@@ -47,12 +47,12 @@ let GeminiService = GeminiService_1 = class GeminiService {
             return fallbacks[context.totalReservations % fallbacks.length];
         }
         try {
-            const prompt = `Eres el Asistente de Élite de SportNexus 🏆, la plataforma SaaS deportiva líder en Latinoamérica.
+            const prompt = `Eres el Asistente de Élite de Hercix 🏆, la plataforma SaaS deportiva líder en Latinoamérica.
       
 Tu objetivo es motivar y guiar a "${context.userName}" para que alcance su máximo potencial.
 
 Contexto del usuario:
-- Rol: Atleta/Usuario de SportNexus
+- Rol: Atleta/Usuario de Hercix
 - Experiencia: Ha realizado ${context.totalReservations} reservas
 - Hábitos detectados: ${context.insights.join(' | ')}
 - Recomendación destacada para hoy: ${context.topRecommendation || 'clases populares'}
@@ -81,14 +81,14 @@ Responde SOLO con el mensaje.`;
         }
         try {
             const prompt = `
-        Eres el Asistente de Élite de SportNexus 🏆. Tu tono debe ser el de un Consultor Senior de Negocios Deportivos y un Coach de Alto Rendimiento combined.
+        Eres el Asistente de Élite de Hercix 🏆. Tu tono debe ser el de un Consultor Senior de Negocios Deportivos y un Coach de Alto Rendimiento combined.
         
         REGLAS DE ORO:
         1. Si el usuario es un DUEÑO, háblale de ROI, retención de clientes y optimización financiera.
         2. Si el usuario es un COACH, háblale de programación de atletas, biomecánica y motivación de equipo.
         3. Si el usuario es un ATLETA, háblale de disciplina, superación personal y salud basada en métricas.
-        4. TIENES ACCESO A DATOS DE WEARABLES: Si el usuario menciona fatiga o rendimiento, recuérdale que SportNexus monitoriza sus pasos, ritmo cardíaco y calorías para darle el plan perfecto. Mantente siempre motivador pero con autoridad científica.
-        5. Branding: Usa "SportNexus" como la plataforma definitiva que une SaaS y Marketplace.
+        4. TIENES ACCESO A DATOS DE WEARABLES: Si el usuario menciona fatiga o rendimiento, recuérdale que Hercix monitoriza sus pasos, ritmo cardíaco y calorías para darle el plan perfecto. Mantente siempre motivador pero con autoridad científica.
+        5. Branding: Usa "Hercix" como la plataforma definitiva que une SaaS y Marketplace.
         6. Personalidad: Eres audaz, directo y buscas la excelencia del usuario.
       
 Contexto del usuario actual:
@@ -115,7 +115,7 @@ Mensaje del usuario: "${message}"`;
             return 'Revisa la sección "Eventos" para ver torneos, masterclasses y workshops próximos en tu ciudad.';
         if (lower.includes('tienda') || lower.includes('producto') || lower.includes('equipo'))
             return 'En nuestra "Tienda" encuentras equipamiento deportivo de los mejores proveedores. ¡Agrega lo que necesites al carrito!';
-        return 'Estoy aquí para ayudarte con SportNexus. Puedes preguntar sobre clases, membresías, gimnasios, eventos o la tienda deportiva. ¿En qué te puedo asistir?';
+        return 'Estoy aquí para ayudarte con Hercix. Puedes preguntar sobre clases, membresías, gimnasios, eventos o la tienda deportiva. ¿En qué te puedo asistir?';
     }
 };
 exports.GeminiService = GeminiService;

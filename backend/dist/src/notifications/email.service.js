@@ -21,7 +21,7 @@ let EmailService = EmailService_1 = class EmailService {
     constructor() {
         this.resend = new resend_1.Resend(process.env.RESEND_API_KEY);
         const email = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-        const name = process.env.RESEND_FROM_NAME || 'SportNexus';
+        const name = process.env.RESEND_FROM_NAME || 'Hercix Health';
         this.from = `${name} <${email}>`;
         this.fromName = name;
     }
@@ -41,7 +41,7 @@ let EmailService = EmailService_1 = class EmailService {
         <tr>
           <td style="background:linear-gradient(135deg,#6d28d9,#a855f7);border-radius:16px 16px 0 0;padding:32px 40px;text-align:center;">
             <h1 style="margin:0;color:#fff;font-size:28px;font-weight:800;letter-spacing:-0.5px;">
-              ⚡ Sport<span style="color:#e9d5ff;">Nexus</span>
+              ⚡ Hercix<span style="color:#e9d5ff;"> Health</span>
             </h1>
             <p style="margin:6px 0 0;color:#e9d5ff;font-size:13px;">Tu plataforma deportiva todo en uno</p>
           </td>
@@ -56,7 +56,7 @@ let EmailService = EmailService_1 = class EmailService {
         <tr>
           <td style="background:#12122a;border-radius:0 0 16px 16px;border:1px solid #2d2d4e;border-top:none;padding:24px 40px;text-align:center;">
             <p style="margin:0;color:#6b7280;font-size:12px;">
-              © 2026 SportNexus · Todos los derechos reservados<br/>
+              © 2026 QORIBEX · Todos los derechos reservados<br/>
               <a href="#" style="color:#a855f7;text-decoration:none;">Darse de baja</a> · 
               <a href="#" style="color:#a855f7;text-decoration:none;">Política de privacidad</a>
             </p>
@@ -72,7 +72,7 @@ let EmailService = EmailService_1 = class EmailService {
         const content = `
       <h2 style="margin:0 0 8px;color:#fff;font-size:24px;">¡Bienvenido, ${name}! 🎉</h2>
       <p style="margin:0 0 24px;color:#a0aec0;font-size:15px;line-height:1.6;">
-        Tu cuenta en SportNexus está lista. Ahora tienes acceso a:
+        Tu cuenta en Hercix Health está lista. Ahora tienes acceso a:
       </p>
       <table width="100%" cellpadding="0" cellspacing="0">
         ${[
@@ -97,11 +97,11 @@ let EmailService = EmailService_1 = class EmailService {
       </table>
       <div style="margin-top:32px;text-align:center;">
         <a href="${process.env.FRONTEND_URL || 'https://hercix.com'}" style="background:linear-gradient(135deg,#6d28d9,#a855f7);color:#fff;text-decoration:none;padding:14px 36px;border-radius:8px;font-size:15px;font-weight:700;display:inline-block;">
-          Explorar SportNexus →
+          Explorar Hercix Health →
         </a>
       </div>
     `;
-        await this.send(to, '¡Bienvenido a SportNexus! 🚀', content, '¡Tu cuenta está lista!');
+        await this.send(to, '¡Bienvenido a Hercix Health! 🚀', content, '¡Tu cuenta está lista!');
     }
     async sendInvitation(to, role, invitationLink) {
         const content = `
@@ -172,7 +172,7 @@ let EmailService = EmailService_1 = class EmailService {
         </tr>
       </table>
     `;
-        await this.send(to, 'Confirmación de pago SportNexus 💳', content, 'Tu pago fue exitoso');
+        await this.send(to, 'Confirmación de pago Hercix 💳', content, 'Tu pago fue exitoso');
     }
     async sendMembershipActivated(to, data) {
         const expiryStr = data.expiresAt.toLocaleDateString('es-CO', {

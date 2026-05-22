@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RolesGuard = void 0;
 const common_1 = require("@nestjs/common");
 const core_1 = require("@nestjs/core");
+const client_1 = require("@prisma/client");
 const roles_decorator_1 = require("../decorators/roles.decorator");
 let RolesGuard = class RolesGuard {
     reflector;
@@ -26,6 +27,9 @@ let RolesGuard = class RolesGuard {
         const { user } = context.switchToHttp().getRequest();
         const hasRole = requiredRoles.some((role) => user?.role === role);
         if (!hasRole) {
+            if (user?.role === client_1.UserRole.GYM_OWNER && requiredRoles.includes(client_1.UserRole.USER)) {
+                throw new common_1.ForbiddenException('Esta acción o beneficio es exclusivo para atletas registrados.');
+            }
             throw new common_1.ForbiddenException(`Acceso denegado. Roles requeridos: ${requiredRoles.join(', ')}`);
         }
         return true;

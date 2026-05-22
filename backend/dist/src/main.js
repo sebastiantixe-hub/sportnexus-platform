@@ -4,8 +4,11 @@ const core_1 = require("@nestjs/core");
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const app_module_1 = require("./app.module");
+const express_1 = require("express");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    app.use((0, express_1.json)({ limit: '10mb' }));
+    app.use((0, express_1.urlencoded)({ limit: '10mb', extended: true }));
     app.setGlobalPrefix('api');
     const config = new swagger_1.DocumentBuilder()
         .setTitle('Sports SaaS + Marketplace API')
