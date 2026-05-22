@@ -6,8 +6,8 @@ import {
   Users, Dumbbell, Calendar, TrendingUp, Clock, AlertCircle,
   ShoppingBag, Trophy, CreditCard, ArrowRight, Star, Activity,
   CheckCircle2, BarChart, Mail, Watch, Receipt, ShieldCheck,
-  Building2, ChevronRight, Plus, Search, Edit3, Save, Trash2,
-  Check, X, AlertTriangle, HelpCircle, Loader2
+  Building2, Plus, Edit3, Save,
+  X, AlertTriangle, Loader2, Sparkles, HeartPulse
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
