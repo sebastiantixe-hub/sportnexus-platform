@@ -24,10 +24,11 @@ import PlatformOverviewView from './pages/dashboard/PlatformOverviewView';
 import UsersManagementView from './pages/dashboard/UsersManagementView';
 import TicketsPage from './pages/tickets/TicketsPage';
 import SportStorePage from './pages/store/SportStorePage';
+import LandingPage from './pages/landing/LandingPage';
 import { Toaster } from 'sonner';
 
-// Componente de Redirección Dinámica de Inicio según el Rol del usuario
-const HomeRedirect = () => {
+// Componente para la página de inicio. Si está autenticado, redirige al panel según su rol; si no, muestra la Landing Page de Hercix.
+const HomeRoute = () => {
   const { user, loading } = useAuth();
   
   if (loading) {
@@ -38,15 +39,16 @@ const HomeRedirect = () => {
     );
   }
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
+  if (user) {
+    // Redireccionar al panel dedicado del Rol correspondiente
+    if (user.role === 'ADMIN') return <Navigate to="/super-admin" replace />;
+    if (user.role === 'GYM_OWNER') return <Navigate to="/owner-dashboard" replace />;
+    if (user.role === 'TRAINER') return <Navigate to="/coach-dashboard" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
-  // Redireccionar al URL dedicado del Rol correspondiente
-  if (user.role === 'ADMIN') return <Navigate to="/super-admin" replace />;
-  if (user.role === 'GYM_OWNER') return <Navigate to="/owner-dashboard" replace />;
-  if (user.role === 'TRAINER') return <Navigate to="/coach-dashboard" replace />;
-  return <Navigate to="/dashboard" replace />;
+  // Si no está logueado, mostrar la hermosa Landing Page de Hercix
+  return <LandingPage />;
 };
 
 function App() {
@@ -59,9 +61,9 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           
           {/* 
-              Redirección Dinámica a cada panel dedicado según el rol de la cuenta
+              Página de Inicio / Landing Page o Redirección Automática
           */}
-          <Route path="/" element={<ProtectedRoute><HomeRedirect /></ProtectedRoute>} />
+          <Route path="/" element={<HomeRoute />} />
 
           {/* Rutas con Protección de Rol estricta */}
           <Route path="/super-admin" element={<ProtectedRoute allowedRoles={['ADMIN']}><MainLayout><Dashboard /></MainLayout></ProtectedRoute>} />
