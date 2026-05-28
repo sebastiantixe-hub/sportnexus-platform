@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -13,6 +13,20 @@ import {
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentImage, setCurrentImage] = useState(0);
+
+  const carouselImages = [
+    'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1920&q=80', // Gym/Crossfit (High energy)
+    'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=1920&q=80', // Coach/Personal trainer
+    'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1920&q=80'  // Athlete track / Running
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImage((prev) => (prev + 1) % carouselImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +73,21 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="bg-background-darker min-h-screen text-white overflow-hidden font-sans relative">
+      {/* Background Image Carousel with smooth cross-fade */}
+      <div className="absolute inset-0 z-0 transition-opacity duration-1000 ease-in-out pointer-events-none overflow-hidden">
+        {carouselImages.map((img, index) => (
+          <div
+            key={index}
+            className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${
+              index === currentImage ? 'opacity-20' : 'opacity-0'
+            }`}
+            style={{ backgroundImage: `url(${img})` }}
+          />
+        ))}
+        {/* Dark gradient overlay to ensure text is perfectly readable and beautiful */}
+        <div className="absolute inset-0 bg-gradient-to-b from-background-darker/60 via-background-darker/80 to-background-darker"></div>
+      </div>
+
       {/* Dynamic Glowing Accents */}
       <div className="absolute top-[-20%] left-[-10%] rounded-full w-[800px] h-[800px] bg-primary/5 blur-[150px] pointer-events-none"></div>
       <div className="absolute bottom-[-10%] right-[-10%] rounded-full w-[800px] h-[800px] bg-accent/5 blur-[150px] pointer-events-none"></div>
