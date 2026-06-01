@@ -4,9 +4,9 @@ import './index.css'
 import App from './App.tsx'
 import { Auth0Provider } from '@auth0/auth0-react'
 
-const domain = "dev-vdhdedydkqqaxog0.us.auth0.com";
-const clientId = "gStJSXkE1TCUqjHMIH4L0zLybibRaQ7a";
-const audience = "https://hercix-api";
+const domain = import.meta.env.VITE_AUTH0_DOMAIN || "dev-khvop4d61s5ip8d3.us.auth0.com";
+const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID || "3kp2ZDHZYjBxcJaqtGXZdTIShBsK3sJK";
+const audience = import.meta.env.VITE_AUTH0_AUDIENCE || "https://hercix-api";
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
