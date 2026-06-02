@@ -30,7 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user: auth0User, 
     getAccessTokenSilently, 
     isLoading: auth0Loading,
-    loginWithRedirect,
+    loginWithPopup,
     logout: auth0Logout 
   } = useAuth0();
   
@@ -92,12 +92,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     syncUser();
   }, [isAuthenticated, auth0User, getAccessTokenSilently, auth0Loading]);
 
-  const login = (options?: { allowSignUp?: boolean }) => {
-    loginWithRedirect({
-      authorizationParams: {
-        allow_signup: options?.allowSignUp === false ? 'false' : 'true'
+  const login = async (options?: { allowSignUp?: boolean }) => {
+    try {
+      await loginWithPopup({
+        authorizationParams: {
+          allow_signup: options?.allowSignUp === false ? 'false' : 'true',
+          screen_hint: options?.allowSignUp ? 'signup' : 'login',
+        },
+      });
+    } catch (error: any) {
+      // El usuario cerró el popup manualmente — no es un error real
+      if (error?.error !== 'cancelled' && error?.message !== 'Popup closed') {
+        console.error('Error al abrir login popup:', error);
       }
-    });
+    }
   };
   
   const logout = () => {
