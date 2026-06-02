@@ -321,7 +321,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
           <footer className="mt-20 py-8 border-t border-white/5 text-center">
             <p className="text-slate-500 text-[10px] uppercase font-bold tracking-[0.3em]">
-              © 2026 QORIBEX | TODOS LOS DERECHOS RESERVADOS
+              © 2026 HERCIX | TODOS LOS DERECHOS RESERVADOS
             </p>
           </footer>
         </div>
