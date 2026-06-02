@@ -28,7 +28,7 @@ export class Auth0JwtStrategy extends PassportStrategy(Strategy, 'auth0') {
     if (domain === 'dev-6d0mok1v1ohx5iez.us.auth0.com' || domain === 'dev-vdhdedydkqqaxog0.us.auth0.com' || domain === 'dev-vdhdedydkqqaxog0') {
       domain = 'dev-khvop4d61s5ip8d3.us.auth0.com';
     }
-    if (audience === 'https://sportnexus-api') {
+    if (audience === 'https://sportnexus-api' || !audience.startsWith('https://')) {
       audience = 'https://hercix-api';
     }
 
