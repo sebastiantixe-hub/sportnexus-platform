@@ -9,7 +9,12 @@ let clientId = import.meta.env.VITE_AUTH0_CLIENT_ID || "3kp2ZDHZYjBxcJaqtGXZdTIS
 let audience = import.meta.env.VITE_AUTH0_AUDIENCE || "https://hercix-api";
 
 // Si Vercel tiene configuradas las credenciales de desarrollo antiguas de Sebastian, forzar las oficiales de Mario (Hercix)
-if (domain === "dev-6d0mok1v1ohx5iez.us.auth0.com" || domain === "dev-vdhdedydkqqaxog0.us.auth0.com" || domain === "dev-vdhdedydkqqaxog0") {
+if (
+  domain === "dev-6d0mok1v1ohx5iez.us.auth0.com" || 
+  domain === "dev-vdhdedydkqqaxog0.us.auth0.com" || 
+  domain === "dev-vdhdedydkqqaxog0" ||
+  audience === "https://sportnexus-api"
+) {
   domain = "dev-khvop4d61s5ip8d3.us.auth0.com";
   clientId = "3kp2ZDHZYjBxcJaqtGXZdTIShBsK3sJK";
   audience = "https://hercix-api";
