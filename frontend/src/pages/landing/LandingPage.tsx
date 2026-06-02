@@ -271,8 +271,7 @@ const LandingPage: React.FC = () => {
             <span>Infraestructura Segura & Encriptación AES-256</span>
           </div>
           <div className="flex items-center gap-6">
-            <span>Powered by Hercix Platform</span>
-            <span>Auth0 Secured Suite</span>
+            <span className="text-[10px] uppercase tracking-widest font-bold">© 2026 HERCIX | TODOS LOS DERECHOS RESERVADOS</span>
           </div>
         </section>
       </main>

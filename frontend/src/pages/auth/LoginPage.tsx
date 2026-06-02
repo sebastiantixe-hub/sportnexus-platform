@@ -124,7 +124,7 @@ const LoginPage: React.FC = () => {
         className="relative z-10 text-center border-t border-white/5 pt-6 w-full max-w-md"
       >
         <p className="text-slate-500 text-[10px] uppercase tracking-widest font-bold">
-          Powered by Hercix & Auth0
+          © 2026 HERCIX | TODOS LOS DERECHOS RESERVADOS
         </p>
       </motion.div>
     </div>
