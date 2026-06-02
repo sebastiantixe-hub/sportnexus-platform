@@ -21,8 +21,16 @@ export class Auth0JwtStrategy extends PassportStrategy(Strategy, 'auth0') {
     private readonly config: ConfigService,
     private readonly authService: AuthService,
   ) {
-    const domain = config.get<string>('AUTH0_DOMAIN')!;
-    const audience = config.get<string>('AUTH0_AUDIENCE')!;
+    let domain = config.get<string>('AUTH0_DOMAIN') || 'dev-khvop4d61s5ip8d3.us.auth0.com';
+    let audience = config.get<string>('AUTH0_AUDIENCE') || 'https://hercix-api';
+
+    // Si están configuradas con las credenciales de desarrollo viejas o de prueba, forzar las corporativas oficiales de Mario (Hercix)
+    if (domain === 'dev-6d0mok1v1ohx5iez.us.auth0.com' || domain === 'dev-vdhdedydkqqaxog0.us.auth0.com' || domain === 'dev-vdhdedydkqqaxog0') {
+      domain = 'dev-khvop4d61s5ip8d3.us.auth0.com';
+    }
+    if (audience === 'https://sportnexus-api') {
+      audience = 'https://hercix-api';
+    }
 
     super({
       secretOrKeyProvider: passportJwtSecret({
@@ -92,7 +100,10 @@ export class Auth0JwtStrategy extends PassportStrategy(Strategy, 'auth0') {
       const authHeader = req.headers?.authorization;
       if (authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.substring(7);
-        const domain = this.config.get<string>('AUTH0_DOMAIN')!;
+        let domain = this.config.get<string>('AUTH0_DOMAIN') || 'dev-khvop4d61s5ip8d3.us.auth0.com';
+        if (domain === 'dev-6d0mok1v1ohx5iez.us.auth0.com' || domain === 'dev-vdhdedydkqqaxog0.us.auth0.com' || domain === 'dev-vdhdedydkqqaxog0') {
+          domain = 'dev-khvop4d61s5ip8d3.us.auth0.com';
+        }
         try {
           console.log(`Fetching userinfo from Auth0 to retrieve real email for ${sub}...`);
           const userInfo = await this.fetchUserInfo(domain, token);
