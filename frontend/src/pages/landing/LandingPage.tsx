@@ -117,7 +117,7 @@ const LandingPage: React.FC = () => {
               Ingresar
             </button>
             <button 
-              onClick={() => navigate('/register')} 
+              onClick={() => navigate('/login')} 
               className="text-sm font-semibold bg-white text-black hover:bg-slate-200 px-5 py-2.5 rounded-full transition-all shadow-lg hover:scale-105 active:scale-95 duration-200"
             >
               Registrarse
