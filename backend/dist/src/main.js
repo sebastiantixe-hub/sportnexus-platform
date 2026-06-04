@@ -25,6 +25,9 @@ async function bootstrap() {
         'http://localhost:3000',
         /\.onrender\.com$/,
         /\.vercel\.app$/,
+        /\.hercix\.com$/,
+        'https://hercix.com',
+        'https://www.hercix.com',
     ].filter(Boolean);
     app.enableCors({
         origin: allowedOrigins,

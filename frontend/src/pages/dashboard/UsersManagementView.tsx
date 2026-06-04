@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/api-client';
 import { useAuth } from '../../context/auth-context';
-import { 
-  Users, 
-  Search, 
-  Plus, 
-  Trash2, 
-  ShieldCheck, 
-  Building, 
-  Dumbbell, 
+import {
+  Users,
+  Search,
+  Plus,
+  Trash2,
+  ShieldCheck,
+  Building,
+  Dumbbell,
   Star,
   Loader2,
-  X
+  X,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Bell,
+  UserCheck,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -19,10 +24,13 @@ import { toast } from 'sonner';
 const UsersManagementView: React.FC = () => {
   const { user } = useAuth();
   const [usersList, setUsersList] = useState<any[]>([]);
+  const [roleRequests, setRoleRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingRequests, setLoadingRequests] = useState(true);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
-  
+  const [activeTab, setActiveTab] = useState<'users' | 'requests'>('users');
+
   // Modal Form State
   const [formData, setFormData] = useState({
     name: '',
@@ -45,8 +53,21 @@ const UsersManagementView: React.FC = () => {
     }
   };
 
+  const fetchRoleRequests = async () => {
+    try {
+      setLoadingRequests(true);
+      const { data } = await api.get('/users/role-requests');
+      setRoleRequests(data);
+    } catch (err) {
+      // silently fail if endpoint not yet available
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
+    fetchRoleRequests();
   }, []);
 
   const handleDelete = async (id: string, role: string) => {
@@ -81,25 +102,74 @@ const UsersManagementView: React.FC = () => {
     }
   };
 
-  const filteredUsers = usersList.filter(u => 
-    u.name.toLowerCase().includes(search.toLowerCase()) || 
+  const handleApprove = async (id: string) => {
+    try {
+      await api.patch(`/users/role-requests/${id}/approve`, {});
+      toast.success('✅ Solicitud aprobada. Rol asignado al usuario.');
+      fetchRoleRequests();
+      fetchUsers();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Error al aprobar solicitud');
+    }
+  };
+
+  const handleReject = async (id: string) => {
+    const note = window.prompt('(Opcional) Escribe una nota para el usuario sobre el rechazo:') || '';
+    try {
+      await api.patch(`/users/role-requests/${id}/reject`, { adminNote: note });
+      toast.success('Solicitud rechazada.');
+      fetchRoleRequests();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Error al rechazar solicitud');
+    }
+  };
+
+  const formatDate = (date: string | null | undefined) => {
+    if (!date) return <span className="text-slate-600 italic text-xs">Nunca</span>;
+    const d = new Date(date);
+    return (
+      <span className="text-slate-400 text-xs">
+        {d.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
+        {' '}
+        <span className="text-slate-600">{d.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}</span>
+      </span>
+    );
+  };
+
+  const filteredUsers = usersList.filter(u =>
+    u.name.toLowerCase().includes(search.toLowerCase()) ||
     u.email.toLowerCase().includes(search.toLowerCase())
   );
 
+  const pendingCount = roleRequests.filter(r => r.status === 'PENDING').length;
+
   const RoleBadge = ({ role }: { role: string }) => {
     const roleConfig: any = {
-      ADMIN: { icon: ShieldCheck, color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20' },
-      GYM_OWNER: { icon: Building, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20' },
-      TRAINER: { icon: Star, color: 'text-yellow-400', bg: 'bg-yellow-500/10 border-yellow-500/20' },
-      USER: { icon: Dumbbell, color: 'text-green-400', bg: 'bg-green-500/10 border-green-500/20' },
+      ADMIN: { icon: ShieldCheck, color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20', label: 'Admin' },
+      GYM_OWNER: { icon: Building, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20', label: 'Dueño' },
+      TRAINER: { icon: Star, color: 'text-yellow-400', bg: 'bg-yellow-500/10 border-yellow-500/20', label: 'Coach' },
+      USER: { icon: Dumbbell, color: 'text-green-400', bg: 'bg-green-500/10 border-green-500/20', label: 'Atleta' },
     };
     const config = roleConfig[role] || roleConfig.USER;
     const Icon = config.icon;
-
     return (
       <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-bold uppercase tracking-wider w-max ${config.color} ${config.bg}`}>
         <Icon className="w-3.5 h-3.5" />
-        {role.replace('_', ' ')}
+        {config.label}
+      </span>
+    );
+  };
+
+  const StatusBadge = ({ status }: { status: string }) => {
+    const cfg: any = {
+      PENDING: { color: 'text-yellow-400', bg: 'bg-yellow-500/10 border-yellow-500/20', label: 'Pendiente' },
+      APPROVED: { color: 'text-green-400', bg: 'bg-green-500/10 border-green-500/20', label: 'Aprobado' },
+      REJECTED: { color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20', label: 'Rechazado' },
+    };
+    const c = cfg[status] || cfg.PENDING;
+    return (
+      <span className={`px-2.5 py-1 rounded-md border text-xs font-bold uppercase tracking-wider ${c.color} ${c.bg}`}>
+        {c.label}
       </span>
     );
   };
@@ -115,97 +185,213 @@ const UsersManagementView: React.FC = () => {
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             <Users className="text-primary-light" /> Gestión de Usuarios
           </h1>
-          <p className="text-slate-400 text-sm">Administra las cuentas de toda la plataforma.</p>
+          <p className="text-slate-400 text-sm">Administra las cuentas y solicitudes de rol de la plataforma.</p>
         </div>
-        <button 
-          onClick={() => setShowModal(true)}
-          className="btn-primary flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" /> Nuevo Usuario
-        </button>
+        {activeTab === 'users' && (
+          <button
+            onClick={() => setShowModal(true)}
+            className="btn-primary flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" /> Nuevo Usuario
+          </button>
+        )}
       </header>
 
-      <div className="glass-card p-6 border-white/5">
-        <div className="relative mb-6">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
-          <input 
-            type="text" 
-            placeholder="Buscar por nombre o correo..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-primary-light outline-none transition-all"
-          />
-        </div>
-
-        {loading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="w-8 h-8 text-primary animate-spin" />
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-white/10 text-slate-500 text-xs uppercase tracking-wider">
-                  <th className="pb-3 font-medium px-4">Usuario</th>
-                  <th className="pb-3 font-medium px-4">Rol</th>
-                  <th className="pb-3 font-medium px-4">Fecha Registro</th>
-                  <th className="pb-3 font-medium px-4 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="text-sm">
-                {filteredUsers.map((u) => (
-                  <tr key={u.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-bold text-primary-light border border-white/10">
-                          {u.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="font-bold text-white">{u.name}</p>
-                          <p className="text-slate-500 text-xs">{u.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <RoleBadge role={u.role} />
-                    </td>
-                    <td className="py-4 px-4 text-slate-400">
-                      {new Date(u.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="py-4 px-4 text-right">
-                      {u.role !== 'ADMIN' && (
-                        <button 
-                          onClick={() => handleDelete(u.id, u.role)}
-                          className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                          title="Eliminar usuario"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-                {filteredUsers.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="text-center py-8 text-slate-500 italic">No se encontraron usuarios.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
+      {/* Tabs */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => setActiveTab('users')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === 'users' ? 'bg-primary text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}
+        >
+          <Users className="w-4 h-4" /> Usuarios ({usersList.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('requests')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all relative ${activeTab === 'requests' ? 'bg-primary text-white' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`}
+        >
+          <Bell className="w-4 h-4" /> Solicitudes de Rol
+          {pendingCount > 0 && (
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+              {pendingCount}
+            </span>
+          )}
+        </button>
       </div>
+
+      {/* USERS TABLE */}
+      {activeTab === 'users' && (
+        <div className="glass-card p-6 border-white/5">
+          <div className="relative mb-6">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Buscar por nombre o correo..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-primary-light outline-none transition-all"
+            />
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="w-8 h-8 text-primary animate-spin" />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-white/10 text-slate-500 text-xs uppercase tracking-wider">
+                    <th className="pb-3 font-medium px-4">Usuario</th>
+                    <th className="pb-3 font-medium px-4">Rol</th>
+                    <th className="pb-3 font-medium px-4">Fecha Registro</th>
+                    <th className="pb-3 font-medium px-4">
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5" /> Última Sesión
+                      </div>
+                    </th>
+                    <th className="pb-3 font-medium px-4 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="text-sm">
+                  {filteredUsers.map((u) => (
+                    <tr key={u.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          {u.avatarUrl ? (
+                            <img src={u.avatarUrl} alt={u.name} className="w-10 h-10 rounded-full object-cover border border-white/10" />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-bold text-primary-light border border-white/10">
+                              {u.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-bold text-white">{u.name}</p>
+                            <p className="text-slate-500 text-xs">{u.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <RoleBadge role={u.role} />
+                      </td>
+                      <td className="py-4 px-4 text-slate-400 text-xs">
+                        {new Date(u.createdAt).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </td>
+                      <td className="py-4 px-4">
+                        {formatDate(u.lastLoginAt)}
+                      </td>
+                      <td className="py-4 px-4 text-right">
+                        {u.role !== 'ADMIN' && (
+                          <button
+                            onClick={() => handleDelete(u.id, u.role)}
+                            className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                            title="Eliminar usuario"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredUsers.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="text-center py-8 text-slate-500 italic">No se encontraron usuarios.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ROLE REQUESTS TAB */}
+      {activeTab === 'requests' && (
+        <div className="glass-card p-6 border-white/5">
+          <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+            <UserCheck className="text-primary-light w-5 h-5" /> Solicitudes de Cambio de Rol
+            {pendingCount > 0 && (
+              <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 text-xs rounded-full border border-yellow-500/30">
+                {pendingCount} pendientes
+              </span>
+            )}
+          </h2>
+
+          {loadingRequests ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="w-8 h-8 text-primary animate-spin" />
+            </div>
+          ) : roleRequests.length === 0 ? (
+            <div className="text-center py-16 text-slate-500 italic">No hay solicitudes de rol registradas.</div>
+          ) : (
+            <div className="space-y-4">
+              {roleRequests.map((req) => (
+                <motion.div
+                  key={req.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center justify-between bg-slate-900/60 border border-white/5 rounded-xl p-4 hover:border-white/10 transition-all"
+                >
+                  <div className="flex items-center gap-4">
+                    {req.user?.avatarUrl ? (
+                      <img src={req.user.avatarUrl} alt={req.user.name} className="w-10 h-10 rounded-full object-cover border border-white/10" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-bold text-primary-light border border-white/10">
+                        {req.user?.name?.charAt(0)?.toUpperCase() || '?'}
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-bold text-white">{req.user?.name}</p>
+                      <p className="text-slate-500 text-xs">{req.user?.email}</p>
+                      {req.reason && (
+                        <p className="text-slate-400 text-xs mt-1 italic">"{req.reason}"</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 flex-wrap justify-end">
+                    <RoleBadge role={req.user?.role || 'USER'} />
+                    <span className="text-slate-600 text-xs">→</span>
+                    <RoleBadge role={req.requestedRole} />
+                    <StatusBadge status={req.status} />
+
+                    {req.status === 'PENDING' && (
+                      <div className="flex gap-2 ml-2">
+                        <button
+                          onClick={() => handleApprove(req.id)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 text-green-400 border border-green-500/20 rounded-lg text-xs font-semibold hover:bg-green-500/20 transition-colors"
+                        >
+                          <CheckCircle className="w-3.5 h-3.5" /> Aprobar
+                        </button>
+                        <button
+                          onClick={() => handleReject(req.id)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-xs font-semibold hover:bg-red-500/20 transition-colors"
+                        >
+                          <XCircle className="w-3.5 h-3.5" /> Rechazar
+                        </button>
+                      </div>
+                    )}
+
+                    {req.adminNote && (
+                      <p className="text-slate-500 text-xs italic w-full text-right">Nota: {req.adminNote}</p>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Modal Crear Usuario */}
       <AnimatePresence>
         {showModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setShowModal(false)}
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -232,13 +418,18 @@ const UsersManagementView: React.FC = () => {
                   <input required type="password" minLength={6} value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-primary" />
                 </div>
                 <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Teléfono</label>
+                  <input type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-primary" />
+                </div>
+                <div>
                   <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Rol</label>
                   <select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-primary">
                     <option value="GYM_OWNER">Dueño de Gimnasio (GYM_OWNER)</option>
                     <option value="TRAINER">Entrenador (TRAINER)</option>
                     <option value="USER">Atleta (USER)</option>
-                    <option value="ADMIN">Administrador (ADMIN)</option>
+                    <option value="ADMIN">Administrador (ADMIN) — Máx. 4</option>
                   </select>
+                  <p className="text-xs text-slate-500 mt-1">* Los roles de Dueño y Coach requieren aprobación cuando se registran solos.</p>
                 </div>
 
                 <div className="pt-4 flex gap-3">

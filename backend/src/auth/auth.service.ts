@@ -143,6 +143,7 @@ export class AuthService {
         avatarUrl: true,
         isActive: true,
         emailVerified: true,
+        lastLoginAt: true,
         createdAt: true,
       },
     });
@@ -401,6 +402,8 @@ export class AuthService {
       if (auth0Id.startsWith('google-oauth2|') && (user.role === UserRole.ADMIN || user.role === UserRole.GYM_OWNER || user.role === UserRole.TRAINER)) {
         throw new UnauthorizedException('Por motivos de ciberseguridad corporativa, los perfiles de Administrador, Dueño y Coach de Hercix tienen estrictamente prohibido el ingreso con cuentas sociales (Google). Debe iniciar sesión utilizando sus credenciales locales seguras (Email y Contraseña).');
       }
+      // Actualizar última sesión
+      await this.prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
       return user;
     }
 

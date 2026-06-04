@@ -20,6 +20,7 @@ model User {
   avatarUrl       String?          @map("avatar_url") @db.VarChar(500)
   isActive        Boolean          @default(true) @map("is_active")
   emailVerified   Boolean          @default(false) @map("email_verified")
+  lastLoginAt     DateTime?        @map("last_login_at")
   createdAt       DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @updatedAt @map("updated_at")
   gyms            Gym[]
@@ -45,6 +46,7 @@ model User {
   userGoal             UserGoal?
   coachRecommendations CoachRecommendation[] @relation("AthleteRecommendations")
   coachRecommendationsGiven CoachRecommendation[] @relation("CoachRecommendations")
+  roleRequests         RoleRequest[]
 
   @@map("users")
 }
@@ -723,4 +725,18 @@ model CoachRecommendation {
   @@map("coach_recommendations")
 }
 
+model RoleRequest {
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  requestedRole UserRole  @map("requested_role")
+  status        String    @default("PENDING")
+  reason        String?   @db.Text
+  adminNote     String?   @map("admin_note") @db.Text
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([status])
+  @@map("role_requests")
+}
