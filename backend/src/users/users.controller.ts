@@ -24,6 +24,15 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  // ── Admin: Get user personalized profile ──────────────────────────────
+  @Get(':id/profile')
+  @UseGuards(AnyAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Ver perfil detallado y personalizado de un usuario (Solo Admin)' })
+  findOneProfile(@Param('id') id: string) {
+    return this.usersService.findOneProfile(id);
+  }
+
   // ── Admin: Create user manually ───────────────────────────────────────
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)

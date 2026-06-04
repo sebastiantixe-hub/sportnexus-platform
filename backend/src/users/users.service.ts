@@ -27,6 +27,83 @@ export class UsersService {
     return users;
   }
 
+  async findOneProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true, name: true, email: true, role: true,
+        phone: true, dni: true, avatarUrl: true,
+        isActive: true, emailVerified: true,
+        lastLoginAt: true, createdAt: true, weight: true,
+      },
+    });
+    if (!user) throw new NotFoundException('Usuario no encontrado.');
+
+    // Datos específicos según el rol
+    let roleData: any = {};
+
+    if (user.role === 'GYM_OWNER') {
+      const gyms = await this.prisma.gym.findMany({
+        where: { ownerId: userId },
+        select: {
+          id: true, name: true, city: true, district: true, status: true, createdAt: true,
+          _count: { select: { classes: true, orders: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      });
+      const totalGyms = await this.prisma.gym.count({ where: { ownerId: userId } });
+      const totalOrders = await this.prisma.order.count({ where: { gym: { ownerId: userId } } });
+      roleData = { gyms, stats: { totalGyms, totalOrders } };
+    }
+
+    if (user.role === 'TRAINER') {
+      const profile = await this.prisma.trainerProfile.findUnique({
+        where: { userId },
+        select: { bio: true, specialties: true, certifications: true, experienceYears: true, hourlyRate: true, rating: true },
+      });
+      const services = await this.prisma.professionalService.findMany({
+        where: { userId },
+        select: { id: true, title: true, type: true, price: true, maxClients: true, district: true },
+        take: 10,
+      });
+      const totalServices = await this.prisma.professionalService.count({ where: { userId } });
+      const bookings = await this.prisma.professionalBooking.count({ where: { professionalId: userId } });
+      roleData = { profile, services, stats: { totalServices, bookings } };
+    }
+
+    if (user.role === 'USER') {
+      const reservations = await this.prisma.reservation.findMany({
+        where: { userId },
+        select: {
+          id: true, status: true, createdAt: true,
+          class: { select: { name: true, gym: { select: { name: true, district: true } } } },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+      });
+      const memberships = await this.prisma.userMembership.findMany({
+        where: { userId },
+        select: {
+          status: true, startDate: true, endDate: true,
+          plan: { select: { name: true, gym: { select: { name: true } } } },
+        },
+        take: 3,
+      });
+      const orders = await this.prisma.order.count({ where: { userId } });
+      const totalReservations = await this.prisma.reservation.count({ where: { userId } });
+      roleData = { reservations, memberships, stats: { orders, totalReservations } };
+    }
+
+    if (user.role === 'ADMIN') {
+      const usersCreated = await this.prisma.user.count();
+      const gymsTotal = await this.prisma.gym.count();
+      roleData = { stats: { usersCreated, gymsTotal } };
+    }
+
+    return { ...user, roleData };
+  }
+
   async create(createDto: CreateUserAdminDto) {
     // ── Límite: máximo 4 administradores en la plataforma ──
     if (createDto.role === UserRole.ADMIN) {

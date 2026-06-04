@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/api-client';
 import { useAuth } from '../../context/auth-context';
+import UserProfileModal from './components/UserProfileModal';
 import {
   Users,
   Search,
@@ -30,6 +31,7 @@ const UsersManagementView: React.FC = () => {
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'users' | 'requests'>('users');
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   // Modal Form State
   const [formData, setFormData] = useState({
@@ -254,7 +256,12 @@ const UsersManagementView: React.FC = () => {
                 </thead>
                 <tbody className="text-sm">
                   {filteredUsers.map((u) => (
-                    <tr key={u.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                    <tr
+                      key={u.id}
+                      onClick={() => setSelectedUserId(u.id)}
+                      className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer group"
+                      title="Clic para ver perfil completo"
+                    >
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-3">
                           {u.avatarUrl ? (
@@ -443,6 +450,12 @@ const UsersManagementView: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* ── Modal de Visualización Personalizada por Usuario ── */}
+      <UserProfileModal
+        userId={selectedUserId}
+        onClose={() => setSelectedUserId(null)}
+      />
     </div>
   );
 };
