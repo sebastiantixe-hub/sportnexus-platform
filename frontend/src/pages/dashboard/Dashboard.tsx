@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import RecommendationsPanel from '../../components/ai/RecommendationsPanel';
+import { toast } from 'sonner';
 
 /* ─────────────────────────── Sub-components ─────────────────────────── */
 
@@ -206,6 +207,37 @@ const Dashboard: React.FC = () => {
   const [activeView, setActiveView] = useState<'dashboard' | 'suite'>('dashboard');
   const [suiteTab, setSuiteTab] = useState<'clients' | 'classes' | 'crm'>('clients');
   const [ownerClasses, setOwnerClasses] = useState<any[]>([]);
+
+  // ── Role Request states ──
+  const [activeRoleRequest, setActiveRoleRequest] = useState<any>(null);
+  const [showRoleRequestModal, setShowRoleRequestModal] = useState(false);
+  const [reqRole, setReqRole] = useState<'GYM_OWNER' | 'TRAINER'>('GYM_OWNER');
+  const [reqReason, setReqReason] = useState('');
+  const [submittingRoleReq, setSubmittingRoleReq] = useState(false);
+
+  const handleRoleRequestSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reqReason.trim()) {
+      alert('Por favor ingresa un motivo para tu solicitud.');
+      return;
+    }
+    try {
+      setSubmittingRoleReq(true);
+      const { data } = await api.post('/users/role-requests', {
+        requestedRole: reqRole,
+        reason: reqReason
+      });
+      setActiveRoleRequest(data);
+      setShowRoleRequestModal(false);
+      setReqReason('');
+      toast.success('✅ Solicitud de rol enviada con éxito.');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al enviar la solicitud';
+      toast.error(`❌ ${msg}`);
+    } finally {
+      setSubmittingRoleReq(false);
+    }
+  };
   
   // Custom Modals states
   const [activeModal, setActiveModal] = useState<'history' | 'edit' | 'message' | 'register' | null>(null);
@@ -272,6 +304,7 @@ const Dashboard: React.FC = () => {
     api.get('/auth/stats').then(({ data }) => setStats(data)).catch(console.error).finally(() => setLoading(false));
     if (user?.role === 'USER') {
       api.get('/memberships/me').then(({ data }) => setMemberships(data)).catch(console.error);
+      api.get('/users/role-requests/mine').then(({ data }) => setActiveRoleRequest(data)).catch(() => {});
     }
     if (isOwner) {
       api.get('/classes').then(({ data }) => {
@@ -1107,6 +1140,45 @@ const Dashboard: React.FC = () => {
             </div>
           )}
 
+          {!isOwner && !isTrainer && !isAdmin && (
+            <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-3xl border border-white/5 space-y-4 animate-in fade-in duration-500">
+              <div>
+                <span className="text-white/40 text-xs font-semibold uppercase tracking-wider">Solicitud de Rol</span>
+                {activeRoleRequest ? (
+                  <div className="mt-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-white font-bold text-sm">Cambio a {activeRoleRequest.requestedRole === 'GYM_OWNER' ? 'Dueño' : 'Entrenador'}</span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        activeRoleRequest.status === 'PENDING' ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' :
+                        activeRoleRequest.status === 'APPROVED' ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
+                        'bg-red-500/10 text-red-400 border border-red-500/20'
+                      }`}>
+                        {activeRoleRequest.status === 'PENDING' ? 'Pendiente' : 
+                         activeRoleRequest.status === 'APPROVED' ? 'Aprobado' : 'Rechazado'}
+                      </span>
+                    </div>
+                    <p className="text-slate-400 text-xs mt-1 leading-relaxed">
+                      {activeRoleRequest.status === 'PENDING' ? 'Tu solicitud está siendo revisada por un administrador.' :
+                       activeRoleRequest.status === 'APPROVED' ? '¡Tu solicitud ha sido aprobada! Cambia de rol en la barra superior.' :
+                       `Solicitud rechazada: ${activeRoleRequest.adminNote || 'Sin notas.'}`}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-3">
+                    <h4 className="text-white font-bold text-sm">¿Eres Dueño o Coach?</h4>
+                    <p className="text-slate-500 text-xs mt-1">Solicita la activación de tu perfil profesional de forma gratuita.</p>
+                    <button 
+                      onClick={() => setShowRoleRequestModal(true)}
+                      className="w-full bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 border border-indigo-500/20 py-2.5 mt-4 text-xs font-bold rounded-xl transition-all"
+                    >
+                      Solicitar Aprobación
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           <div>
             <h2 className="text-lg font-bold text-white mb-3">Accesos Rápidos</h2>
             <div className="space-y-2">
@@ -1133,6 +1205,96 @@ const Dashboard: React.FC = () => {
 
       {/* AI Recommendations */}
       <RecommendationsPanel />
+
+      {/* 5. Role Request Modal */}
+      {showRoleRequestModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-300">
+          <motion.div 
+            initial={{ scale: 0.95, opacity: 0 }} 
+            animate={{ scale: 1, opacity: 1 }} 
+            className="bg-gradient-to-b from-slate-900 to-slate-955 border border-white/10 rounded-3xl p-6 w-full max-w-md shadow-2xl relative"
+          >
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest text-[10px] font-mono">Solicitud de Rol</span>
+                <h3 className="text-xl font-bold text-white mt-1">Activar Perfil Profesional</h3>
+              </div>
+              <button 
+                onClick={() => setShowRoleRequestModal(false)} 
+                className="text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-xl transition-all"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleRoleRequestSubmit} className="space-y-4">
+              <div>
+                <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">Rol Solicitado</label>
+                <div className="grid grid-cols-2 gap-4 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setReqRole('GYM_OWNER')}
+                    className={`p-4 rounded-2xl border text-left flex flex-col justify-between transition-all ${
+                      reqRole === 'GYM_OWNER' 
+                        ? 'border-primary bg-primary/10 text-white font-bold' 
+                        : 'border-white/5 bg-slate-950 text-slate-400 hover:border-white/10'
+                    }`}
+                  >
+                    <Building2 className="w-5 h-5 mb-2 text-primary-light" />
+                    <div>
+                      <p className="text-xs font-bold text-white">Dueño de Gimnasio</p>
+                      <p className="text-[10px] text-slate-500 mt-1">Gestiona locales, aforos y membresías</p>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReqRole('TRAINER')}
+                    className={`p-4 rounded-2xl border text-left flex flex-col justify-between transition-all ${
+                      reqRole === 'TRAINER' 
+                        ? 'border-accent bg-accent/10 text-white font-bold' 
+                        : 'border-white/5 bg-slate-950 text-slate-400 hover:border-white/10'
+                    }`}
+                  >
+                    <Dumbbell className="w-5 h-5 mb-2 text-accent" />
+                    <div>
+                      <p className="text-xs font-bold text-white">Coach / Entrenador</p>
+                      <p className="text-[10px] text-slate-500 mt-1">Gestiona clases y rutinas personalizadas</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">Motivo de la Solicitud</label>
+                <textarea 
+                  value={reqReason} 
+                  onChange={(e) => setReqReason(e.target.value)} 
+                  rows={4}
+                  placeholder="Explica detalladamente por qué solicitas este rol (ej. Nombre de tu gimnasio o tu especialidad como entrenador)..."
+                  className="w-full mt-1.5 bg-slate-950 border border-white/10 rounded-xl p-4 text-xs text-white focus:border-indigo-500 outline-none resize-none leading-relaxed"
+                />
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-white/5 flex gap-3">
+                <button 
+                  type="button"
+                  onClick={() => setShowRoleRequestModal(false)} 
+                  className="flex-grow py-2.5 border border-white/10 hover:bg-white/5 text-slate-300 hover:text-white rounded-xl text-sm font-bold transition-all"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit"
+                  disabled={submittingRoleReq}
+                  className="flex-grow py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-1.5 shadow-lg"
+                >
+                  {submittingRoleReq ? 'Enviando...' : 'Enviar Solicitud'}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

@@ -32,7 +32,7 @@ async function main() {
 
   // 1. Admins
   const adminData = [
-    { name: 'Mario Solis (Super Admin)', email: 'mario.admin@hercix-demo.com' },
+    { name: 'Mario Solis (Super Admin)', email: 'mario123q@gmail.com' },
     { name: 'Sebastian Tixe (Dev)', email: 'sebastian.admin@hercix-demo.com' },
     { name: 'Soporte Tecnico Hercix', email: 'soporte.tecnico@hercix-demo.com' },
     { name: 'Gerente Plataforma', email: 'gerente.plataforma@hercix-demo.com' },

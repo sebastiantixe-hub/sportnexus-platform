@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../api/api-client';
+import api from '../../../api/api-client';
 import {
   X, User, Mail, Phone, CreditCard, Shield, Building, Dumbbell, Star, Clock,
-  Calendar, MapPin, CheckCircle, XCircle, TrendingUp, Package, BookOpen,
+  Calendar, MapPin, CheckCircle, XCircle, Package, BookOpen,
   Award, Loader2, Activity, Home, ShoppingBag,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -60,7 +60,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ userId, onClose }) 
     setLoading(true);
     setProfile(null);
     api.get(`/users/${userId}/profile`)
-      .then(({ data }) => setProfile(data))
+      .then(({ data }: any) => setProfile(data))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [userId]);
