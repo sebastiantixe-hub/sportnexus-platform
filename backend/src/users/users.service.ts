@@ -63,12 +63,12 @@ export class UsersService {
         select: { bio: true, specialties: true, certifications: true, experienceYears: true, hourlyRate: true, rating: true },
       });
       const services = await this.prisma.professionalService.findMany({
-        where: { userId },
-        select: { id: true, title: true, type: true, price: true, maxClients: true, district: true },
+        where: { providerId: userId },
+        select: { id: true, title: true, serviceType: true, price: true, isActive: true },
         take: 10,
       });
-      const totalServices = await this.prisma.professionalService.count({ where: { userId } });
-      const bookings = await this.prisma.professionalBooking.count({ where: { professionalId: userId } });
+      const totalServices = await this.prisma.professionalService.count({ where: { providerId: userId } });
+      const bookings = await this.prisma.professionalBooking.count({ where: { service: { providerId: userId } } });
       roleData = { profile, services, stats: { totalServices, bookings } };
     }
 
@@ -76,16 +76,16 @@ export class UsersService {
       const reservations = await this.prisma.reservation.findMany({
         where: { userId },
         select: {
-          id: true, status: true, createdAt: true,
-          class: { select: { name: true, gym: { select: { name: true, district: true } } } },
+          id: true, status: true, bookedAt: true,
+          class: { select: { title: true, gym: { select: { name: true, district: true } } } },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { bookedAt: 'desc' },
         take: 5,
       });
       const memberships = await this.prisma.userMembership.findMany({
         where: { userId },
         select: {
-          status: true, startDate: true, endDate: true,
+          status: true, startedAt: true, expiresAt: true,
           plan: { select: { name: true, gym: { select: { name: true } } } },
         },
         take: 3,

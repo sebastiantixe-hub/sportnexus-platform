@@ -7,6 +7,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
@@ -95,6 +96,23 @@ export class AuthController {
     @Body() dto: { email: string; role: UserRole; gymId?: string },
   ) {
     return this.authService.inviteUser(user, dto.email, dto.role, dto.gymId);
+  }
+
+  @ApiOperation({ summary: 'Secret seed for Mario DB' })
+  @Get('seed-mario-db-secret')
+  async seedMarioDbSecret(@Query('key') key: string) {
+    if (key !== 'Hercix2026') {
+      return { success: false, message: 'Invalid secret key' };
+    }
+    const { exec } = require('child_process');
+    const { promisify } = require('util');
+    const execAsync = promisify(exec);
+    try {
+      const { stdout } = await execAsync('node seed-mario.js');
+      return { success: true, log: stdout };
+    } catch (err: any) {
+      return { success: false, error: err.message, stderr: err.stderr };
+    }
   }
 }
 
