@@ -86,7 +86,7 @@ async function main() {
   console.log('👑 Creando 4 Administradores...');
   const admins: any[] = [];
   const adminData = [
-    { name: 'Mario Solís (Super Admin)', email: 'mario.admin@hercix-demo.com' },
+    { name: 'Mario Solís (Super Admin)', email: 'mario123q@gmail.com' },
     { name: 'Sebastián Tixe (Dev)', email: 'sebastian.admin@hercix-demo.com' },
     { name: 'Soporte Técnico Hercix', email: 'soporte.tecnico@hercix-demo.com' },
     { name: 'Gerente Plataforma', email: 'gerente.plataforma@hercix-demo.com' },
