@@ -7,7 +7,7 @@
  * Ejecutar: npx ts-node -r tsconfig-paths/register prisma/seed-demo-mario.ts
  */
 
-import { PrismaClient, UserRole } from '@prisma/client';
+import { PrismaClient, UserRole, ServiceType } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -60,9 +60,9 @@ const productNames = [
   'Shaker Pro 700ml', 'Mochila Gym Bag',
 ];
 
-const serviceTypes = [
-  'PERSONAL_TRAINING', 'NUTRITION_PLAN', 'PHYSIOTHERAPY', 'CONSULTATION'
-] as const;
+const serviceTypes: ServiceType[] = [
+  ServiceType.PERSONAL_TRAINING, ServiceType.NUTRITION_PLAN, ServiceType.PHYSIOTHERAPY, ServiceType.CONSULTATION,
+];
 
 const maleNames = ['Carlos', 'Luis', 'Javier', 'Andrés', 'Miguel', 'Roberto', 'Diego', 'Sebastián', 'Alejandro', 'Fernando', 'Jorge', 'Raúl', 'Pablo', 'Eduardo', 'Oscar'];
 const femaleNames = ['María', 'Lucía', 'Valentina', 'Daniela', 'Ana', 'Carmen', 'Rosa', 'Patricia', 'Gabriela', 'Sofía', 'Isabel', 'Elena', 'Natalia', 'Paola', 'Claudia'];
@@ -164,17 +164,20 @@ async function main() {
         // Crear clases para cada gimnasio (mín 2, máx 10)
         const numClasses = rnd(2, 10);
         const shuffledClasses = [...classNames].sort(() => Math.random() - 0.5).slice(0, numClasses);
-        for (const className of shuffledClasses) {
+        const baseDate = new Date();
+        for (let ci = 0; ci < shuffledClasses.length; ci++) {
+          const classTitle = shuffledClasses[ci];
+          const scheduledAt = new Date(baseDate.getTime() + ci * 24 * 60 * 60 * 1000); // dias futuros
           await prisma.class.create({
             data: {
               gymId: gym.id,
-              name: className,
-              description: `Clase de ${className} en ${gymName}. Todos los niveles bienvenidos.`,
-              type: pick(['IN_PERSON', 'ONLINE', 'HYBRID']),
+              title: classTitle,
+              description: `Clase de ${classTitle} en ${gymName}. Todos los niveles bienvenidos.`,
+              classType: pick(['IN_PERSON', 'ONLINE', 'HYBRID'] as const),
               capacity: rnd(10, 30),
-              duration: pick([45, 60, 75, 90]),
+              durationMin: pick([45, 60, 75, 90]),
               price: rnd(20, 80),
-              schedule: pick(['Lunes y Miércoles 7:00 AM', 'Martes y Jueves 6:00 PM', 'Sábados 9:00 AM', 'Diario 8:00 AM']),
+              scheduledAt,
             },
           });
         }
@@ -237,15 +240,12 @@ async function main() {
       for (let s = 0; s < numServices; s++) {
         await prisma.professionalService.create({
           data: {
-            userId: coach.id,
+            providerId: coach.id,
             title: `${pick(['Entrenamiento', 'Sesión', 'Plan', 'Consulta'])} ${pick(['Personal', 'Grupal', 'Online', 'Intensivo'])} – ${coach.name.split(' ')[0]}`,
             description: `Servicio profesional personalizado. ${rnd(4, 12)} semanas de programa estructurado.`,
-            type: pick(serviceTypes),
+            serviceType: pick(serviceTypes),
             price: rnd(80, 500),
-            duration: rnd(4, 12),
-            maxClients: rnd(1, 20),
-            district: pick(DISTRICTS),
-            city: 'Lima',
+            durationMin: rnd(30, 120),
           },
         });
       }
