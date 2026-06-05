@@ -1039,7 +1039,7 @@ const Dashboard: React.FC = () => {
         ) : (
           <>
             <StatCard label="Clases Reservadas" value={stats?.reservations ?? 0} icon={Calendar} color="primary" delay={0.05} />
-            <StatCard label="Gimnasios Disponibles" value={stats?.gyms ?? 0} icon={Dumbbell} color="secondary" delay={0.1} />
+            <StatCard label="Membresías Activas" value={memberships.length} icon={Dumbbell} color="secondary" delay={0.1} />
             <StatCard label="Puntos Reward" value={(stats?.points ?? 0).toLocaleString()} icon={Star} color="accent" trend="🏅 Activo" delay={0.15} />
             <StatCard label="Meses Activo" value={stats?.months ?? 1} icon={Clock} color="green" delay={0.2} />
           </>

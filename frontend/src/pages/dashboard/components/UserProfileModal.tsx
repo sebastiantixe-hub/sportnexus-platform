@@ -302,7 +302,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ userId, onClose }) 
                             {profile.roleData.reservations.map((r: any) => (
                               <div key={r.id} className="flex items-center justify-between bg-slate-900/60 border border-white/5 rounded-xl px-4 py-3">
                                 <div>
-                                  <p className="text-white font-semibold text-sm">{r.class?.name}</p>
+                                  <p className="text-white font-semibold text-sm">{r.class?.title}</p>
                                   <p className="text-slate-500 text-xs mt-0.5 flex items-center gap-1">
                                     <Home className="w-3 h-3" /> {r.class?.gym?.name} · {r.class?.gym?.district}
                                   </p>
