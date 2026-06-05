@@ -105,13 +105,32 @@ export class AuthController {
       return { success: false, message: 'Invalid secret key' };
     }
     const { exec } = require('child_process');
-    const { promisify } = require('util');
-    const execAsync = promisify(exec);
+    // Launch seed in background, do not await it
+    exec('node seed-mario.js', (err: any, stdout: string, stderr: string) => {
+      if (err) {
+        console.error('Seed background error:', err);
+      } else {
+        console.log('Seed background stdout:', stdout);
+      }
+    });
+    return { 
+      success: true, 
+      message: 'Sembrado de base de datos iniciado en segundo plano. Monitorea el progreso en /api/auth/seed-status' 
+    };
+  }
+
+  @ApiOperation({ summary: 'Check status of secret seed' })
+  @Get('seed-status')
+  async seedStatus() {
+    const fs = require('fs');
     try {
-      const { stdout } = await execAsync('node seed-mario.js');
-      return { success: true, log: stdout };
+      if (fs.existsSync('seed-progress.json')) {
+        const data = fs.readFileSync('seed-progress.json', 'utf8');
+        return JSON.parse(data);
+      }
+      return { status: 'No iniciado o en espera', percent: 0 };
     } catch (err: any) {
-      return { success: false, error: err.message, stderr: err.stderr };
+      return { status: 'Error al leer el estado', error: err.message };
     }
   }
 }
