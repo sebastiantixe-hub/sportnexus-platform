@@ -112,7 +112,13 @@ export class AuthController {
       return { success: true, log: stdout };
     } catch (err: any) {
       return { success: false, error: err.message, stderr: err.stderr };
-    }
+  }
+
+  @ApiOperation({ summary: 'Demo login bypassing Auth0' })
+  @Post('demo-login')
+  @HttpCode(HttpStatus.OK)
+  demoLogin(@Body() dto: { role: string; key: string }) {
+    return this.authService.demoLogin(dto.role, dto.key);
   }
 }
 

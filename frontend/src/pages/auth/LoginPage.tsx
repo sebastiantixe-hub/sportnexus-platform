@@ -1,12 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/auth-context';
-import { Building2, Dumbbell, Users, LogIn, ArrowLeft } from 'lucide-react';
+import { Building2, Dumbbell, Users, LogIn, ArrowLeft, ShieldCheck, Sparkles, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const LoginPage: React.FC = () => {
-  const { login } = useAuth();
+  const { login, loginAsDemo } = useAuth();
   const navigate = useNavigate();
+  const [loadingRole, setLoadingRole] = useState<string | null>(null);
+
+  const handleDemoLogin = async (role: string) => {
+    setLoadingRole(role);
+    try {
+      await loginAsDemo(role);
+      navigate('/dashboard');
+    } catch (err) {
+      console.error(err);
+      alert('Error al conectar en modo Demo. Asegúrate de haber realizado el sembrado de base de datos en Render primero.');
+    } finally {
+      setLoadingRole(null);
+    }
+  };
 
   const roles = [
     {
@@ -59,7 +73,7 @@ const LoginPage: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center max-w-2xl mb-12 relative z-10"
+        className="text-center max-w-2xl mb-10 relative z-10"
       >
         <img src="/hercix-logo.png" alt="Hercix" className="h-20 mx-auto object-contain mb-4" />
         <h1 className="text-4xl font-extrabold text-white tracking-tight">Portal de Acceso Seguro</h1>
@@ -69,7 +83,7 @@ const LoginPage: React.FC = () => {
       </motion.div>
 
       {/* Interactive Gateway Cards Grid - Symmetric 3-column Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl relative z-10 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl relative z-10 mb-8">
         {roles.map((r, i) => {
           const Icon = r.icon;
           return (
@@ -115,6 +129,47 @@ const LoginPage: React.FC = () => {
           );
         })}
       </div>
+
+      {/* MODO DEMO / TEST DRIVE SECTION */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="w-full max-w-6xl relative z-10 mb-10 p-6 rounded-2xl border border-dashed border-primary/30 bg-primary/5 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-6"
+      >
+        <div className="flex-1">
+          <div className="flex items-center gap-2 text-primary-light">
+            <Sparkles className="w-5 h-5 animate-pulse" />
+            <h2 className="text-lg font-bold text-white uppercase tracking-wider">Modo Demo / Test Drive</h2>
+          </div>
+          <p className="text-slate-400 text-xs mt-1 leading-relaxed">
+            Prueba la experiencia completa al instante usando las cuentas simuladas y datos precargados (30 dueños, 20 coaches y 70 atletas en distritos de Lima). Selecciona un rol de prueba:
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: 'Super Admin', role: 'ADMIN', color: 'bg-red-500/20 hover:bg-red-500/35 border-red-500/30 text-red-300' },
+            { label: 'Dueño de Gym', role: 'GYM_OWNER', color: 'bg-blue-500/20 hover:bg-blue-500/35 border-blue-500/30 text-blue-300' },
+            { label: 'Entrenador', role: 'TRAINER', color: 'bg-amber-500/20 hover:bg-amber-500/35 border-amber-500/30 text-amber-300' },
+            { label: 'Atleta (Mateo)', role: 'USER', color: 'bg-green-500/20 hover:bg-green-500/35 border-green-500/30 text-green-300' }
+          ].map((d) => (
+            <button
+              key={d.role}
+              disabled={loadingRole !== null}
+              onClick={() => handleDemoLogin(d.role)}
+              className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-bold transition-all duration-200 transform hover:scale-105 active:scale-95 disabled:opacity-50 ${d.color}`}
+            >
+              {loadingRole === d.role ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <ShieldCheck className="w-3.5 h-3.5" />
+              )}
+              {d.label}
+            </button>
+          ))}
+        </div>
+      </motion.div>
 
       {/* Footer Branding */}
       <motion.div
