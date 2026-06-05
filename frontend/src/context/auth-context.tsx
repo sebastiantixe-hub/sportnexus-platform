@@ -20,7 +20,6 @@ interface AuthContextType {
   logout: () => void;
   updateUserProfile: (data: { name: string; phone?: string; dni?: string }) => Promise<void>;
   switchUserRole: (role: string) => Promise<void>;
-  loginAsDemo: (role: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,33 +40,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const syncUser = async () => {
-      const isDemo = localStorage.getItem('isDemo') === 'true';
-      const localToken = localStorage.getItem('token');
-
-      // Si es sesión de demo, cargar perfil usando el token guardado
-      if (isDemo && localToken) {
-        setBackendLoading(true);
-        try {
-          const { data } = await api.get('/auth/me');
-          if (!data.roles) {
-            const computedRoles: string[] = ['USER'];
-            if (data.role === 'ADMIN') computedRoles.push('ADMIN');
-            if (data.role === 'GYM_OWNER') computedRoles.push('GYM_OWNER');
-            if (data.role === 'TRAINER') computedRoles.push('TRAINER');
-            data.roles = computedRoles;
-          }
-          setUser(data);
-        } catch (error) {
-          console.error('Error cargando perfil demo:', error);
-          setUser(null);
-          localStorage.removeItem('token');
-          localStorage.removeItem('isDemo');
-        } finally {
-          setBackendLoading(false);
-        }
-        return;
-      }
-
       // Si hay un código de Auth0 en la URL, no hacemos nada todavía, dejamos que el SDK procese el callback
       const params = new URLSearchParams(window.location.search);
       const hasAuth0Params = params.has('code') || params.has('error') || params.has('state');
@@ -144,43 +116,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
   };
-
-  const loginAsDemo = async (role: string) => {
-    try {
-      setBackendLoading(true);
-      const { data } = await api.post('/auth/demo-login', { role, key: 'Hercix2026' });
-      localStorage.setItem('token', data.accessToken);
-      localStorage.setItem('isDemo', 'true');
-      
-      const userData = data.user;
-      if (!userData.roles) {
-        const computedRoles: string[] = ['USER'];
-        if (userData.role === 'ADMIN') computedRoles.push('ADMIN');
-        if (userData.role === 'GYM_OWNER') computedRoles.push('GYM_OWNER');
-        if (userData.role === 'TRAINER') computedRoles.push('TRAINER');
-        userData.roles = computedRoles;
-      }
-      setUser(userData);
-      console.log(`Logueado con éxito como Demo ${role}:`, userData.email);
-    } catch (error) {
-      console.error('Error en demo-login:', error);
-      throw error;
-    } finally {
-      setBackendLoading(false);
-    }
-  };
   
   const logout = () => {
-    const isDemo = localStorage.getItem('isDemo') === 'true';
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
-    localStorage.removeItem('isDemo');
-    setUser(null);
-    if (!isDemo) {
-      auth0Logout({ logoutParams: { returnTo: window.location.origin } });
-    } else {
-      window.location.href = '/login';
-    }
+    auth0Logout({ logoutParams: { returnTo: window.location.origin } });
   };
 
   const updateUserProfile = async (profileData: { name: string; phone?: string; dni?: string }) => {
@@ -222,12 +162,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <AuthContext.Provider value={{ 
       user, 
-      loading: (!localStorage.getItem('isDemo') && auth0Loading) || (isAuthenticated && backendLoading) || (localStorage.getItem('isDemo') === 'true' && backendLoading), 
+      loading: auth0Loading || (isAuthenticated && backendLoading), 
       login, 
       logout,
       updateUserProfile,
-      switchUserRole,
-      loginAsDemo
+      switchUserRole
     }}>
       {children}
     </AuthContext.Provider>

@@ -93,45 +93,6 @@ export class AuthService {
     return { user: safeUser, ...tokens };
   }
 
-  // ── Demo Login ────────────────────────────────────────────────────────────
-
-  async demoLogin(role: string, secretKey: string) {
-    if (secretKey !== 'Hercix2026') {
-      throw new UnauthorizedException('Clave secreta incorrecta');
-    }
-
-    let user;
-    if (role === 'ADMIN') {
-      user = await this.prisma.user.findFirst({ where: { role: UserRole.ADMIN } });
-    } else if (role === 'GYM_OWNER') {
-      user = await this.prisma.user.findFirst({ where: { role: UserRole.GYM_OWNER } });
-    } else if (role === 'TRAINER') {
-      user = await this.prisma.user.findFirst({ where: { role: UserRole.TRAINER } });
-    } else if (role === 'USER') {
-      user = await this.prisma.user.findFirst({
-        where: { name: { contains: 'Mateo' }, role: UserRole.USER }
-      });
-      if (!user) {
-        user = await this.prisma.user.findFirst({ where: { role: UserRole.USER } });
-      }
-    }
-
-    if (!user) {
-      throw new NotFoundException(`No se encontró ningún usuario con el rol ${role}`);
-    }
-
-    // Actualizar la última sesión
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { lastLoginAt: new Date() }
-    });
-
-    const { passwordHash: _pw, ...safeUser } = user;
-    const tokens = await this.generateTokens(user.id, user.email, user.role);
-
-    return { user: safeUser, ...tokens };
-  }
-
   // ── Refresh Tokens ────────────────────────────────────────────────────────
 
   async refreshTokens(userId: string, refreshToken: string) {
