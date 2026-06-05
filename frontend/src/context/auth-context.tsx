@@ -98,7 +98,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         authorizationParams: {
           allow_signup: options?.allowSignUp === false ? 'false' : 'true',
           screen_hint: options?.allowSignUp ? 'signup' : 'login',
-          redirect_uri: window.location.origin + '/login', // Redirect back to login page to handle session
         },
       });
     } catch (error: any) {
