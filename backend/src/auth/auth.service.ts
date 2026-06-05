@@ -211,13 +211,41 @@ export class AuthService {
   }
 
   async updateProfile(userId: string, data: { name: string; phone?: string; dni?: string; role?: UserRole }) {
+    const currentUser = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    let newRole = currentUser?.role;
+
+    if (data.role && data.role !== currentUser?.role) {
+      if (currentUser?.role === UserRole.USER && (data.role === UserRole.GYM_OWNER || data.role === UserRole.TRAINER)) {
+        // Create a pending role request instead of updating the role directly
+        const existingRequest = await this.prisma.roleRequest.findFirst({
+          where: { userId, status: 'PENDING' },
+        });
+        if (!existingRequest) {
+          await this.prisma.roleRequest.create({
+            data: {
+              userId,
+              requestedRole: data.role,
+              reason: 'Solicitado en el registro de perfil completo',
+              status: 'PENDING',
+            },
+          });
+        }
+        // Role remains UserRole.USER (no upgrade yet)
+      } else {
+        newRole = data.role;
+      }
+    }
+
     return this.prisma.user.update({
       where: { id: userId },
       data: {
         name: data.name,
         phone: data.phone,
         dni: data.dni,
-        ...(data.role ? { role: data.role } : {}),
+        role: newRole,
       },
       select: {
         id: true,
