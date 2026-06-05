@@ -30,7 +30,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user: auth0User, 
     getAccessTokenSilently, 
     isLoading: auth0Loading,
-    loginWithPopup,
     loginWithRedirect,
     logout: auth0Logout 
   } = useAuth0();
@@ -95,25 +94,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (options?: { allowSignUp?: boolean }) => {
     try {
-      await loginWithPopup({
+      await loginWithRedirect({
         authorizationParams: {
           allow_signup: options?.allowSignUp === false ? 'false' : 'true',
           screen_hint: options?.allowSignUp ? 'signup' : 'login',
+          redirect_uri: window.location.origin + '/login', // Redirect back to login page to handle session
         },
       });
     } catch (error: any) {
-      // Si el popup fue bloqueado o falló, redirigir de forma estándar
-      console.warn('Popup de Auth0 bloqueado o cerrado, redirigiendo...', error);
-      try {
-        await loginWithRedirect({
-          authorizationParams: {
-            allow_signup: options?.allowSignUp === false ? 'false' : 'true',
-            screen_hint: options?.allowSignUp ? 'signup' : 'login',
-          },
-        });
-      } catch (redirectErr) {
-        console.error('Error al redirigir a Auth0:', redirectErr);
-      }
+      console.error('Error al redirigir a Auth0:', error);
     }
   };
   
