@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/auth-context';
 import { motion } from 'framer-motion';
 import { 
   Building2, 
@@ -11,6 +12,7 @@ import {
 } from 'lucide-react';
 
 const LandingPage: React.FC = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [currentImage, setCurrentImage] = useState(0);
@@ -28,10 +30,20 @@ const LandingPage: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const handlePortalAccess = () => {
+    if (user) {
+      if (user.role === 'ADMIN') navigate('/super-admin');
+      else if (user.role === 'GYM_OWNER') navigate('/owner-dashboard');
+      else if (user.role === 'TRAINER') navigate('/coach-dashboard');
+      else navigate('/dashboard');
+    } else {
+      navigate('/login');
+    }
+  };
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Redirect to discovery map or login
-    navigate('/login');
+    handlePortalAccess();
   };
 
   const categories = [
@@ -102,26 +114,37 @@ const LandingPage: React.FC = () => {
 
           {/* Nav Items (Desktop) */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-            <span onClick={() => navigate('/login')} className="hover:text-primary-lightHover cursor-pointer transition-colors">Marketplace</span>
-            <span onClick={() => navigate('/login')} className="hover:text-primary-lightHover cursor-pointer transition-colors">Gimnasios</span>
-            <span onClick={() => navigate('/login')} className="hover:text-primary-lightHover cursor-pointer transition-colors">Profesionales</span>
-            <span onClick={() => navigate('/login')} className="hover:text-primary-lightHover cursor-pointer transition-colors">IA Health</span>
+            <span onClick={handlePortalAccess} className="hover:text-primary-lightHover cursor-pointer transition-colors">Marketplace</span>
+            <span onClick={handlePortalAccess} className="hover:text-primary-lightHover cursor-pointer transition-colors">Gimnasios</span>
+            <span onClick={handlePortalAccess} className="hover:text-primary-lightHover cursor-pointer transition-colors">Profesionales</span>
+            <span onClick={handlePortalAccess} className="hover:text-primary-lightHover cursor-pointer transition-colors">IA Health</span>
           </nav>
 
           {/* Access Buttons */}
           <div className="flex items-center gap-4">
-            <button 
-              onClick={() => navigate('/login')} 
-              className="text-sm font-semibold text-slate-200 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 transition-all"
-            >
-              Ingresar
-            </button>
-            <button 
-              onClick={() => navigate('/login')} 
-              className="text-sm font-semibold bg-white text-black hover:bg-slate-200 px-5 py-2.5 rounded-full transition-all shadow-lg hover:scale-105 active:scale-95 duration-200"
-            >
-              Registrarse
-            </button>
+            {user ? (
+              <button 
+                onClick={handlePortalAccess} 
+                className="text-sm font-semibold bg-white text-black hover:bg-slate-200 px-6 py-2.5 rounded-full transition-all shadow-lg hover:scale-105 active:scale-95 duration-200"
+              >
+                Ir al Panel
+              </button>
+            ) : (
+              <>
+                <button 
+                  onClick={() => navigate('/login')} 
+                  className="text-sm font-semibold text-slate-200 hover:text-white px-4 py-2 rounded-lg hover:bg-white/5 transition-all"
+                >
+                  Ingresar
+                </button>
+                <button 
+                  onClick={() => navigate('/login')} 
+                  className="text-sm font-semibold bg-white text-black hover:bg-slate-200 px-5 py-2.5 rounded-full transition-all shadow-lg hover:scale-105 active:scale-95 duration-200"
+                >
+                  Registrarse
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -198,7 +221,7 @@ const LandingPage: React.FC = () => {
           {categories.map((c, i) => (
             <span 
               key={i} 
-              onClick={() => navigate('/login')}
+              onClick={handlePortalAccess}
               className="px-3.5 py-1 rounded-full border border-white/5 hover:border-white/10 hover:text-white cursor-pointer bg-white/[0.02] transition-all"
             >
               {c}
@@ -225,7 +248,7 @@ const LandingPage: React.FC = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: i * 0.1 }}
-                  onClick={() => navigate('/login')}
+                  onClick={handlePortalAccess}
                   className={`bg-white/[0.02] border ${p.color} p-8 rounded-3xl flex flex-col justify-between hover:bg-white/[0.04] transition-all cursor-pointer group shadow-lg duration-300 hover:shadow-2xl hover:-translate-y-1`}
                 >
                   <div>

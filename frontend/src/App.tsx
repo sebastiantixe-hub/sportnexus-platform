@@ -36,6 +36,10 @@ const HomeRoute = () => {
   const isProcessingCallback = typeof window !== 'undefined' &&
     (window.location.search.includes('code=') || window.location.search.includes('state='));
 
+  if (isProcessingCallback) {
+    sessionStorage.setItem('justLoggedIn', 'true');
+  }
+
   if (loading || isProcessingCallback) {
     return (
       <div className="flex bg-background-darker h-screen items-center justify-center">
@@ -48,14 +52,18 @@ const HomeRoute = () => {
   }
 
   if (user) {
-    // Redireccionar al panel dedicado del Rol correspondiente
-    if (user.role === 'ADMIN') return <Navigate to="/super-admin" replace />;
-    if (user.role === 'GYM_OWNER') return <Navigate to="/owner-dashboard" replace />;
-    if (user.role === 'TRAINER') return <Navigate to="/coach-dashboard" replace />;
-    return <Navigate to="/dashboard" replace />;
+    const justLoggedIn = sessionStorage.getItem('justLoggedIn');
+    if (justLoggedIn === 'true') {
+      sessionStorage.removeItem('justLoggedIn');
+      // Redireccionar al panel dedicado del Rol correspondiente
+      if (user.role === 'ADMIN') return <Navigate to="/super-admin" replace />;
+      if (user.role === 'GYM_OWNER') return <Navigate to="/owner-dashboard" replace />;
+      if (user.role === 'TRAINER') return <Navigate to="/coach-dashboard" replace />;
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
-  // Si no está logueado, mostrar la Landing Page de Hercix de inmediato
+  // Si no está logueado o viene a ver la web a propósito, mostrar la Landing Page de Hercix de inmediato
   return <LandingPage />;
 };
 

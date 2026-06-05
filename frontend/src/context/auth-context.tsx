@@ -94,6 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (options?: { allowSignUp?: boolean }) => {
     try {
+      sessionStorage.setItem('justLoggedIn', 'true');
       await loginWithRedirect({
         authorizationParams: {
           allow_signup: options?.allowSignUp === false ? 'false' : 'true',
