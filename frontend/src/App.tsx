@@ -31,17 +31,17 @@ import { Toaster } from 'sonner';
 const HomeRoute = () => {
   const { user, loading } = useAuth();
 
-  // Only show spinner if Auth0 is actively processing an auth callback in the URL
-  // (e.g., when Render redirects back after login with ?code=... params)
+  // If Auth0 callback params are in the URL, always show spinner
+  // (prevents flash of Landing Page during the auth redirect flow)
   const isProcessingCallback = typeof window !== 'undefined' &&
     (window.location.search.includes('code=') || window.location.search.includes('state='));
 
-  if (loading && isProcessingCallback) {
+  if (loading || isProcessingCallback) {
     return (
       <div className="flex bg-background-darker h-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="border-primary border-t-2 rounded-full w-12 h-12 animate-spin"></div>
-          <p className="text-slate-400 text-sm">Verificando sesión...</p>
+          <p className="text-slate-400 text-sm animate-pulse">Verificando sesión...</p>
         </div>
       </div>
     );
@@ -55,7 +55,7 @@ const HomeRoute = () => {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // Si no está logueado (o backend aún cargando), mostrar la Landing Page de Hercix de inmediato
+  // Si no está logueado, mostrar la Landing Page de Hercix de inmediato
   return <LandingPage />;
 };
 
