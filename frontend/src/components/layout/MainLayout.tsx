@@ -46,7 +46,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ to, icon: Icon, label, active
 );
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, switchUserRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -232,6 +232,34 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               )}
             </div>
           </div>
+
+          {user?.roles && user.roles.length > 1 && (
+            <div className="px-2 space-y-1">
+              <label className="text-[10px] uppercase font-bold text-slate-500 block">Vista Activa</label>
+              <select
+                value={user.role}
+                onChange={async (e) => {
+                  try {
+                    await switchUserRole(e.target.value);
+                    toast.success(`Perfil cambiado a ${e.target.value.toLowerCase().replace('_', ' ')}`);
+                    navigate('/');
+                  } catch (err) {
+                    toast.error('No se pudo cambiar de rol');
+                  }
+                }}
+                className="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-white focus:border-primary outline-none cursor-pointer"
+              >
+                {user.roles.map(r => (
+                  <option key={r} value={r}>
+                    {r === 'USER' ? '🏃 Atleta / Cliente' :
+                     r === 'GYM_OWNER' ? '💼 Dueño (Owner)' :
+                     r === 'TRAINER' ? '💪 Coach / Profesor' :
+                     r === 'ADMIN' ? '🛡️ Administrador' : r}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <button
             onClick={handleLogout}
