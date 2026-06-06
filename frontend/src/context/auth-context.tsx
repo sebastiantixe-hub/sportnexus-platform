@@ -82,10 +82,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setBackendLoading(false);
         }
       } else {
-        // Solo limpiar si no estamos en medio de una carga de Auth0
-        setUser(null);
-        localStorage.removeItem('token');
-        setBackendLoading(false);
+        // Si no está autenticado en Auth0, pero tenemos un token en localStorage, intentamos restaurar la sesión del backend
+        const token = localStorage.getItem('token');
+        if (token) {
+          setBackendLoading(true);
+          try {
+            const { data } = await api.get('/auth/me');
+            console.log('Perfil restaurado con éxito desde localStorage:', data.email);
+            
+            if (!data.roles) {
+              const computedRoles: string[] = ['USER'];
+              if (data.role === 'ADMIN') computedRoles.push('ADMIN');
+              if (data.role === 'GYM_OWNER') computedRoles.push('GYM_OWNER');
+              if (data.role === 'TRAINER') computedRoles.push('TRAINER');
+              data.roles = computedRoles;
+            }
+            
+            setUser(data);
+          } catch (error: any) {
+            console.error('Error al restaurar perfil desde localStorage:', error);
+            setUser(null);
+            localStorage.removeItem('token');
+          } finally {
+            setBackendLoading(false);
+          }
+        } else {
+          setUser(null);
+          setBackendLoading(false);
+        }
       }
     };
 

@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { Html5QrcodeScanner } from 'html5-qrcode';
+
 interface AttendanceListModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -35,8 +37,9 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [localReservations, setLocalReservations] = useState<any[]>([]);
   const [initialized, setInitialized] = useState(false);
-  const [activeTab, setActiveTab] = useState<'list' | 'planilla'>('planilla'); // Default to Planilla to wow the manager!
+  const [activeTab, setActiveTab] = useState<'list' | 'planilla' | 'scan'>('planilla'); // Default to Planilla to wow the manager!
   const [selectedWeekDate, setSelectedWeekDate] = useState<Date>(new Date());
+  const [isScanning, setIsScanning] = useState(false);
 
   // Initialize local state when modal opens
   if (isOpen && !initialized && classItem?.reservations) {
@@ -46,6 +49,7 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
   if (!isOpen && initialized) {
     setInitialized(false);
     setLocalReservations([]);
+    setIsScanning(false);
   }
 
   // Set the selected week date to the class date when modal is opened
@@ -54,6 +58,74 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
       setSelectedWeekDate(new Date(classItem.scheduledAt));
     }
   }, [isOpen, classItem]);
+
+  // QR code scanner hook
+  useEffect(() => {
+    if (isScanning && isOpen) {
+      // Small timeout to ensure the DOM element is rendered
+      const timer = setTimeout(() => {
+        const scanner = new Html5QrcodeScanner(
+          "qr-reader-el",
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          /* verbose= */ false
+        );
+
+        const onScanSuccess = async (decodedText: string) => {
+          try {
+            scanner.clear();
+            setIsScanning(false);
+            setActiveTab('planilla');
+          } catch (e) {
+            console.error(e);
+          }
+          
+          // Find reservation matching decodedText
+          const res = localReservations.find(r => 
+            r.id.toLowerCase() === decodedText.toLowerCase() || 
+            r.id.substring(0, 8).toLowerCase() === decodedText.substring(0, 8).toLowerCase()
+          );
+
+          if (res) {
+            if (res.status === 'ATTENDED') {
+              toast.error(`El atleta ${res.user?.name} ya asistió a esta clase`);
+            } else {
+              try {
+                setLoadingId(res.id);
+                await api.patch(`/classes/reservations/${res.id}/attend`);
+                setLocalReservations(prev =>
+                  prev.map(r => r.id === res.id ? { ...r, status: 'ATTENDED' } : r)
+                );
+                toast.success(`¡Asistencia marcada para ${res.user?.name}!`);
+                onSuccess();
+              } catch (err: any) {
+                toast.error(err.response?.data?.message || 'Error al registrar asistencia');
+              } finally {
+                setLoadingId(null);
+              }
+            }
+          } else {
+            toast.error("Código de reserva no válido o no pertenece a esta clase");
+          }
+        };
+
+        const onScanFailure = () => {
+          // Fail silently
+        };
+
+        scanner.render(onScanSuccess, onScanFailure);
+
+        return () => {
+          try {
+            scanner.clear();
+          } catch (e) {
+            console.error("Error clearing scanner:", e);
+          }
+        };
+      }, 300);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isScanning, isOpen, localReservations]);
 
   const handlePrevWeek = () => {
     const newDate = new Date(selectedWeekDate);
@@ -234,9 +306,9 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
               </div>
 
               {/* Tabs Switcher - Gorgeous glass pill look */}
-              <div className="flex bg-slate-950/80 p-1 rounded-xl border border-white/5 w-fit mt-5 gap-1">
+              <div className="flex bg-slate-950/80 p-1 rounded-xl border border-white/5 w-fit mt-5 gap-1 flex-wrap">
                 <button
-                  onClick={() => setActiveTab('planilla')}
+                  onClick={() => { setActiveTab('planilla'); setIsScanning(false); }}
                   className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                     activeTab === 'planilla'
                       ? 'bg-primary text-white shadow-lg'
@@ -247,7 +319,7 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
                   📅 Planilla de Asistencia (Lunes a Domingo)
                 </button>
                 <button
-                  onClick={() => setActiveTab('list')}
+                  onClick={() => { setActiveTab('list'); setIsScanning(false); }}
                   className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                     activeTab === 'list'
                       ? 'bg-primary text-white shadow-lg'
@@ -256,6 +328,17 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
                 >
                   <ClipboardList className="w-3.5 h-3.5" />
                   📋 Vista de Lista Rápida
+                </button>
+                <button
+                  onClick={() => { setActiveTab('scan'); setIsScanning(true); }}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    activeTab === 'scan'
+                      ? 'bg-primary text-white shadow-lg'
+                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  📷 Escanear Ticket QR
                 </button>
               </div>
             </div>
@@ -578,6 +661,80 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
                         );
                       })
                     )}
+                  </div>
+                </div>
+              )}
+              {activeTab === 'scan' && (
+                <div className="animate-in fade-in duration-300 max-w-md mx-auto text-center space-y-4">
+                  <div className="bg-slate-950/50 border border-white/5 rounded-2xl p-6 relative overflow-hidden text-left">
+                    <h3 className="text-white font-bold text-base mb-2">Escáner de Tickets QR de Asistencia</h3>
+                    <p className="text-slate-400 text-xs mb-4">
+                      Apunta al código QR generado en el celular del atleta.
+                    </p>
+                    
+                    {/* Scanner Element */}
+                    <div className="bg-slate-900 border border-white/10 rounded-2xl overflow-hidden min-h-[300px] flex items-center justify-center relative">
+                      {isScanning ? (
+                        <div id="qr-reader-el" className="w-full text-slate-800" />
+                      ) : (
+                        <div className="p-6 text-center text-slate-500">
+                          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-primary" />
+                          <p className="text-sm">Iniciando cámara...</p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Manual Input Fallback */}
+                    <div className="mt-6 pt-6 border-t border-white/5 space-y-3">
+                      <p className="text-slate-500 text-xs">¿Problemas con la cámara? Digita el ID de la reserva manualmente:</p>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Ej: f4d3e2b1"
+                          id="manual-qr-input"
+                          className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:border-primary outline-none flex-grow font-mono"
+                        />
+                        <button
+                          onClick={async () => {
+                            const inputEl = document.getElementById('manual-qr-input') as HTMLInputElement;
+                            const val = inputEl?.value?.trim();
+                            if (!val) return toast.error('Ingresa un código');
+                            
+                            // Find the reservation
+                            const res = localReservations.find(r => 
+                              r.id.toLowerCase().includes(val.toLowerCase())
+                            );
+                            
+                            if (res) {
+                              if (res.status === 'ATTENDED') {
+                                toast.error(`El atleta ${res.user?.name} ya asistió`);
+                              } else {
+                                try {
+                                  setLoadingId(res.id);
+                                  await api.patch(`/classes/reservations/${res.id}/attend`);
+                                  setLocalReservations(prev =>
+                                    prev.map(r => r.id === res.id ? { ...r, status: 'ATTENDED' } : r)
+                                  );
+                                  toast.success(`Asistencia registrada para ${res.user?.name}`);
+                                  if (inputEl) inputEl.value = '';
+                                  onSuccess();
+                                  setActiveTab('planilla');
+                                } catch (err: any) {
+                                  toast.error(err.response?.data?.message || 'Error al registrar asistencia');
+                                } finally {
+                                  setLoadingId(null);
+                                }
+                              }
+                            } else {
+                              toast.error('No se encontró ninguna reserva coincidente.');
+                            }
+                          }}
+                          className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
+                        >
+                          Validar
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
