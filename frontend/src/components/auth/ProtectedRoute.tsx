@@ -10,16 +10,12 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles, children }) => {
   const { user, loading } = useAuth();
 
-  // Only show spinner for a brief moment while Auth0 processes a callback
-  const isProcessingCallback = typeof window !== 'undefined' &&
-    (window.location.search.includes('code=') || window.location.search.includes('state='));
-
-  if (loading && isProcessingCallback) {
+  if (loading) {
     return (
       <div className="flex bg-background-darker h-screen items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="border-primary border-t-2 rounded-full w-12 h-12 animate-spin"></div>
-          <p className="text-slate-400 text-sm">Verificando sesión...</p>
+          <p className="text-slate-400 text-sm animate-pulse">Verificando sesión...</p>
         </div>
       </div>
     );
