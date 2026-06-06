@@ -393,11 +393,22 @@ export class AuthService {
         where: { status: 'ACTIVE' },
       });
 
+      const dbUser = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { createdAt: true },
+      });
+
+      let monthsActive = 0;
+      if (dbUser?.createdAt) {
+        const diffTime = Math.abs(new Date().getTime() - new Date(dbUser.createdAt).getTime());
+        monthsActive = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 30.4375));
+      }
+
       return {
         reservations: reservations.length + profBookings.length,
         gyms: gymsCount,
         points: Math.floor((reservations.length + profBookings.length) * 125),
-        months: 1,
+        months: monthsActive,
         activities: allActivities,
       };
     }
