@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api/api-client';
 import { useAuth } from '../../context/auth-context';
 import {
@@ -35,10 +36,11 @@ const GymCard: React.FC<{
   isOwner: boolean;
   onEdit: (gym: any) => void;
   onDelete: (id: string) => void;
-}> = ({ gym, isOwner, onEdit, onDelete }) => (
+  navigate: any;
+}> = ({ gym, isOwner, onEdit, onDelete, navigate }) => (
   <motion.div
     whileHover={{ y: -5 }}
-    onClick={() => (window.location.href = `/gyms/${gym.id}`)}
+    onClick={() => navigate(`/gyms/${gym.id}`)}
     className="glass-card overflow-hidden group border-white/5 hover:border-primary/30 transition-all cursor-pointer"
   >
     <div className="h-40 bg-slate-950 relative overflow-hidden">
@@ -94,7 +96,7 @@ const GymCard: React.FC<{
             </>
           )}
           <button
-            onClick={() => (window.location.href = `/gyms/${gym.id}`)}
+            onClick={() => navigate(`/gyms/${gym.id}`)}
             className="text-primary-light font-bold text-sm hover:underline"
           >
             Ver Detalles
@@ -106,6 +108,7 @@ const GymCard: React.FC<{
 );
 
 const GymsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [gyms, setGyms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -229,6 +232,7 @@ const GymsPage: React.FC = () => {
               isOwner={user?.role === 'ADMIN' || (user?.role === 'GYM_OWNER' && gym.ownerId === user?.id)}
               onEdit={setEditingGym}
               onDelete={handleDelete}
+              navigate={navigate}
             />
           ))}
         </div>

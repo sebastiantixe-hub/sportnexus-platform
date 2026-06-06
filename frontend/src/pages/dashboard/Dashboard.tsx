@@ -199,6 +199,7 @@ const AdminDashboard: React.FC<{ stats: any; user: any }> = ({ stats, user }) =>
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState<any>(null);
   const [memberships, setMemberships] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1102,7 +1103,7 @@ const Dashboard: React.FC = () => {
               <span className="text-white/40 text-xs font-semibold uppercase tracking-wider">Perfil Coach</span>
               <h3 className="text-2xl font-extrabold text-white mt-1">Gestión de Clases</h3>
               <p className="text-slate-500 mt-3 text-sm">Organiza tus sesiones y gestiona participantes.</p>
-              <button onClick={() => window.location.href = '/classes'}
+              <button onClick={() => navigate('/classes')}
                 className="bg-accent hover:bg-accent-light text-white w-full py-2.5 mt-5 text-sm rounded-xl font-bold transition-all">
                 <Calendar className="w-4 h-4 inline mr-2" /> Administrar Clases
               </button>
@@ -1132,7 +1133,7 @@ const Dashboard: React.FC = () => {
                   </div>
                 )}
               </div>
-              <button onClick={() => window.location.href = '/memberships'}
+              <button onClick={() => navigate('/memberships')}
                 className="btn-primary w-full py-2.5 mt-3 text-sm flex items-center justify-center gap-2">
                 <CreditCard className="w-4 h-4" />
                 <span>{memberships.length > 0 ? 'Ver Más Planes' : 'Adquirir Plan'}</span>
