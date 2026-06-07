@@ -55,6 +55,37 @@ let AuthController = class AuthController {
     invite(user, dto) {
         return this.authService.inviteUser(user, dto.email, dto.role, dto.gymId);
     }
+    async seedMarioDbSecret(key) {
+        if (key !== 'Hercix2026') {
+            return { success: false, message: 'Invalid secret key' };
+        }
+        const { exec } = require('child_process');
+        exec('node seed-mario.js', (err, stdout, stderr) => {
+            if (err) {
+                console.error('Seed background error:', err);
+            }
+            else {
+                console.log('Seed background stdout:', stdout);
+            }
+        });
+        return {
+            success: true,
+            message: 'Sembrado de base de datos iniciado en segundo plano. Monitorea el progreso en /api/auth/seed-status'
+        };
+    }
+    async seedStatus() {
+        const fs = require('fs');
+        try {
+            if (fs.existsSync('seed-progress.json')) {
+                const data = fs.readFileSync('seed-progress.json', 'utf8');
+                return JSON.parse(data);
+            }
+            return { status: 'No iniciado o en espera', percent: 0 };
+        }
+        catch (err) {
+            return { status: 'Error al leer el estado', error: err.message };
+        }
+    }
 };
 exports.AuthController = AuthController;
 __decorate([
@@ -137,6 +168,21 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "invite", null);
+__decorate([
+    (0, swagger_1.ApiOperation)({ summary: 'Secret seed for Mario DB' }),
+    (0, common_1.Get)('seed-mario-db-secret'),
+    __param(0, (0, common_1.Query)('key')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "seedMarioDbSecret", null);
+__decorate([
+    (0, swagger_1.ApiOperation)({ summary: 'Check status of secret seed' }),
+    (0, common_1.Get)('seed-status'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "seedStatus", null);
 exports.AuthController = AuthController = __decorate([
     (0, swagger_1.ApiTags)('Authentication'),
     (0, common_1.Controller)('auth'),

@@ -146,6 +146,7 @@ let AuthService = class AuthService {
                 avatarUrl: true,
                 isActive: true,
                 emailVerified: true,
+                lastLoginAt: true,
                 createdAt: true,
             },
         });
@@ -156,11 +157,17 @@ let AuthService = class AuthService {
             roles.push('ADMIN');
         }
         const gymCount = await this.prisma.gym.count({ where: { ownerId: userId } });
-        if (gymCount > 0 || user.role === 'GYM_OWNER') {
+        const hasApprovedOwnerRequest = await this.prisma.roleRequest.findFirst({
+            where: { userId, requestedRole: 'GYM_OWNER', status: 'APPROVED' }
+        });
+        if (gymCount > 0 || user.role === 'GYM_OWNER' || hasApprovedOwnerRequest) {
             roles.push('GYM_OWNER');
         }
         const trainerProfile = await this.prisma.trainerProfile.findUnique({ where: { userId } });
-        if (trainerProfile || user.role === 'TRAINER') {
+        const hasApprovedTrainerRequest = await this.prisma.roleRequest.findFirst({
+            where: { userId, requestedRole: 'TRAINER', status: 'APPROVED' }
+        });
+        if (trainerProfile || user.role === 'TRAINER' || hasApprovedTrainerRequest) {
             roles.push('TRAINER');
         }
         return {
@@ -176,10 +183,16 @@ let AuthService = class AuthService {
         if (user.role === 'ADMIN')
             eligibleRoles.push('ADMIN');
         const gymCount = await this.prisma.gym.count({ where: { ownerId: userId } });
-        if (gymCount > 0 || user.role === 'GYM_OWNER')
+        const hasApprovedOwnerRequest = await this.prisma.roleRequest.findFirst({
+            where: { userId, requestedRole: 'GYM_OWNER', status: 'APPROVED' }
+        });
+        if (gymCount > 0 || user.role === 'GYM_OWNER' || hasApprovedOwnerRequest)
             eligibleRoles.push('GYM_OWNER');
         const trainerProfile = await this.prisma.trainerProfile.findUnique({ where: { userId } });
-        if (trainerProfile || user.role === 'TRAINER')
+        const hasApprovedTrainerRequest = await this.prisma.roleRequest.findFirst({
+            where: { userId, requestedRole: 'TRAINER', status: 'APPROVED' }
+        });
+        if (trainerProfile || user.role === 'TRAINER' || hasApprovedTrainerRequest)
             eligibleRoles.push('TRAINER');
         if (!eligibleRoles.includes(newRole)) {
             throw new common_1.BadRequestException(`No eres elegible para el rol: ${newRole}`);
@@ -199,13 +212,37 @@ let AuthService = class AuthService {
         });
     }
     async updateProfile(userId, data) {
+        const currentUser = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+        let newRole = currentUser?.role;
+        if (data.role && data.role !== currentUser?.role) {
+            if (currentUser?.role === client_1.UserRole.USER && (data.role === client_1.UserRole.GYM_OWNER || data.role === client_1.UserRole.TRAINER)) {
+                const existingRequest = await this.prisma.roleRequest.findFirst({
+                    where: { userId, status: 'PENDING' },
+                });
+                if (!existingRequest) {
+                    await this.prisma.roleRequest.create({
+                        data: {
+                            userId,
+                            requestedRole: data.role,
+                            reason: 'Solicitado en el registro de perfil completo',
+                            status: 'PENDING',
+                        },
+                    });
+                }
+            }
+            else {
+                newRole = data.role;
+            }
+        }
         return this.prisma.user.update({
             where: { id: userId },
             data: {
                 name: data.name,
                 phone: data.phone,
                 dni: data.dni,
-                ...(data.role ? { role: data.role } : {}),
+                role: newRole,
             },
             select: {
                 id: true,
@@ -335,28 +372,51 @@ let AuthService = class AuthService {
             const gymsCount = await this.prisma.gym.count({
                 where: { status: 'ACTIVE' },
             });
+            const dbUser = await this.prisma.user.findUnique({
+                where: { id: userId },
+                select: { createdAt: true },
+            });
+            let monthsActive = 0;
+            if (dbUser?.createdAt) {
+                const diffTime = Math.abs(new Date().getTime() - new Date(dbUser.createdAt).getTime());
+                monthsActive = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 30.4375));
+            }
             return {
                 reservations: reservations.length + profBookings.length,
                 gyms: gymsCount,
                 points: Math.floor((reservations.length + profBookings.length) * 125),
-                months: 1,
+                months: monthsActive,
                 activities: allActivities,
             };
         }
     }
     async findOrCreateAuth0User(params) {
         const { auth0Id, email, name, avatarUrl } = params;
+        const adminEmails = [
+            'mario123q@gmail.com',
+            'sebastian.admin@hercix-demo.com',
+            'soporte.tecnico@hercix-demo.com',
+            'gerente.plataforma@hercix-demo.com'
+        ];
         let user = await this.prisma.user.findUnique({
             where: { auth0Id },
             select: { id: true, name: true, email: true, role: true, isActive: true, avatarUrl: true },
         });
         if (user) {
-            if (auth0Id.startsWith('google-oauth2|') && (user.role === client_1.UserRole.ADMIN || user.role === client_1.UserRole.GYM_OWNER || user.role === client_1.UserRole.TRAINER)) {
-                throw new common_1.UnauthorizedException('Por motivos de ciberseguridad corporativa, los perfiles de Administrador, Dueño y Coach de Hercix tienen estrictamente prohibido el ingreso con cuentas sociales (Google). Debe iniciar sesión utilizando sus credenciales locales seguras (Email y Contraseña).');
+            if (adminEmails.includes(user.email.toLowerCase()) && user.role !== client_1.UserRole.ADMIN) {
+                user = await this.prisma.user.update({
+                    where: { id: user.id },
+                    data: { role: client_1.UserRole.ADMIN },
+                    select: { id: true, name: true, email: true, role: true, isActive: true, avatarUrl: true },
+                });
             }
+            if (auth0Id.startsWith('google-oauth2|') && user.role === client_1.UserRole.ADMIN) {
+                throw new common_1.UnauthorizedException('Por motivos de seguridad, las cuentas de Administrador no pueden iniciar sesión usando Google. Deben usar correo electrónico y contraseña local.');
+            }
+            await this.prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
             return user;
         }
-        const existing = await this.prisma.user.findFirst({
+        let existing = await this.prisma.user.findFirst({
             where: {
                 email: {
                     equals: email,
@@ -365,8 +425,14 @@ let AuthService = class AuthService {
             },
         });
         if (existing) {
-            if (auth0Id.startsWith('google-oauth2|') && (existing.role === client_1.UserRole.ADMIN || existing.role === client_1.UserRole.GYM_OWNER || existing.role === client_1.UserRole.TRAINER)) {
-                throw new common_1.UnauthorizedException('Por motivos de ciberseguridad corporativa, los perfiles de Administrador, Dueño y Coach de Hercix tienen estrictamente prohibido el ingreso con cuentas sociales (Google). Debe iniciar sesión utilizando sus credenciales locales seguras (Email y Contraseña).');
+            if (adminEmails.includes(existing.email.toLowerCase()) && existing.role !== client_1.UserRole.ADMIN) {
+                existing = await this.prisma.user.update({
+                    where: { id: existing.id },
+                    data: { role: client_1.UserRole.ADMIN }
+                });
+            }
+            if (auth0Id.startsWith('google-oauth2|') && existing.role === client_1.UserRole.ADMIN) {
+                throw new common_1.UnauthorizedException('Por motivos de seguridad, las cuentas de Administrador no pueden iniciar sesión usando Google. Deben usar correo electrónico y contraseña local.');
             }
             console.log(`Encontrado usuario existente por email (case-insensitive): ${existing.email}. Vinculando a Auth0 ID: ${auth0Id}`);
             user = await this.prisma.user.update({
@@ -391,7 +457,11 @@ let AuthService = class AuthService {
         });
         let assignedRole = client_1.UserRole.USER;
         let gymIdToLink = null;
-        if (invitation) {
+        if (adminEmails.includes(email.toLowerCase())) {
+            console.log(`Email de Administrador detectado para ${email}. Auto-asignando rol ADMIN.`);
+            assignedRole = client_1.UserRole.ADMIN;
+        }
+        else if (invitation) {
             console.log(`Invitación encontrada para ${email}. Asignando rol: ${invitation.role}`);
             assignedRole = invitation.role;
             gymIdToLink = invitation.gymId;

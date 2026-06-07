@@ -158,15 +158,21 @@ export class AuthService {
       roles.push('ADMIN');
     }
 
-    // Verificar si es dueño (tiene gimnasios o su rol principal es GYM_OWNER)
+    // Verificar si es dueño (tiene gimnasios o su rol principal es GYM_OWNER o tiene solicitud aprobada)
     const gymCount = await this.prisma.gym.count({ where: { ownerId: userId } });
-    if (gymCount > 0 || user.role === 'GYM_OWNER') {
+    const hasApprovedOwnerRequest = await this.prisma.roleRequest.findFirst({
+      where: { userId, requestedRole: 'GYM_OWNER', status: 'APPROVED' }
+    });
+    if (gymCount > 0 || user.role === 'GYM_OWNER' || hasApprovedOwnerRequest) {
       roles.push('GYM_OWNER');
     }
 
-    // Verificar si es coach (tiene trainerProfile o su rol principal es TRAINER)
+    // Verificar si es coach (tiene trainerProfile o su rol principal es TRAINER o tiene solicitud aprobada)
     const trainerProfile = await this.prisma.trainerProfile.findUnique({ where: { userId } });
-    if (trainerProfile || user.role === 'TRAINER') {
+    const hasApprovedTrainerRequest = await this.prisma.roleRequest.findFirst({
+      where: { userId, requestedRole: 'TRAINER', status: 'APPROVED' }
+    });
+    if (trainerProfile || user.role === 'TRAINER' || hasApprovedTrainerRequest) {
       roles.push('TRAINER');
     }
 
@@ -185,10 +191,16 @@ export class AuthService {
     if (user.role === 'ADMIN') eligibleRoles.push('ADMIN');
 
     const gymCount = await this.prisma.gym.count({ where: { ownerId: userId } });
-    if (gymCount > 0 || user.role === 'GYM_OWNER') eligibleRoles.push('GYM_OWNER');
+    const hasApprovedOwnerRequest = await this.prisma.roleRequest.findFirst({
+      where: { userId, requestedRole: 'GYM_OWNER', status: 'APPROVED' }
+    });
+    if (gymCount > 0 || user.role === 'GYM_OWNER' || hasApprovedOwnerRequest) eligibleRoles.push('GYM_OWNER');
 
     const trainerProfile = await this.prisma.trainerProfile.findUnique({ where: { userId } });
-    if (trainerProfile || user.role === 'TRAINER') eligibleRoles.push('TRAINER');
+    const hasApprovedTrainerRequest = await this.prisma.roleRequest.findFirst({
+      where: { userId, requestedRole: 'TRAINER', status: 'APPROVED' }
+    });
+    if (trainerProfile || user.role === 'TRAINER' || hasApprovedTrainerRequest) eligibleRoles.push('TRAINER');
 
     if (!eligibleRoles.includes(newRole)) {
       throw new BadRequestException(`No eres elegible para el rol: ${newRole}`);

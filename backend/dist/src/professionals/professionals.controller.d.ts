@@ -106,6 +106,7 @@ export declare class ProfessionalsController {
                 avatarUrl: string | null;
                 isActive: boolean;
                 emailVerified: boolean;
+                lastLoginAt: Date | null;
                 updatedAt: Date;
                 weight: number | null;
             };

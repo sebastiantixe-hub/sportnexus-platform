@@ -37,6 +37,7 @@ export declare class AuthService {
             avatarUrl: string | null;
             isActive: boolean;
             emailVerified: boolean;
+            lastLoginAt: Date | null;
             updatedAt: Date;
             weight: number | null;
         };
@@ -56,6 +57,7 @@ export declare class AuthService {
             avatarUrl: string | null;
             isActive: boolean;
             emailVerified: boolean;
+            lastLoginAt: Date | null;
             updatedAt: Date;
             weight: number | null;
         };
@@ -72,6 +74,7 @@ export declare class AuthService {
         avatarUrl: string | null;
         isActive: boolean;
         emailVerified: boolean;
+        lastLoginAt: Date | null;
     } | null>;
     switchRole(userId: string, newRole: UserRole): Promise<{
         id: string;

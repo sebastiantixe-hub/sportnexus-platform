@@ -17,8 +17,10 @@ const common_1 = require("@nestjs/common");
 const users_service_1 = require("./users.service");
 const user_dto_1 = require("./dto/user.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const any_auth_guard_1 = require("../auth/guards/any-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
+const current_user_decorator_1 = require("../auth/decorators/current-user.decorator");
 const client_1 = require("@prisma/client");
 const swagger_1 = require("@nestjs/swagger");
 let UsersController = class UsersController {
@@ -29,23 +31,55 @@ let UsersController = class UsersController {
     findAll() {
         return this.usersService.findAll();
     }
+    findOneProfile(id) {
+        return this.usersService.findOneProfile(id);
+    }
     create(createDto) {
         return this.usersService.create(createDto);
     }
     remove(id) {
         return this.usersService.remove(id);
     }
+    createRoleRequest(user, dto) {
+        return this.usersService.createRoleRequest(user.id, dto.requestedRole, dto.reason);
+    }
+    getMyRoleRequest(user) {
+        return this.usersService.getMyRoleRequest(user.id);
+    }
+    getAllRoleRequests() {
+        return this.usersService.getAllRoleRequests();
+    }
+    approveRoleRequest(id, dto) {
+        return this.usersService.approveRoleRequest(id, dto.adminNote);
+    }
+    rejectRoleRequest(id, dto) {
+        return this.usersService.rejectRoleRequest(id, dto.adminNote);
+    }
 };
 exports.UsersController = UsersController;
 __decorate([
     (0, common_1.Get)(),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
     (0, swagger_1.ApiOperation)({ summary: 'Obtener todos los usuarios (Solo Admin)' }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "findAll", null);
 __decorate([
+    (0, common_1.Get)(':id/profile'),
+    (0, common_1.UseGuards)(any_auth_guard_1.AnyAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
+    (0, swagger_1.ApiOperation)({ summary: 'Ver perfil detallado y personalizado de un usuario (Solo Admin)' }),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "findOneProfile", null);
+__decorate([
     (0, common_1.Post)(),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
     (0, swagger_1.ApiOperation)({ summary: 'Crear un nuevo usuario manualmente (Solo Admin)' }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -54,18 +88,68 @@ __decorate([
 ], UsersController.prototype, "create", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
     (0, swagger_1.ApiOperation)({ summary: 'Eliminar un usuario del sistema (Solo Admin)' }),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "remove", null);
+__decorate([
+    (0, common_1.Post)('role-requests'),
+    (0, common_1.UseGuards)(any_auth_guard_1.AnyAuthGuard),
+    (0, swagger_1.ApiOperation)({ summary: 'Solicitar cambio de rol (Entrenador o Dueño)' }),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "createRoleRequest", null);
+__decorate([
+    (0, common_1.Get)('role-requests/mine'),
+    (0, common_1.UseGuards)(any_auth_guard_1.AnyAuthGuard),
+    (0, swagger_1.ApiOperation)({ summary: 'Ver mi solicitud de rol activa' }),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "getMyRoleRequest", null);
+__decorate([
+    (0, common_1.Get)('role-requests'),
+    (0, common_1.UseGuards)(any_auth_guard_1.AnyAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
+    (0, swagger_1.ApiOperation)({ summary: 'Ver todas las solicitudes de rol (Solo Admin)' }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "getAllRoleRequests", null);
+__decorate([
+    (0, common_1.Patch)('role-requests/:id/approve'),
+    (0, common_1.UseGuards)(any_auth_guard_1.AnyAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
+    (0, swagger_1.ApiOperation)({ summary: 'Aprobar solicitud de rol (Solo Admin)' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "approveRoleRequest", null);
+__decorate([
+    (0, common_1.Patch)('role-requests/:id/reject'),
+    (0, common_1.UseGuards)(any_auth_guard_1.AnyAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
+    (0, swagger_1.ApiOperation)({ summary: 'Rechazar solicitud de rol (Solo Admin)' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "rejectRoleRequest", null);
 exports.UsersController = UsersController = __decorate([
     (0, swagger_1.ApiTags)('users'),
-    (0, common_1.Controller)('users'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
     (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.Controller)('users'),
     __metadata("design:paramtypes", [users_service_1.UsersService])
 ], UsersController);
 //# sourceMappingURL=users.controller.js.map

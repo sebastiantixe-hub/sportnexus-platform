@@ -54,8 +54,14 @@ let Auth0JwtStrategy = class Auth0JwtStrategy extends (0, passport_1.PassportStr
     config;
     authService;
     constructor(config, authService) {
-        const domain = config.get('AUTH0_DOMAIN');
-        const audience = config.get('AUTH0_AUDIENCE');
+        let domain = config.get('AUTH0_DOMAIN') || 'dev-khvop4d61s5ip8d3.us.auth0.com';
+        let audience = config.get('AUTH0_AUDIENCE') || 'https://hercix-api';
+        if (domain === 'dev-6d0mok1v1ohx5iez.us.auth0.com' || domain === 'dev-vdhdedydkqqaxog0.us.auth0.com' || domain === 'dev-vdhdedydkqqaxog0') {
+            domain = 'dev-khvop4d61s5ip8d3.us.auth0.com';
+        }
+        if (audience === 'https://sportnexus-api' || !audience.startsWith('https://')) {
+            audience = 'https://hercix-api';
+        }
         super({
             secretOrKeyProvider: (0, jwks_rsa_1.passportJwtSecret)({
                 cache: true,
@@ -116,7 +122,10 @@ let Auth0JwtStrategy = class Auth0JwtStrategy extends (0, passport_1.PassportStr
             const authHeader = req.headers?.authorization;
             if (authHeader && authHeader.startsWith('Bearer ')) {
                 const token = authHeader.substring(7);
-                const domain = this.config.get('AUTH0_DOMAIN');
+                let domain = this.config.get('AUTH0_DOMAIN') || 'dev-khvop4d61s5ip8d3.us.auth0.com';
+                if (domain === 'dev-6d0mok1v1ohx5iez.us.auth0.com' || domain === 'dev-vdhdedydkqqaxog0.us.auth0.com' || domain === 'dev-vdhdedydkqqaxog0') {
+                    domain = 'dev-khvop4d61s5ip8d3.us.auth0.com';
+                }
                 try {
                     console.log(`Fetching userinfo from Auth0 to retrieve real email for ${sub}...`);
                     const userInfo = await this.fetchUserInfo(domain, token);

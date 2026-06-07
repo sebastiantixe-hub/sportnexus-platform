@@ -31,6 +31,7 @@ export declare class AuthController {
             avatarUrl: string | null;
             isActive: boolean;
             emailVerified: boolean;
+            lastLoginAt: Date | null;
             updatedAt: Date;
             weight: number | null;
         };
@@ -53,6 +54,7 @@ export declare class AuthController {
             avatarUrl: string | null;
             isActive: boolean;
             emailVerified: boolean;
+            lastLoginAt: Date | null;
             updatedAt: Date;
             weight: number | null;
         };
@@ -71,6 +73,7 @@ export declare class AuthController {
         avatarUrl: string | null;
         isActive: boolean;
         emailVerified: boolean;
+        lastLoginAt: Date | null;
     } | null>;
     updateProfile(user: {
         id: string;
@@ -156,4 +159,9 @@ export declare class AuthController {
         invitationId: string;
         expiresAt: Date;
     }>;
+    seedMarioDbSecret(key: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    seedStatus(): Promise<any>;
 }
