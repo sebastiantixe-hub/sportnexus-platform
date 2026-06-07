@@ -35,10 +35,31 @@ export class ProfessionalsController {
     return this.professionalsService.getMyBookings(req.user.id);
   }
 
+  @Get('provider/bookings')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get bookings received by the provider' })
+  getProviderBookings(@Request() req) {
+    return this.professionalsService.getProviderBookings(req.user.id);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a professional service by id' })
   findOne(@Param('id') id: string) {
     return this.professionalsService.findOne(id);
+  }
+
+  @Patch('bookings/:bookingId/status')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update status of a professional booking' })
+  updateBookingStatus(
+    @Param('bookingId') bookingId: string,
+    @Request() req,
+    @Body('status') status: string
+  ) {
+    const isAdmin = req.user.role === UserRole.ADMIN;
+    return this.professionalsService.updateBookingStatus(bookingId, req.user.id, status, isAdmin);
   }
 
   @Patch(':id')

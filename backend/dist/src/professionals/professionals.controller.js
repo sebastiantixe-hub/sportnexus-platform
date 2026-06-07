@@ -35,8 +35,15 @@ let ProfessionalsController = class ProfessionalsController {
     getMyBookings(req) {
         return this.professionalsService.getMyBookings(req.user.id);
     }
+    getProviderBookings(req) {
+        return this.professionalsService.getProviderBookings(req.user.id);
+    }
     findOne(id) {
         return this.professionalsService.findOne(id);
+    }
+    updateBookingStatus(bookingId, req, status) {
+        const isAdmin = req.user.role === client_1.UserRole.ADMIN;
+        return this.professionalsService.updateBookingStatus(bookingId, req.user.id, status, isAdmin);
     }
     update(id, req, updateDto) {
         const isAdmin = req.user.role === client_1.UserRole.ADMIN;
@@ -81,6 +88,16 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ProfessionalsController.prototype, "getMyBookings", null);
 __decorate([
+    (0, common_1.Get)('provider/bookings'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Get bookings received by the provider' }),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], ProfessionalsController.prototype, "getProviderBookings", null);
+__decorate([
     (0, common_1.Get)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Get a professional service by id' }),
     __param(0, (0, common_1.Param)('id')),
@@ -88,6 +105,18 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ProfessionalsController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.Patch)('bookings/:bookingId/status'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Update status of a professional booking' }),
+    __param(0, (0, common_1.Param)('bookingId')),
+    __param(1, (0, common_1.Request)()),
+    __param(2, (0, common_1.Body)('status')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, String]),
+    __metadata("design:returntype", void 0)
+], ProfessionalsController.prototype, "updateBookingStatus", null);
 __decorate([
     (0, common_1.Patch)(':id'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

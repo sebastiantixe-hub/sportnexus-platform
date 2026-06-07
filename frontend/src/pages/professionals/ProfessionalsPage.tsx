@@ -77,6 +77,12 @@ const ProfessionalsPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [isPayMeOpen, setIsPayMeOpen] = useState(false);
   const [profToBook, setProfToBook] = useState<any>(null);
+  
+  // New States for Trainer / Received Bookings
+  const [activeViewTab, setActiveViewTab] = useState<'catalog' | 'received_bookings'>('catalog');
+  const [receivedBookings, setReceivedBookings] = useState<any[]>([]);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
+
   const { user } = useAuth();
 
   useEffect(() => {
@@ -92,6 +98,30 @@ const ProfessionalsPage: React.FC = () => {
     };
     fetchProfessionals();
   }, []);
+
+  const fetchReceivedBookings = async () => {
+    try {
+      setBookingsLoading(true);
+      const { data } = await api.get('/professionals/provider/bookings');
+      setReceivedBookings(data);
+    } catch (err) {
+      console.error('Error fetching received bookings:', err);
+    } finally {
+      setBookingsLoading(false);
+    }
+  };
+
+  const handleUpdateStatus = async (bookingId: string, newStatus: string) => {
+    try {
+      await api.patch(`/professionals/bookings/${bookingId}/status`, { status: newStatus });
+      setMessage({ type: 'success', text: `Reserva actualizada a ${newStatus === 'CONFIRMED' ? 'Confirmada' : 'Cancelada'}` });
+      fetchReceivedBookings();
+    } catch (err: any) {
+      setMessage({ type: 'error', text: 'Error al actualizar reserva: ' + (err.response?.data?.message || 'Servidor no disponible') });
+    } finally {
+      setTimeout(() => setMessage(null), 3000);
+    }
+  };
 
   const handleBookClick = (prof: any) => {
     setProfToBook(prof);
@@ -150,6 +180,8 @@ const ProfessionalsPage: React.FC = () => {
     { id: 'OTROS', label: 'Otros' }
   ];
 
+  const isTrainerOrAdmin = user?.role === 'TRAINER' || user?.role === 'GYM_OWNER' || user?.role === 'ADMIN';
+
   return (
     <div className="space-y-8 relative">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
@@ -169,33 +201,34 @@ const ProfessionalsPage: React.FC = () => {
         )}
       </header>
 
-      <div className="flex flex-col gap-4 max-w-2xl">
-        <div className="relative">
-          <Search className="absolute top-1/2 left-4 -translate-y-1/2 text-slate-500 w-5 h-5" />
-          <input 
-            type="text"
-            placeholder="Buscar por servicio, profesional o categoría..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="bg-white/5 border-white/10 focus:border-accent w-full py-4 pr-4 pl-12 border rounded-2xl text-white outline-none transition-all"
-          />
+      {/* Tab Switcher for Trainers/Owners/Admins */}
+      {isTrainerOrAdmin && (
+        <div className="flex gap-4 border-b border-white/5 pb-2">
+          <button
+            onClick={() => setActiveViewTab('catalog')}
+            className={`pb-2 px-1 font-bold text-sm transition-all border-b-2 ${
+              activeViewTab === 'catalog'
+                ? 'border-accent text-white'
+                : 'border-transparent text-slate-400 hover:text-white'
+            }`}
+          >
+            🤝 Catálogo de Servicios
+          </button>
+          <button
+            onClick={() => {
+              setActiveViewTab('received_bookings');
+              fetchReceivedBookings();
+            }}
+            className={`pb-2 px-1 font-bold text-sm transition-all border-b-2 ${
+              activeViewTab === 'received_bookings'
+                ? 'border-accent text-white'
+                : 'border-transparent text-slate-400 hover:text-white'
+            }`}
+          >
+            📥 Reservas Recibidas
+          </button>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {categories.map(cat => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${
-                selectedCategory === cat.id 
-                  ? 'bg-accent/20 border-accent text-accent' 
-                  : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      )}
 
       {message && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`border p-4 rounded-xl flex items-center gap-2 ${message.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
@@ -216,29 +249,136 @@ const ProfessionalsPage: React.FC = () => {
         />
       )}
 
-      {loading ? (
-        <div className="flex h-64 items-center justify-center">
-          <Loader2 className="text-accent w-12 h-12 animate-spin" />
-        </div>
-      ) : filtered.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filtered.map(p => (
-            <ProfessionalCard 
-               key={p.id} 
-               professional={p} 
-               onBook={handleBookClick} 
-               isOwner={user?.role === 'ADMIN' || p.providerId === user?.id}
-               onEdit={setEditingProf}
-               onDelete={handleDelete}
-            />
-          ))}
-        </div>
+      {activeViewTab === 'received_bookings' ? (
+        bookingsLoading ? (
+          <div className="flex h-64 items-center justify-center">
+            <Loader2 className="text-accent w-12 h-12 animate-spin" />
+          </div>
+        ) : receivedBookings.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {receivedBookings.map((b) => (
+              <motion.div
+                key={b.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="glass-card p-5 border border-white/5 hover:border-accent/30 transition-all flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="bg-accent/20 text-accent text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                      {({
+                        PERSONAL_TRAINING: '💪 Personal Training',
+                        NUTRITION_PLAN: '🥗 Nutrición',
+                        PHYSIOTHERAPY: '🏥 Fisioterapia',
+                        CONSULTATION: '📋 Consulta',
+                      } as any)[b.service.serviceType] || b.service.serviceType}
+                    </span>
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border ${
+                      b.status === 'CONFIRMED' 
+                        ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                        : b.status === 'PENDING'
+                        ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                        : 'bg-red-500/10 text-red-400 border-red-500/20'
+                    }`}>
+                      {b.status === 'CONFIRMED' ? '✅ Confirmado' : 
+                       b.status === 'PENDING' ? '⏳ Pendiente' : '❌ Cancelado'}
+                    </span>
+                  </div>
+
+                  <h3 className="text-lg font-bold text-white mb-1">{b.service.title}</h3>
+                  <p className="text-slate-400 text-xs mb-1">Cliente: {b.user.name}</p>
+                  <p className="text-slate-400 text-xs mb-1">Email: {b.user.email}</p>
+                  {b.user.phone && <p className="text-slate-400 text-xs mb-1">Teléfono: {b.user.phone}</p>}
+                  <p className="text-slate-500 text-xs mt-2 italic">"{b.notes || 'Sin notas del cliente.'}"</p>
+                </div>
+
+                <div className="border-t border-white/5 pt-4 mt-6 flex flex-col gap-2">
+                  <div className="flex justify-between text-xs text-slate-400 mb-2">
+                    <span>Solicitado el:</span>
+                    <span>{new Date(b.bookedAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                  </div>
+                  {b.status === 'PENDING' && (
+                    <div className="flex gap-2 w-full mt-2">
+                      <button
+                        onClick={() => handleUpdateStatus(b.id, 'CONFIRMED')}
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-xl text-xs transition-all shadow-md active:scale-95"
+                      >
+                        Aceptar Cita
+                      </button>
+                      <button
+                        onClick={() => handleUpdateStatus(b.id, 'CANCELLED')}
+                        className="flex-1 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/20 font-bold py-2 rounded-xl text-xs transition-all active:scale-95"
+                      >
+                        Rechazar
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <div className="glass-card p-20 flex flex-col items-center justify-center text-center border-dashed border-white/10">
+            <Users className="text-slate-700 w-16 h-16 mb-4" />
+            <h2 className="text-white font-bold text-xl mb-2">No tienes reservas recibidas</h2>
+            <p className="text-slate-400">Las solicitudes de tus clientes aparecerán aquí.</p>
+          </div>
+        )
       ) : (
-        <div className="glass-card p-20 flex flex-col items-center justify-center text-center border-dashed border-white/10">
-          <Users className="text-slate-700 w-16 h-16 mb-4" />
-          <h2 className="text-white font-bold text-xl mb-2">Aún no hay profesionales registrados</h2>
-          <p className="text-slate-400">Sé el primero en ofrecer un servicio.</p>
-        </div>
+        <>
+          <div className="flex flex-col gap-4 max-w-2xl">
+            <div className="relative">
+              <Search className="absolute top-1/2 left-4 -translate-y-1/2 text-slate-500 w-5 h-5" />
+              <input 
+                type="text"
+                placeholder="Buscar por servicio, profesional o categoría..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="bg-white/5 border-white/10 focus:border-accent w-full py-4 pr-4 pl-12 border rounded-2xl text-white outline-none transition-all"
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {categories.map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${
+                    selectedCategory === cat.id 
+                      ? 'bg-accent/20 border-accent text-accent' 
+                      : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="flex h-64 items-center justify-center">
+              <Loader2 className="text-accent w-12 h-12 animate-spin" />
+            </div>
+          ) : filtered.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filtered.map(p => (
+                <ProfessionalCard 
+                   key={p.id} 
+                   professional={p} 
+                   onBook={handleBookClick} 
+                   isOwner={user?.role === 'ADMIN' || p.providerId === user?.id}
+                   onEdit={setEditingProf}
+                   onDelete={handleDelete}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="glass-card p-20 flex flex-col items-center justify-center text-center border-dashed border-white/10">
+              <Users className="text-slate-700 w-16 h-16 mb-4" />
+              <h2 className="text-white font-bold text-xl mb-2">Aún no hay profesionales registrados</h2>
+              <p className="text-slate-400">Sé el primero en ofrecer un servicio.</p>
+            </div>
+          )}
+        </>
       )}
 
       {profToBook && (

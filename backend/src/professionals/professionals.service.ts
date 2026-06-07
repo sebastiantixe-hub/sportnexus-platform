@@ -69,7 +69,7 @@ export class ProfessionalsService {
         userId,
         serviceId,
         notes,
-        status: 'CONFIRMED', // Para la demo asumo confirmación inmediata
+        status: 'PENDING',
       },
       include: {
         service: true,
@@ -86,6 +86,46 @@ export class ProfessionalsService {
         }
       },
       orderBy: { bookedAt: 'desc' },
+    });
+  }
+
+  async getProviderBookings(providerId: string) {
+    return this.prisma.professionalBooking.findMany({
+      where: {
+        service: {
+          providerId: providerId
+        }
+      },
+      include: {
+        user: {
+          select: { id: true, name: true, email: true, phone: true }
+        },
+        service: true
+      },
+      orderBy: { bookedAt: 'desc' },
+    });
+  }
+
+  async updateBookingStatus(bookingId: string, providerId: string, status: string, isAdmin: boolean) {
+    const booking = await this.prisma.professionalBooking.findUnique({
+      where: { id: bookingId },
+      include: { service: true }
+    });
+    if (!booking) throw new NotFoundException('Reserva no encontrada');
+
+    if (!isAdmin && booking.service.providerId !== providerId) {
+      throw new ForbiddenException('No tienes permiso para actualizar esta reserva');
+    }
+
+    return this.prisma.professionalBooking.update({
+      where: { id: bookingId },
+      data: { status },
+      include: {
+        service: {
+          include: { provider: true }
+        },
+        user: true
+      }
     });
   }
 }

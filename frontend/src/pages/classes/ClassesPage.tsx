@@ -171,8 +171,18 @@ const ProfessionalBookingCard: React.FC<{ booking: any }> = ({ booking }) => {
         <span className="bg-accent/20 text-accent text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
           {serviceTypeLabels[service?.serviceType] || service?.serviceType || 'Servicio'}
         </span>
-        <span className="bg-green-500/10 text-green-400 border border-green-500/20 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
-          {booking.status === 'CONFIRMED' ? '✅ Confirmado' : booking.status}
+        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border ${
+          booking.status === 'CONFIRMED' 
+            ? 'bg-green-500/10 text-green-400 border-green-500/20'
+            : booking.status === 'PENDING'
+            ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+            : booking.status === 'CANCELLED'
+            ? 'bg-red-500/10 text-red-400 border-red-500/20'
+            : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+        }`}>
+          {booking.status === 'CONFIRMED' ? '✅ Confirmado' : 
+           booking.status === 'PENDING' ? '⏳ Pendiente' : 
+           booking.status === 'CANCELLED' ? '❌ Cancelado' : booking.status}
         </span>
       </div>
 

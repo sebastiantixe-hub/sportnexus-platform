@@ -76,7 +76,7 @@ let ProfessionalsService = class ProfessionalsService {
                 userId,
                 serviceId,
                 notes,
-                status: 'CONFIRMED',
+                status: 'PENDING',
             },
             include: {
                 service: true,
@@ -92,6 +92,43 @@ let ProfessionalsService = class ProfessionalsService {
                 }
             },
             orderBy: { bookedAt: 'desc' },
+        });
+    }
+    async getProviderBookings(providerId) {
+        return this.prisma.professionalBooking.findMany({
+            where: {
+                service: {
+                    providerId: providerId
+                }
+            },
+            include: {
+                user: {
+                    select: { id: true, name: true, email: true, phone: true }
+                },
+                service: true
+            },
+            orderBy: { bookedAt: 'desc' },
+        });
+    }
+    async updateBookingStatus(bookingId, providerId, status, isAdmin) {
+        const booking = await this.prisma.professionalBooking.findUnique({
+            where: { id: bookingId },
+            include: { service: true }
+        });
+        if (!booking)
+            throw new common_1.NotFoundException('Reserva no encontrada');
+        if (!isAdmin && booking.service.providerId !== providerId) {
+            throw new common_1.ForbiddenException('No tienes permiso para actualizar esta reserva');
+        }
+        return this.prisma.professionalBooking.update({
+            where: { id: bookingId },
+            data: { status },
+            include: {
+                service: {
+                    include: { provider: true }
+                },
+                user: true
+            }
         });
     }
 };
