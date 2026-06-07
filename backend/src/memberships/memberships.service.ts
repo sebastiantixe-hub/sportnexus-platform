@@ -33,7 +33,7 @@ export class MembershipsService {
   }
 
   async findAllPlans(gymId?: string) {
-    return this.prisma.membershipPlan.findMany({
+    let plans = await this.prisma.membershipPlan.findMany({
       where: {
         ...(gymId ? { gymId } : {}),
         isActive: true,
@@ -42,6 +42,102 @@ export class MembershipsService {
         gym: { select: { name: true } },
       },
     });
+
+    if (plans.length === 0 && !gymId) {
+      // Check if there are ANY active plans in the entire database
+      const totalActivePlans = await this.prisma.membershipPlan.count({
+        where: { isActive: true },
+      });
+
+      if (totalActivePlans === 0) {
+        // Find the first active gym
+        let gym = await this.prisma.gym.findFirst({
+          where: { status: 'ACTIVE' },
+        });
+
+        // If no gym exists, create a default gym owned by the first user
+        if (!gym) {
+          let user = await this.prisma.user.findFirst();
+          if (!user) {
+            // Create a default admin user if none exists at all
+            user = await this.prisma.user.create({
+              data: {
+                name: 'Administrador SportNexus',
+                email: 'admin@sportnexus.com',
+                role: 'ADMIN',
+                isActive: true,
+              },
+            });
+          }
+
+          gym = await this.prisma.gym.create({
+            data: {
+              name: 'Gimnasio SportNexus Central',
+              ownerId: user.id,
+              address: 'Av. Principal 123',
+              city: 'Lima',
+              phone: '+51 999 999 999',
+              status: 'ACTIVE',
+            },
+          });
+        }
+
+        // Seed the 3 default plans for this gym
+        const defaultPlans = [
+          {
+            name: 'Plan Inicial',
+            description: 'Acceso básico a las instalaciones en horarios valle.',
+            price: 59.99,
+            durationDays: 30,
+            maxClasses: 8,
+            includesMarketplace: false,
+          },
+          {
+            name: 'Estándar',
+            description: 'Acceso completo a sala de musculación y clases grupales.',
+            price: 89.99,
+            durationDays: 30,
+            maxClasses: 16,
+            includesMarketplace: true,
+          },
+          {
+            name: 'Premium Élite',
+            description: 'Acceso ilimitado, entrenamiento personalizado y descuentos exclusivos.',
+            price: 129.99,
+            durationDays: 30,
+            maxClasses: null,
+            includesMarketplace: true,
+          },
+        ];
+
+        for (const plan of defaultPlans) {
+          await this.prisma.membershipPlan.create({
+            data: {
+              gymId: gym.id,
+              name: plan.name,
+              description: plan.description,
+              price: plan.price,
+              durationDays: plan.durationDays,
+              maxClasses: plan.maxClasses || undefined,
+              includesMarketplace: plan.includesMarketplace,
+              isActive: true,
+            },
+          });
+        }
+
+        // Fetch again
+        plans = await this.prisma.membershipPlan.findMany({
+          where: {
+            isActive: true,
+          },
+          include: {
+            gym: { select: { name: true } },
+          },
+        });
+      }
+    }
+
+    return plans;
   }
 
   async subscribe(userId: string, dto: SubscribeDto) {

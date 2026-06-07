@@ -29,7 +29,14 @@ const PlanCard: React.FC<{ plan: any; onSubscribe: (id: string) => void }> = ({ 
       <div className={`p-3 rounded-xl ${plan.name === 'Premium Élite' ? 'bg-primary/20 text-primary-light' : 'bg-white/5 text-slate-400'}`}>
         {plan.name === 'Premium Élite' ? <Crown /> : plan.name === 'Estándar' ? <Zap /> : <ShieldCheck />}
       </div>
-      <h3 className="text-xl font-bold text-white">{plan.name}</h3>
+      <div>
+        <h3 className="text-xl font-bold text-white">{plan.name}</h3>
+        {plan.gym?.name && (
+          <span className="text-[11px] text-slate-400 block mt-1 font-semibold tracking-wider uppercase">
+             {plan.gym.name}
+          </span>
+        )}
+      </div>
     </div>
 
     <div className="mb-6">
