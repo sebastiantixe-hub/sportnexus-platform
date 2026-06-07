@@ -430,6 +430,13 @@ export class AuthService {
   }) {
     const { auth0Id, email, name, avatarUrl } = params;
 
+    const adminEmails = [
+      'mario123q@gmail.com',
+      'sebastian.admin@hercix-demo.com',
+      'soporte.tecnico@hercix-demo.com',
+      'gerente.plataforma@hercix-demo.com'
+    ];
+
     // 1. Try by auth0Id (fastest path after first login)
     let user = await this.prisma.user.findUnique({
       where: { auth0Id },
@@ -437,6 +444,15 @@ export class AuthService {
     });
 
     if (user) {
+      // Force admin role if they match an admin email (in case role got changed or database was reset)
+      if (adminEmails.includes(user.email.toLowerCase()) && user.role !== UserRole.ADMIN) {
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: { role: UserRole.ADMIN },
+          select: { id: true, name: true, email: true, role: true, isActive: true, avatarUrl: true },
+        });
+      }
+
       // Bloquear accesos sociales (Google) solo para el rol Administrador
       if (auth0Id.startsWith('google-oauth2|') && user.role === UserRole.ADMIN) {
         throw new UnauthorizedException('Por motivos de seguridad, las cuentas de Administrador no pueden iniciar sesión usando Google. Deben usar correo electrónico y contraseña local.');
@@ -447,7 +463,7 @@ export class AuthService {
     }
 
     // 2. Try by email (user may have registered before Auth0 or pre-seeded/invited)
-    const existing = await this.prisma.user.findFirst({
+    let existing = await this.prisma.user.findFirst({
       where: { 
         email: {
           equals: email,
@@ -457,6 +473,14 @@ export class AuthService {
     });
 
     if (existing) {
+      // Force admin role if they match an admin email (in case role got changed or database was reset)
+      if (adminEmails.includes(existing.email.toLowerCase()) && existing.role !== UserRole.ADMIN) {
+        existing = await this.prisma.user.update({
+          where: { id: existing.id },
+          data: { role: UserRole.ADMIN }
+        });
+      }
+
       // Bloquear vinculación de cuentas sociales (Google) solo para el rol Administrador
       if (auth0Id.startsWith('google-oauth2|') && existing.role === UserRole.ADMIN) {
         throw new UnauthorizedException('Por motivos de seguridad, las cuentas de Administrador no pueden iniciar sesión usando Google. Deben usar correo electrónico y contraseña local.');
@@ -489,7 +513,10 @@ export class AuthService {
     let assignedRole: UserRole = UserRole.USER;
     let gymIdToLink: string | null = null;
 
-    if (invitation) {
+    if (adminEmails.includes(email.toLowerCase())) {
+      console.log(`Email de Administrador detectado para ${email}. Auto-asignando rol ADMIN.`);
+      assignedRole = UserRole.ADMIN;
+    } else if (invitation) {
       console.log(`Invitación encontrada para ${email}. Asignando rol: ${invitation.role}`);
       assignedRole = invitation.role;
       gymIdToLink = invitation.gymId;
