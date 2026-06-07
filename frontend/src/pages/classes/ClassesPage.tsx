@@ -151,8 +151,58 @@ const ClassCard: React.FC<{
   );
 };
 
+const ProfessionalBookingCard: React.FC<{ booking: any }> = ({ booking }) => {
+  const service = booking.service;
+  const provider = service?.provider;
+  const serviceTypeLabels: Record<string, string> = {
+    PERSONAL_TRAINING: '💪 Personal Training',
+    NUTRITION_PLAN: '🥗 Plan de Nutrición',
+    PHYSIOTHERAPY: '🏥 Fisioterapia',
+    CONSULTATION: '📋 Consulta',
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="glass-card overflow-hidden border-white/5 hover:border-accent/30 transition-all p-5 flex flex-col group relative"
+    >
+      <div className="flex items-center justify-between mb-4">
+        <span className="bg-accent/20 text-accent text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+          {serviceTypeLabels[service?.serviceType] || service?.serviceType || 'Servicio'}
+        </span>
+        <span className="bg-green-500/10 text-green-400 border border-green-500/20 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+          {booking.status === 'CONFIRMED' ? '✅ Confirmado' : booking.status}
+        </span>
+      </div>
+
+      <h3 className="text-lg font-bold text-white mb-1 line-clamp-1">{service?.title}</h3>
+      <p className="text-slate-400 text-xs mb-4">Con {provider?.name || 'Especialista'}</p>
+
+      <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-4 mt-auto">
+        <div>
+          <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Fecha de Reserva</p>
+          <p className="text-xs text-slate-300 font-semibold mt-0.5">
+            {new Date(booking.bookedAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+          </p>
+        </div>
+        <div>
+          <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Duración</p>
+          <p className="text-xs text-slate-300 font-semibold mt-0.5">{service?.durationMin} min</p>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between border-t border-white/5 pt-4 mt-4">
+        <div className="text-lg font-extrabold text-white">${Number(service?.price || 0).toFixed(2)}</div>
+      </div>
+    </motion.div>
+  );
+};
+
 const ClassesPage: React.FC = () => {
   const [classes, setClasses] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'classes' | 'professionals'>('classes');
   const [search, setSearch] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingClass, setEditingClass] = useState<any>(null);
@@ -166,10 +216,15 @@ const ClassesPage: React.FC = () => {
 
   const fetchClasses = async () => {
     try {
+      setLoading(true);
       if (user?.role === 'USER') {
-        // Atleta: solo sus reservas
-        const { data } = await api.get('/classes?myReservations=true');
-        setClasses(data);
+        // Atleta: solo sus reservas de clases y citas profesionales
+        const [classesRes, bookingsRes] = await Promise.all([
+          api.get('/classes?myReservations=true'),
+          api.get('/professionals/my-bookings')
+        ]);
+        setClasses(classesRes.data);
+        setBookings(bookingsRes.data);
       } else {
         // Admin, Owner, Trainer: todas las clases
         const { data } = await api.get('/classes');
@@ -241,6 +296,18 @@ const ClassesPage: React.FC = () => {
     return fields.some(f => normalize(f || '').includes(s));
   });
 
+  const filteredBookings = bookings.filter(b => {
+    if (!search) return true;
+    const s = normalize(search);
+    const fields = [
+      b.service?.title,
+      b.service?.description,
+      b.service?.provider?.name,
+      b.service?.serviceType
+    ];
+    return fields.some(f => normalize(f || '').includes(s));
+  });
+
   // Calcular métricas recomendadas por el Gerente para el dueño de este gimnasio
   const ownerGymClasses = classes.filter(c => c.gym?.ownerId === user?.id);
   const uniqueAthletes = new Set();
@@ -260,7 +327,7 @@ const ClassesPage: React.FC = () => {
           {user?.role === 'USER' ? (
             <>
               <h1 className="text-3xl font-bold text-white">Mis Reservas 🎟️</h1>
-              <p className="text-slate-400 mt-1">Clases que tienes reservadas. ¿Buscas más? <a href="/discovery" className="text-primary-light underline">Explorar academias →</a></p>
+              <p className="text-slate-400 mt-1">Clases y servicios que tienes contratados. ¿Buscas más? <a href="/discovery" className="text-primary-light underline">Explorar academias →</a></p>
             </>
           ) : (
             <>
@@ -306,6 +373,32 @@ const ClassesPage: React.FC = () => {
         </div>
       )}
 
+      {/* Selector de pestañas para Atletas */}
+      {user?.role === 'USER' && (
+        <div className="flex bg-slate-950/80 p-1 rounded-xl border border-white/5 w-fit gap-1">
+          <button
+            onClick={() => { setActiveTab('classes'); setSearch(''); }}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'classes'
+                ? 'bg-primary text-white shadow-lg'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            📅 Clases Deportivas
+          </button>
+          <button
+            onClick={() => { setActiveTab('professionals'); setSearch(''); }}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'professionals'
+                ? 'bg-primary text-white shadow-lg'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            🤝 Citas con Profesionales
+          </button>
+        </div>
+      )}
+
       {(showCreateModal || editingClass) && (
         <CreateClassModal 
           initialData={editingClass}
@@ -341,7 +434,7 @@ const ClassesPage: React.FC = () => {
           <input 
             type="text"
             className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-primary-light outline-none transition-all"
-            placeholder="Buscar por clase, disciplina o profesor..."
+            placeholder={activeTab === 'classes' ? "Buscar por clase, disciplina o profesor..." : "Buscar por servicio, profesional o categoría..."}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -356,39 +449,58 @@ const ClassesPage: React.FC = () => {
         <div className="flex h-64 items-center justify-center">
           <Loader2 className="text-primary w-12 h-12 animate-spin" />
         </div>
-      ) : filteredClasses.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredClasses.map(c => (
-            <ClassCard 
-              key={c.id} 
-              classItem={c} 
-              onBook={handleBook} 
-              onViewTicket={handleOpenTicket}
-              onAttendanceModal={handleOpenScanner}
-              onEdit={setEditingClass}
-              onDelete={handleDelete}
-              user={user}
-            />
-          ))}
-        </div>
+      ) : activeTab === 'classes' ? (
+        filteredClasses.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredClasses.map(c => (
+              <ClassCard 
+                key={c.id} 
+                classItem={c} 
+                onBook={handleBook} 
+                onViewTicket={handleOpenTicket}
+                onAttendanceModal={handleOpenScanner}
+                onEdit={setEditingClass}
+                onDelete={handleDelete}
+                user={user}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="glass-card p-20 flex flex-col items-center justify-center text-center">
+            <Calendar className="text-slate-700 w-16 h-16 mb-4" />
+            {user?.role === 'USER' ? (
+              <>
+                <h2 className="text-white font-bold text-xl">Aún no tienes clases reservadas</h2>
+                <p className="text-slate-500 mt-2">Busca una academia y reserva tu primera clase.</p>
+                <a href="/discovery" className="btn-primary mt-6 inline-flex items-center gap-2">
+                  🔍 Buscar Academias
+                </a>
+              </>
+            ) : (
+              <>
+                <h2 className="text-white font-bold text-xl">No hay clases disponibles</h2>
+                <p className="text-slate-500 mt-2">Crea la primera clase para empezar.</p>
+              </>
+            )}
+          </div>
+        )
       ) : (
-        <div className="glass-card p-20 flex flex-col items-center justify-center text-center">
-          <Calendar className="text-slate-700 w-16 h-16 mb-4" />
-          {user?.role === 'USER' ? (
-            <>
-              <h2 className="text-white font-bold text-xl">Aún no tienes clases reservadas</h2>
-              <p className="text-slate-500 mt-2">Busca una academia y reserva tu primera clase.</p>
-              <a href="/discovery" className="btn-primary mt-6 inline-flex items-center gap-2">
-                🔍 Buscar Academias
-              </a>
-            </>
-          ) : (
-            <>
-              <h2 className="text-white font-bold text-xl">No hay clases disponibles</h2>
-              <p className="text-slate-500 mt-2">Crea la primera clase para empezar.</p>
-            </>
-          )}
-        </div>
+        filteredBookings.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {filteredBookings.map(b => (
+              <ProfessionalBookingCard key={b.id} booking={b} />
+            ))}
+          </div>
+        ) : (
+          <div className="glass-card p-20 flex flex-col items-center justify-center text-center">
+            <Users className="text-slate-700 w-16 h-16 mb-4" />
+            <h2 className="text-white font-bold text-xl">Aún no tienes citas reservadas</h2>
+            <p className="text-slate-500 mt-2">Busca un profesional para agendar tu primera cita.</p>
+            <a href="/professionals" className="bg-accent hover:bg-accent-dark text-white font-bold py-2.5 px-6 rounded-xl mt-6 inline-flex items-center gap-2">
+              🤝 Buscar Profesionales
+            </a>
+          </div>
+        )
       )}
 
       {/* QR Ticket Modal - solo para atletas */}
