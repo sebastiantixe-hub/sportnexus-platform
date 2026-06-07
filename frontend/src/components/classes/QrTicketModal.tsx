@@ -2,8 +2,6 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Clock, MapPin, User, Hash } from 'lucide-react';
 
-import { QRCodeCanvas } from 'qrcode.react';
-
 interface ReservaModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -68,21 +66,6 @@ export const QrTicketModal: React.FC<ReservaModalProps> = ({
                   <User className="w-3.5 h-3.5" /> {userName}
                 </p>
               </div>
-
-              {/* QR Code Canvas */}
-              {reservationId && (
-                <div className="flex flex-col items-center justify-center bg-white p-4 rounded-xl shadow-inner my-2">
-                  <QRCodeCanvas 
-                    value={reservationId} 
-                    size={160}
-                    level="H"
-                    includeMargin={true}
-                  />
-                  <p className="text-[10px] text-slate-500 font-mono mt-2 select-all font-bold">
-                    ID: {reservationId}
-                  </p>
-                </div>
-              )}
 
               {/* Details */}
               <div className="space-y-3">
