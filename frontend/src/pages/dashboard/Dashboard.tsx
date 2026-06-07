@@ -1160,7 +1160,7 @@ const Dashboard: React.FC = () => {
                     </div>
                     <p className="text-slate-400 text-xs mt-1 leading-relaxed">
                       {activeRoleRequest.status === 'PENDING' ? 'Tu solicitud está siendo revisada por un administrador.' :
-                       activeRoleRequest.status === 'APPROVED' ? '¡Tu solicitud ha sido aprobada! Cambia de rol en la barra superior.' :
+                       activeRoleRequest.status === 'APPROVED' ? '¡Tu solicitud ha sido aprobada! Cambia de rol en la barra lateral.' :
                        `Solicitud rechazada: ${activeRoleRequest.adminNote || 'Sin notas.'}`}
                     </p>
                   </div>
