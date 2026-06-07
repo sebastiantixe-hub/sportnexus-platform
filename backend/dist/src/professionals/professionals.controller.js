@@ -32,6 +32,9 @@ let ProfessionalsController = class ProfessionalsController {
     findAll() {
         return this.professionalsService.findAll();
     }
+    getMyBookings(req) {
+        return this.professionalsService.getMyBookings(req.user.id);
+    }
     findOne(id) {
         return this.professionalsService.findOne(id);
     }
@@ -45,9 +48,6 @@ let ProfessionalsController = class ProfessionalsController {
     }
     bookService(id, req, notes) {
         return this.professionalsService.bookService(req.user.id, id, notes);
-    }
-    getMyBookings(req) {
-        return this.professionalsService.getMyBookings(req.user.id);
     }
 };
 exports.ProfessionalsController = ProfessionalsController;
@@ -70,6 +70,16 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], ProfessionalsController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('my-bookings'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Get my bookings' }),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], ProfessionalsController.prototype, "getMyBookings", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Get a professional service by id' }),
@@ -114,16 +124,6 @@ __decorate([
     __metadata("design:paramtypes", [String, Object, String]),
     __metadata("design:returntype", void 0)
 ], ProfessionalsController.prototype, "bookService", null);
-__decorate([
-    (0, common_1.Get)('my-bookings'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, swagger_1.ApiBearerAuth)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Get my bookings' }),
-    __param(0, (0, common_1.Request)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], ProfessionalsController.prototype, "getMyBookings", null);
 exports.ProfessionalsController = ProfessionalsController = __decorate([
     (0, swagger_1.ApiTags)('Professionals (Marketplace Services)'),
     (0, common_1.Controller)('professionals'),

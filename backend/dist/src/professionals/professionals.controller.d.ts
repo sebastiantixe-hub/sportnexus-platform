@@ -32,6 +32,44 @@ export declare class ProfessionalsController {
         serviceType: import("@prisma/client").$Enums.ServiceType;
         providerId: string;
     })[]>;
+    getMyBookings(req: any): Promise<({
+        service: {
+            provider: {
+                id: string;
+                createdAt: Date;
+                name: string;
+                auth0Id: string | null;
+                email: string;
+                passwordHash: string | null;
+                role: import("@prisma/client").$Enums.UserRole;
+                phone: string | null;
+                dni: string | null;
+                avatarUrl: string | null;
+                isActive: boolean;
+                emailVerified: boolean;
+                lastLoginAt: Date | null;
+                updatedAt: Date;
+                weight: number | null;
+            };
+        } & {
+            id: string;
+            createdAt: Date;
+            isActive: boolean;
+            title: string;
+            description: string | null;
+            price: import("@prisma/client/runtime/library").Decimal;
+            durationMin: number;
+            serviceType: import("@prisma/client").$Enums.ServiceType;
+            providerId: string;
+        };
+    } & {
+        id: string;
+        userId: string;
+        status: string;
+        bookedAt: Date;
+        notes: string | null;
+        serviceId: string;
+    })[]>;
     findOne(id: string): Promise<{
         provider: {
             id: string;
@@ -91,42 +129,4 @@ export declare class ProfessionalsController {
         notes: string | null;
         serviceId: string;
     }>;
-    getMyBookings(req: any): Promise<({
-        service: {
-            provider: {
-                id: string;
-                createdAt: Date;
-                name: string;
-                auth0Id: string | null;
-                email: string;
-                passwordHash: string | null;
-                role: import("@prisma/client").$Enums.UserRole;
-                phone: string | null;
-                dni: string | null;
-                avatarUrl: string | null;
-                isActive: boolean;
-                emailVerified: boolean;
-                lastLoginAt: Date | null;
-                updatedAt: Date;
-                weight: number | null;
-            };
-        } & {
-            id: string;
-            createdAt: Date;
-            isActive: boolean;
-            title: string;
-            description: string | null;
-            price: import("@prisma/client/runtime/library").Decimal;
-            durationMin: number;
-            serviceType: import("@prisma/client").$Enums.ServiceType;
-            providerId: string;
-        };
-    } & {
-        id: string;
-        userId: string;
-        status: string;
-        bookedAt: Date;
-        notes: string | null;
-        serviceId: string;
-    })[]>;
 }

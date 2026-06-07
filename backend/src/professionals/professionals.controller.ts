@@ -27,6 +27,14 @@ export class ProfessionalsController {
     return this.professionalsService.findAll();
   }
 
+  @Get('my-bookings')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get my bookings' })
+  getMyBookings(@Request() req) {
+    return this.professionalsService.getMyBookings(req.user.id);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a professional service by id' })
   findOne(@Param('id') id: string) {
@@ -58,13 +66,5 @@ export class ProfessionalsController {
   @ApiOperation({ summary: 'Book a professional service' })
   bookService(@Param('id') id: string, @Request() req, @Body('notes') notes: string) {
     return this.professionalsService.bookService(req.user.id, id, notes);
-  }
-
-  @Get('my-bookings')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get my bookings' })
-  getMyBookings(@Request() req) {
-    return this.professionalsService.getMyBookings(req.user.id);
   }
 }
