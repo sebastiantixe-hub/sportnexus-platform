@@ -155,6 +155,17 @@ export class MembershipsService {
 
     // 3. Create membership, payment and invoice with a transaction
     return this.prisma.$transaction(async (tx) => {
+      // Desactivar cualquier membresía activa previa del usuario
+      await tx.userMembership.updateMany({
+        where: {
+          userId,
+          status: MembershipStatus.ACTIVE,
+        },
+        data: {
+          status: MembershipStatus.EXPIRED,
+        },
+      });
+
       const membership = await tx.userMembership.create({
         data: {
           userId,

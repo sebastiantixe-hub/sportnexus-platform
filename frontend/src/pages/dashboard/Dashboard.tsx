@@ -1112,9 +1112,9 @@ const Dashboard: React.FC = () => {
             <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-3xl border border-white/5 space-y-4">
               <div>
                 <span className="text-white/40 text-xs font-semibold uppercase tracking-wider">Membresía & Locales</span>
-                {memberships.length > 0 ? (
+                {memberships.filter((m: any) => m.status === 'ACTIVE').length > 0 ? (
                   <div className="space-y-4 mt-3">
-                    {memberships.map((m: any) => (
+                    {memberships.filter((m: any) => m.status === 'ACTIVE').map((m: any) => (
                       <div key={m.id} className="border-b border-white/5 pb-3 last:border-0 last:pb-0">
                         <h4 className="text-white font-bold text-sm">{m.plan.name}</h4>
                         <p className="text-primary-light text-xs font-semibold flex items-center gap-1 mt-0.5">
@@ -1136,7 +1136,7 @@ const Dashboard: React.FC = () => {
               <button onClick={() => navigate('/memberships')}
                 className="btn-primary w-full py-2.5 mt-3 text-sm flex items-center justify-center gap-2">
                 <CreditCard className="w-4 h-4" />
-                <span>{memberships.length > 0 ? 'Ver Más Planes' : 'Adquirir Plan'}</span>
+                <span>{memberships.filter((m: any) => m.status === 'ACTIVE').length > 0 ? 'Ver Más Planes' : 'Adquirir Plan'}</span>
               </button>
             </div>
           )}
