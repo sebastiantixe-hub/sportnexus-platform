@@ -176,16 +176,36 @@ export class UsersService {
       throw new BadRequestException('Ya tienes el rol de Atleta por defecto.');
     }
 
-    // Verificar si ya tiene una solicitud pendiente
-    const existing = await this.prisma.roleRequest.findFirst({
-      where: { userId, status: 'PENDING' },
+    // Actualizar directamente el rol de usuario
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { role: requestedRole },
     });
-    if (existing) {
-      throw new ConflictException('Ya tienes una solicitud de rol pendiente. Espera la respuesta del administrador.');
+
+    // Crear perfil de entrenador si es necesario
+    if (requestedRole === UserRole.TRAINER) {
+      const existingProfile = await this.prisma.trainerProfile.findUnique({
+        where: { userId }
+      });
+      if (!existingProfile) {
+        await this.prisma.trainerProfile.create({
+          data: {
+            userId,
+            bio: 'Perfil de entrenador Hercix',
+            experienceYears: 0,
+          }
+        });
+      }
     }
 
     return this.prisma.roleRequest.create({
-      data: { userId, requestedRole, reason, status: 'PENDING' },
+      data: { 
+        userId, 
+        requestedRole, 
+        reason: reason || 'Solicitado desde el dashboard', 
+        status: 'APPROVED',
+        adminNote: 'Aprobación automática instantánea activa'
+      },
     });
   }
 

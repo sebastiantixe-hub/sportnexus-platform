@@ -230,24 +230,20 @@ export class AuthService {
     let newRole = currentUser?.role;
 
     if (data.role && data.role !== currentUser?.role) {
-      if (currentUser?.role === UserRole.USER && (data.role === UserRole.GYM_OWNER || data.role === UserRole.TRAINER)) {
-        // Create a pending role request instead of updating the role directly
-        const existingRequest = await this.prisma.roleRequest.findFirst({
-          where: { userId, status: 'PENDING' },
+      newRole = data.role;
+      if (newRole === UserRole.TRAINER) {
+        const existingProfile = await this.prisma.trainerProfile.findUnique({
+          where: { userId }
         });
-        if (!existingRequest) {
-          await this.prisma.roleRequest.create({
+        if (!existingProfile) {
+          await this.prisma.trainerProfile.create({
             data: {
               userId,
-              requestedRole: data.role,
-              reason: 'Solicitado en el registro de perfil completo',
-              status: 'PENDING',
-            },
+              bio: 'Perfil de entrenador Hercix',
+              experienceYears: 0,
+            }
           });
         }
-        // Role remains UserRole.USER (no upgrade yet)
-      } else {
-        newRole = data.role;
       }
     }
 

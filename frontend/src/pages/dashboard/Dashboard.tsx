@@ -198,7 +198,7 @@ const AdminDashboard: React.FC<{ stats: any; user: any }> = ({ stats, user }) =>
 /* ─────────────────────────── Main Dashboard ─────────────────────────── */
 
 const Dashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user, switchUserRole } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState<any>(null);
   const [memberships, setMemberships] = useState<any[]>([]);
@@ -228,10 +228,11 @@ const Dashboard: React.FC = () => {
         requestedRole: reqRole,
         reason: reqReason
       });
+      await switchUserRole(reqRole);
       setActiveRoleRequest(data);
       setShowRoleRequestModal(false);
       setReqReason('');
-      toast.success('✅ Solicitud de rol enviada con éxito.');
+      toast.success(`🎉 ¡Rol de ${reqRole === 'GYM_OWNER' ? 'Dueño' : 'Entrenador'} activado con éxito!`);
     } catch (err: any) {
       const msg = err.response?.data?.message || 'Error al enviar la solicitud';
       toast.error(`❌ ${msg}`);
