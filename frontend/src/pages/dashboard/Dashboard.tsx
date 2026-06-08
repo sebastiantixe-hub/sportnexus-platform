@@ -1129,7 +1129,11 @@ const Dashboard: React.FC = () => {
                       <div key={m.id} className="border-b border-white/5 pb-3 last:border-0 last:pb-0">
                         <h4 className="text-white font-bold text-sm">{m.plan.name}</h4>
                         <p className="text-primary-light text-xs font-semibold flex items-center gap-1 mt-0.5">
-                          <Building2 className="w-3.5 h-3.5" /> {m.plan.gym?.name || 'Gimnasio Hercix'}
+                          <Building2 className="w-3.5 h-3.5" /> {
+                            ['Plan Inicial', 'Estándar', 'Premium Élite'].includes(m.plan.name)
+                              ? 'Plataforma Hercix'
+                              : (m.plan.gym?.name || 'Gimnasio Hercix')
+                          }
                         </p>
                         <p className="text-slate-500 text-[11px] mt-1">
                           Vence: {new Date(m.expiresAt).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })}
