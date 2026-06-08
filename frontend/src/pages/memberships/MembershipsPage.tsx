@@ -31,11 +31,9 @@ const PlanCard: React.FC<{ plan: any; onSubscribe: (id: string) => void }> = ({ 
       </div>
       <div>
         <h3 className="text-xl font-bold text-white">{plan.name}</h3>
-        {plan.gym?.name && (
-          <span className="text-[11px] text-slate-400 block mt-1 font-semibold tracking-wider uppercase">
-             {plan.gym.name}
-          </span>
-        )}
+        <span className="text-[11px] text-slate-400 block mt-1 font-semibold tracking-wider uppercase">
+          Plataforma Hercix
+        </span>
       </div>
     </div>
 
