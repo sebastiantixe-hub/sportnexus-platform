@@ -26,6 +26,7 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AddProductModal } from '../../components/marketplace/AddProductModal';
 import { AddPlanModal } from '../../components/gyms/AddPlanModal';
+import { PayMeModal } from '../../components/payment/PayMeModal';
 
 const GymShowroom: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -52,6 +53,11 @@ const GymShowroom: React.FC = () => {
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [editingPlan, setEditingPlan] = useState<any>(null);
 
+  // Payment integration state
+  const [selectedPlanForPay, setSelectedPlanForPay] = useState<any>(null);
+  const [showPayMeModal, setShowPayMeModal] = useState(false);
+  const [isCartPayment, setIsCartPayment] = useState(false);
+
   const isOwner = user?.role === 'GYM_OWNER' || user?.role === 'ADMIN';
   const isMyGym = isOwner && gym && gym.ownerId === user?.id;
 
@@ -59,6 +65,42 @@ const GymShowroom: React.FC = () => {
     toast.success(editingPlan ? 'Plan actualizado ✅' : '¡Plan de membresía creado exitosamente! ✅');
     const { data } = await api.get(`/memberships/plans?gymId=${id}`);
     setPlans(data);
+  };
+
+  const handlePaySuccess = async () => {
+    if (isCartPayment) {
+      try {
+        const orderItems = cart.map(item => ({
+          productId: item.id,
+          quantity: item.qty
+        }));
+        await api.post('/marketplace/orders', {
+          gymId: id,
+          items: orderItems,
+          notes: 'Compra desde vitrina de gimnasio con pasarela Pay-me'
+        });
+        toast.success('¡Pedido confirmado y pagado exitosamente! 🎉');
+        setCart([]);
+        setShowCart(false);
+        setShowPayMeModal(false);
+        setIsCartPayment(false);
+        fetchData();
+      } catch (err: any) {
+        toast.error(err.response?.data?.message || 'Error al procesar tu pedido.');
+      }
+      return;
+    }
+
+    if (!selectedPlanForPay) return;
+    try {
+      await api.post('/memberships/subscribe', { planId: selectedPlanForPay.id });
+      toast.success(`🎉 ¡Te has suscrito exitosamente al plan "${selectedPlanForPay.name}"!`);
+      setShowPayMeModal(false);
+      setSelectedPlanForPay(null);
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Error al procesar tu suscripción.');
+    }
   };
 
   const handleDeletePlan = async (planId: string, planName: string) => {
@@ -458,7 +500,18 @@ const GymShowroom: React.FC = () => {
                              </li>
                            ))}
                         </ul>
-                        <button className="w-full mt-8 py-3 bg-primary hover:bg-primary-dark text-white font-black rounded-xl transition-all shadow-lg shadow-primary/20 active:scale-95">
+                        <button 
+                          onClick={() => {
+                            if (isOwner) {
+                              toast.error('Los administradores/dueños no pueden suscribirse a planes.');
+                              return;
+                            }
+                            setIsCartPayment(false);
+                            setSelectedPlanForPay(p);
+                            setShowPayMeModal(true);
+                          }}
+                          className="w-full mt-8 py-3 bg-primary hover:bg-primary-dark text-white font-black rounded-xl transition-all shadow-lg shadow-primary/20 active:scale-95"
+                        >
                           Suscribirme Hoy
                         </button>
                       </div>
@@ -567,10 +620,18 @@ const GymShowroom: React.FC = () => {
                   <span className="text-white font-black text-xl">${cartTotal.toFixed(2)}</span>
                 </div>
                 <button
-                  onClick={() => { toast.success('¡Pedido confirmado! Te contactaremos pronto. 🎉'); setCart([]); setShowCart(false); }}
+                  onClick={() => {
+                    if (isOwner) {
+                      toast.error('Los administradores/dueños no pueden realizar pedidos.');
+                      return;
+                    }
+                    setIsCartPayment(true);
+                    setSelectedPlanForPay(null);
+                    setShowPayMeModal(true);
+                  }}
                   className="btn-primary w-full py-3 text-center font-black flex items-center justify-center gap-2"
                 >
-                  <ShoppingCart className="w-4 h-4" /> Confirmar Pedido
+                  <ShoppingCart className="w-4 h-4" /> Confirmar y Pagar Pedido
                 </button>
               </div>
             )}
@@ -583,6 +644,13 @@ const GymShowroom: React.FC = () => {
         onSuccess={handlePlanSuccess}
         gymId={id || ''}
         initialData={editingPlan}
+      />
+      <PayMeModal
+        isOpen={showPayMeModal}
+        onClose={() => { setShowPayMeModal(false); setSelectedPlanForPay(null); setIsCartPayment(false); }}
+        onSuccess={handlePaySuccess}
+        amount={isCartPayment ? cartTotal : (selectedPlanForPay ? Number(selectedPlanForPay.price) : 0)}
+        description={isCartPayment ? `Compra de productos deportivos - ${gym.name}` : (selectedPlanForPay ? `Membresía ${selectedPlanForPay.name} - ${gym.name}` : '')}
       />
     </div>
   );
