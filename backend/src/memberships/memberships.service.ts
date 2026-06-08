@@ -155,16 +155,28 @@ export class MembershipsService {
 
     // 3. Create membership, payment and invoice with a transaction
     return this.prisma.$transaction(async (tx) => {
-      // Desactivar cualquier membresía activa previa del usuario
-      await tx.userMembership.updateMany({
+      // Desactivar solo las membresías activas previas del usuario EN ESTE MISMO GIMNASIO/ACADEMIA
+      const activeGymMemberships = await tx.userMembership.findMany({
         where: {
           userId,
           status: MembershipStatus.ACTIVE,
+          plan: {
+            gymId: plan.gymId
+          }
         },
-        data: {
-          status: MembershipStatus.EXPIRED,
-        },
+        select: { id: true }
       });
+
+      if (activeGymMemberships.length > 0) {
+        await tx.userMembership.updateMany({
+          where: {
+            id: { in: activeGymMemberships.map(m => m.id) }
+          },
+          data: {
+            status: MembershipStatus.EXPIRED,
+          },
+        });
+      }
 
       const membership = await tx.userMembership.create({
         data: {
