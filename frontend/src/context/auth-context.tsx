@@ -36,6 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   const [user, setUser] = useState<User | null>(null);
   const [backendLoading, setBackendLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     const syncUser = async () => {
@@ -131,6 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
   
   const logout = () => {
+    setIsLoggingOut(true);
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     auth0Logout({ logoutParams: { returnTo: window.location.origin } });
@@ -175,7 +177,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <AuthContext.Provider value={{ 
       user, 
-      loading: auth0Loading || (isAuthenticated && backendLoading), 
+      loading: auth0Loading || (isAuthenticated && backendLoading) || isLoggingOut, 
       login, 
       logout,
       updateUserProfile,
