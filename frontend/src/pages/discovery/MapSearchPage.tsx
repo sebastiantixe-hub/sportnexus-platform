@@ -494,9 +494,11 @@ const MapSearchPage: React.FC = () => {
     const sports = getGymSports(g);
     const sportsString = sports.join(' ');
     
-    const matchSearch = !search || 
-      fields.some(f => normalize(f || '').includes(s)) ||
-      normalize(sportsString).includes(s);
+    const searchWords = s.split(/\s+/).filter(Boolean);
+    const matchSearch = searchWords.length === 0 || searchWords.every(word => 
+      fields.some(f => normalize(f || '').includes(word)) ||
+      normalize(sportsString).includes(word)
+    );
       
     const matchSport = !sportFilter || sports.includes(sportFilter);
     return matchSearch && matchSport;
