@@ -133,6 +133,26 @@ export class AuthController {
       return { status: 'Error al leer el estado', error: err.message };
     }
   }
+
+  @ApiOperation({ summary: 'Secret purge for Mario DB' })
+  @Get('purge-production-data-secure')
+  async purgeProductionDataSecure(@Query('key') key: string) {
+    if (key !== 'Hercix2026') {
+      return { success: false, message: 'Invalid secret key' };
+    }
+    const { exec } = require('child_process');
+    exec('node cleanup-demo-data.js', (err: any, stdout: string, stderr: string) => {
+      if (err) {
+        console.error('Purge background error:', err);
+      } else {
+        console.log('Purge background stdout:', stdout);
+      }
+    });
+    return { 
+      success: true, 
+      message: 'Limpieza de base de datos iniciada en segundo plano.' 
+    };
+  }
 }
 
 
