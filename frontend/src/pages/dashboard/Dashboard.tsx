@@ -1037,6 +1037,13 @@ const Dashboard: React.FC = () => {
             <StatCard label="Ingresos Generados" value={`$${(stats?.revenue ?? 0).toLocaleString()}`} icon={TrendingUp} color="green" trend="Total" delay={0.15} />
             <StatCard label="Clases Activas" value={stats?.classes ?? 0} icon={Calendar} color="accent" delay={0.2} />
           </>
+        ) : isTrainer ? (
+          <>
+            <StatCard label="Centros de Entrenamiento" value={stats?.gyms ?? 0} icon={Building2} color="primary" delay={0.05} />
+            <StatCard label="Alumnos Totales" value={stats?.members ?? 0} icon={Users} color="secondary" delay={0.1} />
+            <StatCard label="Clases Asignadas" value={stats?.classes ?? 0} icon={Calendar} color="accent" delay={0.15} />
+            <StatCard label="Servicios Profesionales" value={stats?.services ?? 0} icon={Activity} color="green" delay={0.2} />
+          </>
         ) : (
           <>
             <StatCard label="Clases Reservadas" value={stats?.reservations ?? 0} icon={Calendar} color="primary" delay={0.05} />
@@ -1080,7 +1087,11 @@ const Dashboard: React.FC = () => {
               <div className="glass-card p-12 flex flex-col items-center justify-center text-center opacity-60">
                 <AlertCircle className="text-slate-600 w-12 h-12 mb-4" />
                 <p className="text-slate-400">Aún no tienes actividad registrada.</p>
-                <p className="text-slate-500 text-sm mt-1">Empieza explorando el Marketplace o reserva una clase.</p>
+                <p className="text-slate-500 text-sm mt-1">
+                  {isTrainer 
+                    ? 'Tus alumnos verán tus clases y servicios aquí una vez reserven.' 
+                    : 'Empieza explorando el Marketplace o reserva una clase.'}
+                </p>
               </div>
             )}
           </div>
@@ -1183,9 +1194,19 @@ const Dashboard: React.FC = () => {
           <div>
             <h2 className="text-lg font-bold text-white mb-3">Accesos Rápidos</h2>
             <div className="space-y-2">
-              <QuickAction label="Ver Clases" icon={Calendar} to="/classes" desc="Reserva tu próxima sesión" />
-              <QuickAction label="Explorar Tienda" icon={ShoppingBag} to={isOwner || isTrainer ? '/sport-store' : '/marketplace'} desc="Equipamiento deportivo" />
-              <QuickAction label="Próximos Eventos" icon={Trophy} to="/events" desc="Torneos y masterclasses" />
+              {isTrainer ? (
+                <>
+                  <QuickAction label="Gestionar Clases" icon={Calendar} to="/classes" desc="Ver tus horarios y alumnos" />
+                  <QuickAction label="Servicios Profesionales" icon={Activity} to="/professionals" desc="Configurar tus planes de coaching" />
+                  <QuickAction label="Explorar Tienda" icon={ShoppingBag} to="/sport-store" desc="Equipamiento deportivo" />
+                </>
+              ) : (
+                <>
+                  <QuickAction label="Ver Clases" icon={Calendar} to="/classes" desc="Reserva tu próxima sesión" />
+                  <QuickAction label="Explorar Tienda" icon={ShoppingBag} to={isOwner ? '/sport-store' : '/marketplace'} desc="Equipamiento deportivo" />
+                  <QuickAction label="Próximos Eventos" icon={Trophy} to="/events" desc="Torneos y masterclasses" />
+                </>
+              )}
               {!isOwner && !isTrainer && (
                 <>
                   <QuickAction label="Mis Wearables" icon={Watch} to="/dashboard/wearables" desc="Sincroniza tu actividad" />
