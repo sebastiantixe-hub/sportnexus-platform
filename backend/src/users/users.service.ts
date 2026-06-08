@@ -176,35 +176,12 @@ export class UsersService {
       throw new BadRequestException('Ya tienes el rol de Atleta por defecto.');
     }
 
-    // Actualizar directamente el rol de usuario
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { role: requestedRole },
-    });
-
-    // Crear perfil de entrenador si es necesario
-    if (requestedRole === UserRole.TRAINER) {
-      const existingProfile = await this.prisma.trainerProfile.findUnique({
-        where: { userId }
-      });
-      if (!existingProfile) {
-        await this.prisma.trainerProfile.create({
-          data: {
-            userId,
-            bio: 'Perfil de entrenador Hercix',
-            experienceYears: 0,
-          }
-        });
-      }
-    }
-
     return this.prisma.roleRequest.create({
       data: { 
         userId, 
         requestedRole, 
         reason: reason || 'Solicitado desde el dashboard', 
-        status: 'APPROVED',
-        adminNote: 'Aprobación automática instantánea activa'
+        status: 'PENDING',
       },
     });
   }
@@ -236,16 +213,31 @@ export class UsersService {
       }
     }
 
-    await this.prisma.$transaction([
-      this.prisma.user.update({
+    await this.prisma.$transaction(async (tx) => {
+      await tx.user.update({
         where: { id: request.userId },
         data: { role: request.requestedRole },
-      }),
-      this.prisma.roleRequest.update({
+      });
+      await tx.roleRequest.update({
         where: { id: requestId },
         data: { status: 'APPROVED', adminNote },
-      }),
-    ]);
+      });
+
+      if (request.requestedRole === UserRole.TRAINER) {
+        const existingProfile = await tx.trainerProfile.findUnique({
+          where: { userId: request.userId }
+        });
+        if (!existingProfile) {
+          await tx.trainerProfile.create({
+            data: {
+              userId: request.userId,
+              bio: 'Perfil de entrenador Hercix',
+              experienceYears: 0,
+            }
+          });
+        }
+      }
+    });
 
     return { success: true, message: `Solicitud aprobada. Rol ${request.requestedRole} asignado.` };
   }

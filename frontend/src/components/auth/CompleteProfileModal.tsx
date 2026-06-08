@@ -166,10 +166,10 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({ isOp
                     </button>
                   ))}
                 </div>
-                {formData.role !== 'USER' && (
-                  <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-3 text-[10px] text-green-400 mt-2 flex items-center gap-2">
-                    <span className="animate-pulse text-base shrink-0">✨</span>
-                    <span>¡Acceso instantáneo! Al registrarte como **{formData.role === 'GYM_OWNER' ? 'Dueño' : 'Entrenador'}**, se activará tu panel de control de forma inmediata.</span>
+                 {formData.role !== 'USER' && (
+                  <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 text-[10px] text-yellow-400 mt-2 flex items-center gap-2">
+                    <span className="animate-pulse text-base shrink-0">⚠️</span>
+                    <span>Los roles de **Entrenador** y **Dueño** no se activarán de forma directa. Tu solicitud quedará en estado **PENDIENTE**. Un administrador del sistema (como Mario) deberá aprobarla desde su panel antes de que puedas acceder.</span>
                   </div>
                 )}
               </div>
