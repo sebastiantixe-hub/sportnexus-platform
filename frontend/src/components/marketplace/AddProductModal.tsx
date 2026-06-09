@@ -27,6 +27,16 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClos
 
   useEffect(() => {
     if (isOpen) {
+      setFormData({
+        gymId: initialData?.gymId || '',
+        name: initialData?.name || '',
+        description: initialData?.description || '',
+        price: initialData?.price || '',
+        stock: initialData?.stock || '',
+        category: initialData?.category || 'Suplementos',
+        imageUrl: initialData?.imageUrl || '',
+      });
+
       const fetchGyms = async () => {
         try {
           const ownerParam = user?.role === 'GYM_OWNER' ? `?ownerId=${user.id}` : '';
@@ -41,7 +51,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({ isOpen, onClos
       };
       fetchGyms();
     }
-  }, [isOpen, user]);
+  }, [isOpen, user, initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
