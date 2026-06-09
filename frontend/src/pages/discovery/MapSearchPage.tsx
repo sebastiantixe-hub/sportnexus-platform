@@ -184,22 +184,47 @@ const SPORT_FILTERS = [
 ];
 
 const getGymSports = (gym: any): string[] => {
-  const sports = ['Gimnasio'];
+  const sports: string[] = [];
   const name = gym.name.toLowerCase();
   
-  if (name.includes('iron') || name.includes('forge') || name.includes('power') || name.includes('elite') || name.includes('fit') || name.includes('studio') || name.includes('gimnasio') || name.includes('fitness')) {
+  // 1. Detectar deportes basados en el nombre real
+  if (name.includes('futbol') || name.includes('fútbol') || name.includes('soccer')) {
+    sports.push('Fútbol');
+  }
+  if (name.includes('voley') || name.includes('vóley') || name.includes('volleyball') || name.includes('voleibol')) {
+    sports.push('Vóley');
+  }
+  if (name.includes('basquet') || name.includes('básquet') || name.includes('basketball') || name.includes('basquetball')) {
+    sports.push('Básquetbol');
+  }
+  if (name.includes('tenis') || name.includes('tennis')) {
+    sports.push('Tenis');
+  }
+  if (name.includes('natacion') || name.includes('natación') || name.includes('swim') || name.includes('piscina')) {
+    sports.push('Natación');
+  }
+  if (name.includes('box') || name.includes('boxeo') || name.includes('fight') || name.includes('mma') || name.includes('combate')) {
+    sports.push('Box');
+  }
+  if (name.includes('atletismo') || name.includes('running') || name.includes('run') || name.includes('pista')) {
+    sports.push('Atletismo');
+  }
+  if (name.includes('gimnasio') || name.includes('gym') || name.includes('iron') || name.includes('forge') || name.includes('power') || name.includes('elite') || name.includes('fit') || name.includes('studio') || name.includes('fitness') || sports.length === 0) {
     sports.push('Gimnasio');
   }
   
-  const nameSum = gym.name.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
-  const availableSports = ['Fútbol', 'Vóley', 'Básquetbol', 'Tenis', 'Natación', 'Box', 'Atletismo'];
-  
-  const primarySport = availableSports[nameSum % availableSports.length];
-  sports.push(primarySport);
-  
-  if (nameSum % 2 === 0) {
-    const secondarySport = availableSports[(nameSum + 3) % availableSports.length];
-    sports.push(secondarySport);
+  // 2. Si no se detectó ningún deporte específico además de Gimnasio, usar la lógica determinista para fallback
+  if (sports.length === 1 && sports[0] === 'Gimnasio') {
+    const nameSum = gym.name.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+    const availableSports = ['Fútbol', 'Vóley', 'Básquetbol', 'Tenis', 'Natación', 'Box', 'Atletismo'];
+    
+    const primarySport = availableSports[nameSum % availableSports.length];
+    sports.push(primarySport);
+    
+    if (nameSum % 2 === 0) {
+      const secondarySport = availableSports[(nameSum + 3) % availableSports.length];
+      sports.push(secondarySport);
+    }
   }
   
   return Array.from(new Set(sports));
