@@ -1,4 +1,4 @@
-# 🔌 Servicios Externos — SportNexus Platform
+# 🔌 Servicios Externos — Hercix Platform
 
 > Lista completa de todos los servicios de terceros utilizados, su propósito y cómo configurarlos.
 
@@ -107,7 +107,7 @@ DIRECT_URL="postgresql://neondb_owner:PASSWORD@HOST.c-5.us-east-1.aws.neon.tech/
 ```env
 RESEND_API_KEY="re_K3Khak9i_..."
 RESEND_FROM_EMAIL="onboarding@resend.dev"
-RESEND_FROM_NAME="SportNexus"
+RESEND_FROM_NAME="Hercix"
 ```
 
 ### Límites del plan Free
@@ -163,7 +163,7 @@ GEMINI_API_KEY="AIzaSy..."
 ## 6. Fitbit Developer API — Wearables OAuth2
 
 **URL**: https://dev.fitbit.com  
-**App registrada**: SportNexus (`Client ID: 23VJLL`)
+**App registrada**: Hercix (`Client ID: 23VJLL`)
 
 ### Configuración
 ```env

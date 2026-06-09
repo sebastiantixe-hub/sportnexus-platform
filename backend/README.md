@@ -1,6 +1,6 @@
-# 🚀 SportNexus Backend — API REST (NestJS)
+# 🚀 Hercix Backend — API REST (NestJS)
 
-Este es el backend oficial de **SportNexus**, una plataforma SaaS y Marketplace deportivo multi-tenant. Está construido con **NestJS**, **TypeScript**, **PostgreSQL** y **Prisma ORM**.
+Este es el backend oficial de **Hercix**, una plataforma SaaS y Marketplace deportivo multi-tenant. Está construido con **NestJS**, **TypeScript**, **PostgreSQL** y **Prisma ORM**.
 
 ---
 

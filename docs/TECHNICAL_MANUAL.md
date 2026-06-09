@@ -1,4 +1,4 @@
-# 🏗️ Manual Técnico — SportNexus Platform
+# 🏗️ Manual Técnico — Hercix Platform
 
 > Documento de arquitectura, módulos, endpoints y flujos clave del sistema.
 
@@ -6,7 +6,7 @@
 
 ## 1. Visión General del Sistema
 
-**SportNexus** es una plataforma SaaS multi-tenant + Marketplace para el sector deportivo. Permite a gimnasios, academias y centros fitness gestionar sus operaciones completas desde una sola aplicación.
+**Hercix** es una plataforma SaaS multi-tenant + Marketplace para el sector deportivo. Permite a gimnasios, academias y centros fitness gestionar sus operaciones completas desde una sola aplicación.
 
 ### Modelo Multi-tenant
 - **Un solo backend** sirve a múltiples gimnasios simultáneamente

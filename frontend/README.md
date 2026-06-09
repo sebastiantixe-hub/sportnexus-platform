@@ -1,6 +1,6 @@
-# 💻 SportNexus Frontend — Aplicación Cliente (React)
+# 💻 Hercix Frontend — Aplicación Cliente (React)
 
-Este es el frontend oficial de **SportNexus**, la interfaz de usuario para atletas, entrenadores, dueños de gimnasios y administradores. Está construido sobre **React**, **Vite**, **TypeScript** y estilizado con **TailwindCSS** y **Framer Motion**.
+Este es el frontend oficial de **Hercix**, la interfaz de usuario para atletas, entrenadores, dueños de gimnasios y administradores. Está construido sobre **React**, **Vite**, **TypeScript** y estilizado con **TailwindCSS** y **Framer Motion**.
 
 ---
 

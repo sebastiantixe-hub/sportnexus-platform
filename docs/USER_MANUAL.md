@@ -1,4 +1,4 @@
-# 👤 Manual de Usuario — SportNexus Platform
+# 👤 Manual de Usuario — Hercix Platform
 
 > Guía completa de uso del sistema para cada rol de usuario.
 
@@ -8,7 +8,7 @@
 
 | Rol | Quién es |
 |---|---|
-| `ADMIN` | Administrador de la plataforma SportNexus |
+| `ADMIN` | Administrador de la plataforma Hercix |
 | `GYM_OWNER` | Dueño o gerente de un gimnasio / academia deportiva |
 | `TRAINER` | Entrenador físico o instructor |
 | `USER` | Atleta / cliente final del gimnasio |
@@ -159,7 +159,7 @@
 ### 5. Conectar Fitbit (Wearables)
 1. En el sidebar → **"Salud"** o **"Wearables"**
 2. Click en **"Conectar con Fitbit"**
-3. Se abrirá la página oficial de Fitbit — autoriza a SportNexus
+3. Se abrirá la página oficial de Fitbit — autoriza a Hercix
 4. Serás redirigido de regreso automáticamente
 5. Tus datos se sincronizan:
    - **Pasos** del día
@@ -209,7 +209,7 @@ Dashboard → tu avatar (esquina inferior izquierda) → Configuración → Camb
 Actualmente las membresías se cancelan contactando al gimnasio directamente.
 
 **¿Mis datos de Fitbit son privados?**
-Sí. Tus tokens de Fitbit se almacenan de forma segura y solo tú puedes ver tus métricas.
+Sí. Tus tokens de Fitbit se almacenan de forma segura y solo tú puedes ver tus métricas. Es un estándar de seguridad de Hercix.
 
 **¿Qué hago si un pago falla?**
 Verifica que tu tarjeta esté habilitada para compras en línea y reintenta. Si el problema persiste, contacta al soporte.

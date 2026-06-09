@@ -1,4 +1,4 @@
-# 🚀 Guía de Despliegue — SportNexus Platform
+# 🚀 Guía de Despliegue — Hercix Platform
 
 > Instrucciones paso a paso para desplegar el sistema completo en producción.
 
@@ -20,9 +20,9 @@
 
 1. Ve a [dashboard.render.com](https://dashboard.render.com)
 2. Click **"New +"** → **"Web Service"**
-3. Conecta tu repositorio de GitHub: `sportnexus-platform`
+3. Conecta tu repositorio de GitHub: `hercix-platform`
 4. Configura el servicio:
-   - **Name**: `sportnexus-backend`
+   - **Name**: `hercix-backend`
    - **Root Directory**: `backend`
    - **Runtime**: `Node`
    - **Build Command**: `npm install --include=dev && npx prisma generate && npm run build`
@@ -106,14 +106,14 @@ FRONTEND_URL="https://sportnexus-platform.vercel.app"
 # ── Email (Resend) ────────────────────────────────────────────────
 RESEND_API_KEY="re_..."
 RESEND_FROM_EMAIL="onboarding@resend.dev"
-RESEND_FROM_NAME="SportNexus"
+RESEND_FROM_NAME="Hercix"
 
 # ── IA (Google Gemini) ────────────────────────────────────────────
 GEMINI_API_KEY="AIza..."
 
 # ── Auth0 (Opcional) ─────────────────────────────────────────────
 AUTH0_DOMAIN="dev-xxxxx.us.auth0.com"
-AUTH0_AUDIENCE="https://sportnexus-api"
+AUTH0_AUDIENCE="https://hercix-api"
 
 # ── Fitbit OAuth2 ─────────────────────────────────────────────────
 FITBIT_CLIENT_ID="23VJLL"
@@ -194,5 +194,5 @@ curl https://sportnexus-platform.onrender.com/api
 # Test de autenticación
 curl -X POST https://sportnexus-platform.onrender.com/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@sportnexus.com","password":"Admin123!"}'
+  -d '{"email":"admin@hercix.com","password":"Admin123!"}'
 ```

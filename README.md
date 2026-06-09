@@ -1,9 +1,9 @@
-# 🏋️ SportNexus — Plataforma SaaS & Marketplace Deportivo
+# 🏋️ Hercix — Plataforma SaaS & Marketplace Deportivo
 
 > **Plataforma multi-tenant production-ready** para gestión integral de gimnasios, academias deportivas y centros fitness. Incluye SaaS de gestión + Marketplace integrado + IA de recomendaciones + OAuth2 con Fitbit.
 
 [![Deploy Status](https://img.shields.io/badge/Backend-Render-46E3B7?logo=render)](https://sportnexus-platform.onrender.com/api)
-[![Frontend](https://img.shields.io/badge/Frontend-Vercel-black?logo=vercel)](https://sportnexus-platform.vercel.app)
+[![Frontend](https://img.shields.io/badge/Frontend-Vercel-black?logo=vercel)](https://hercix.com)
 [![DB](https://img.shields.io/badge/Database-Neon_PostgreSQL-00E5A0?logo=postgresql)](https://neon.tech)
 
 ---
@@ -12,6 +12,7 @@
 
 | Servicio | URL |
 |---|---|
+| **Frontend (Producción)** | https://hercix.com |
 | **Frontend (Vercel)** | https://sportnexus-platform.vercel.app |
 | **Backend API (Render)** | https://sportnexus-platform.onrender.com/api |
 | **API Docs (Swagger)** | https://sportnexus-platform.onrender.com/api/docs |
@@ -21,7 +22,7 @@
 ## 🗂️ Estructura del Repositorio
 
 ```
-sportnexus-platform/
+sports-saas-platform/
 ├── backend/          # NestJS API (Node.js + TypeScript)
 │   ├── src/          # Código fuente (módulos)
 │   ├── prisma/       # Schema y migraciones de BD
@@ -68,8 +69,8 @@ sportnexus-platform/
 
 ### 1. Clonar el repositorio
 ```bash
-git clone https://github.com/sebastiantixe-hub/sportnexus-platform.git
-cd sportnexus-platform
+git clone https://github.com/SuperInkaWeb/Saas-Marketplace-deporte-gimnnasios-academias-y-otros.git hercix-platform
+cd hercix-platform
 ```
 
 ### 2. Configurar el Backend
@@ -151,4 +152,4 @@ npm run dev               # App en http://localhost:5173
 
 ## 📄 Licencia
 
-Proyecto propietario — © 2026 SportNexus / SuperInkaWeb. Todos los derechos reservados.
+Proyecto propietario — © 2026 Hercix / SuperInkaWeb. Todos los derechos reservados.
