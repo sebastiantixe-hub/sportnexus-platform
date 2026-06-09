@@ -1,73 +1,72 @@
-# React + TypeScript + Vite
+# 💻 SportNexus Frontend — Aplicación Cliente (React)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este es el frontend oficial de **SportNexus**, la interfaz de usuario para atletas, entrenadores, dueños de gimnasios y administradores. Está construido sobre **React**, **Vite**, **TypeScript** y estilizado con **TailwindCSS** y **Framer Motion**.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🛠️ Stack Tecnológico
 
-## React Compiler
+- **Librería Core**: React (v18)
+- **Compilador/Bundle**: Vite (v5)
+- **Lenguaje**: TypeScript
+- **Estilos**: TailwindCSS (v3) + Glassmorphism personalizado
+- **Animaciones**: Framer Motion
+- **Iconografía**: Lucide React
+- **Cliente HTTP**: Axios
+- **Router**: React Router DOM (v6)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 📋 Requisitos Previos
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Asegúrate de tener instalado:
+- **Node.js** (versión 20 o superior)
+- **npm** (versión 10 o superior)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## ⚙️ Instalación y Configuración Local
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. **Instalar Dependencias**:
+   ```bash
+   npm install
+   ```
+
+2. **Configurar Variables de Entorno**:
+   Copia el archivo de ejemplo y edítalo con la URL de tu API del backend:
+   ```bash
+   cp .env.example .env
+   ```
+   Por defecto para desarrollo local:
+   ```env
+   VITE_API_URL=http://localhost:3000/api
+   ```
+
+---
+
+## 🚀 Ejecución de la Aplicación
+
+```bash
+# Servidor de Desarrollo local (HMR)
+npm run dev
+
+# Construir para Producción (Genera la carpeta /dist)
+npm run build
+
+# Previsualizar la compilación de producción localmente
+npm run preview
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+La aplicación se iniciará en `http://localhost:5173`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+---
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 🔗 Despliegue en Producción (Vercel)
+
+El frontend está optimizado para su despliegue en **Vercel**:
+1. Crea un nuevo proyecto en Vercel.
+2. Conecta el repositorio de GitHub.
+3. Configura el directorio raíz a `frontend`.
+4. El framework preset se detectará automáticamente como `Vite`.
+5. Configura la variable de entorno `VITE_API_URL` apuntando a tu backend de producción (ej. `https://sportnexus-platform.onrender.com/api`).
+6. Haz clic en **Deploy**.
