@@ -145,7 +145,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
     { to: '/gyms',               icon: Building2,       label: 'Todos los Negocios',       roles: ['ADMIN'] },
     { to: '/classes',            icon: Calendar,        label: 'Todas las Clases',         roles: ['ADMIN'] },
-    { to: '/sport-store',        icon: ShoppingBag,     label: 'Tienda Deportiva',         roles: ['ADMIN'] },
+    { to: '/marketplace',        icon: ShoppingBag,     label: 'Tienda Deportiva',         roles: ['ADMIN'] },
     { to: '/professionals',      icon: Users,           label: 'Servicios Profesionales',  roles: ['ADMIN'] },
     { to: '/events',             icon: Trophy,          label: 'Eventos',                  roles: ['ADMIN'] },
     { to: '/memberships',        icon: CreditCard,      label: 'Membresías',               roles: ['ADMIN'] },
@@ -154,7 +154,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { to: '/gyms',               icon: Building2,       label: 'Mis Negocios',             roles: ['GYM_OWNER'] },
     { to: '/classes',            icon: Calendar,        label: 'Clases',                   roles: ['GYM_OWNER'] },
     { to: '/events',             icon: Trophy,          label: 'Eventos',                  roles: ['GYM_OWNER'] },
-    { to: '/sport-store',        icon: ShoppingBag,     label: 'Tienda Deportiva',         roles: ['GYM_OWNER'] },
+    { to: '/marketplace',        icon: ShoppingBag,     label: 'Tienda Deportiva',         roles: ['GYM_OWNER'] },
     { to: '/professionals',      icon: Users,           label: 'Servicios Profesionales',  roles: ['GYM_OWNER'] },
     { to: '/memberships',        icon: CreditCard,      label: 'Membresías',               roles: ['GYM_OWNER'] },
     { 
@@ -170,12 +170,12 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     // ── TRAINER ───────────────────────────────────────────────────
     { to: '/classes',            icon: Calendar,        label: 'Mis Clases',               roles: ['TRAINER'] },
     { to: '/professionals',      icon: Users,           label: 'Servicios Profesionales',  roles: ['TRAINER'] },
-    { to: '/sport-store',        icon: ShoppingBag,     label: 'Tienda Deportiva',         roles: ['TRAINER'] },
+    { to: '/marketplace',        icon: ShoppingBag,     label: 'Tienda Deportiva',         roles: ['TRAINER'] },
 
     // ── ATLETA (USER) — NO accede a Mis Negocios ──────────────────
     { to: '/gyms',               icon: Building2,       label: 'Gimnasios y Centros',      roles: ['USER'] },
     { to: '/classes',            icon: Calendar,        label: 'Mis Reservas',             roles: ['USER'] },
-    { to: '/sport-store',        icon: ShoppingBag,     label: 'Tienda Deportiva',         roles: ['USER'] },
+    { to: '/marketplace',        icon: ShoppingBag,     label: 'Tienda Deportiva',         roles: ['USER'] },
     { to: '/professionals',      icon: Users,           label: 'Servicios Profesionales',  roles: ['USER'] },
     { to: '/events',             icon: Trophy,          label: 'Eventos',                  roles: ['USER'] },
     { to: '/memberships',        icon: CreditCard,      label: 'Membresías',               roles: ['USER'] },

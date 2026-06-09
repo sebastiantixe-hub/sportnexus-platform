@@ -150,7 +150,7 @@ const OwnerHealthView: React.FC = () => {
                 </p>
               </div>
               <button 
-                onClick={() => navigate('/sport-store')}
+                onClick={() => navigate('/marketplace')}
                 className="mt-6 w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold transition-all text-xs"
               >
                 Ir a Tienda Deportiva

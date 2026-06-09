@@ -1202,12 +1202,12 @@ const Dashboard: React.FC = () => {
                 <>
                   <QuickAction label="Gestionar Clases" icon={Calendar} to="/classes" desc="Ver tus horarios y alumnos" />
                   <QuickAction label="Servicios Profesionales" icon={Activity} to="/professionals" desc="Configurar tus planes de coaching" />
-                  <QuickAction label="Explorar Tienda" icon={ShoppingBag} to="/sport-store" desc="Equipamiento deportivo" />
+                  <QuickAction label="Explorar Tienda" icon={ShoppingBag} to="/marketplace" desc="Equipamiento deportivo" />
                 </>
               ) : (
                 <>
                   <QuickAction label="Ver Clases" icon={Calendar} to="/classes" desc="Reserva tu próxima sesión" />
-                  <QuickAction label="Explorar Tienda" icon={ShoppingBag} to={isOwner ? '/sport-store' : '/marketplace'} desc="Equipamiento deportivo" />
+                  <QuickAction label="Explorar Tienda" icon={ShoppingBag} to="/marketplace" desc="Equipamiento deportivo" />
                   <QuickAction label="Próximos Eventos" icon={Trophy} to="/events" desc="Torneos y masterclasses" />
                 </>
               )}
