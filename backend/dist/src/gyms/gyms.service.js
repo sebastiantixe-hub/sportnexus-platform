@@ -18,11 +18,96 @@ let GymsService = class GymsService {
     constructor(prisma) {
         this.prisma = prisma;
     }
+    async geocodeAddress(address, city, district, province) {
+        try {
+            const queryParts = [address, district, province, city].filter(Boolean);
+            const query = queryParts.join(', ');
+            const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`;
+            const response = await fetch(url, {
+                headers: {
+                    'User-Agent': 'HercixPlatform/1.0 (contact@hercix.com)',
+                },
+            });
+            const data = await response.json();
+            if (Array.isArray(data) && data.length > 0) {
+                return {
+                    latitude: parseFloat(data[0].lat),
+                    longitude: parseFloat(data[0].lon),
+                };
+            }
+        }
+        catch (error) {
+            console.error('Error during Nominatim geocoding:', error);
+        }
+        return this.getDistrictCoordsFallback(district || city || '');
+    }
+    getDistrictCoordsFallback(name) {
+        const normalized = name.toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        if (normalized.includes('olivos'))
+            return { latitude: -11.9614, longitude: -77.0708 };
+        if (normalized.includes('isidro'))
+            return { latitude: -12.085, longitude: -77.03 };
+        if (normalized.includes('miraflores'))
+            return { latitude: -12.1225, longitude: -77.0292 };
+        if (normalized.includes('chorrillos'))
+            return { latitude: -12.1811, longitude: -77.0142 };
+        if (normalized.includes('callao'))
+            return { latitude: -12.0566, longitude: -77.1181 };
+        if (normalized.includes('surco'))
+            return { latitude: -12.1383, longitude: -76.9917 };
+        if (normalized.includes('molina'))
+            return { latitude: -12.0883, longitude: -76.9383 };
+        if (normalized.includes('borja'))
+            return { latitude: -12.0889, longitude: -77.0017 };
+        if (normalized.includes('miguel'))
+            return { latitude: -12.0764, longitude: -77.0944 };
+        if (normalized.includes('ate'))
+            return { latitude: -12.0267, longitude: -76.9167 };
+        if (normalized.includes('barranco'))
+            return { latitude: -12.1492, longitude: -77.0222 };
+        if (normalized.includes('lince'))
+            return { latitude: -12.0833, longitude: -77.0333 };
+        if (normalized.includes('maria'))
+            return { latitude: -12.075, longitude: -77.05 };
+        if (normalized.includes('magdalena'))
+            return { latitude: -12.0911, longitude: -77.0708 };
+        if (normalized.includes('surquillo'))
+            return { latitude: -12.1167, longitude: -77.0167 };
+        if (normalized.includes('libre'))
+            return { latitude: -12.0789, longitude: -77.0628 };
+        if (normalized.includes('brena'))
+            return { latitude: -12.0583, longitude: -77.0433 };
+        if (normalized.includes('lima'))
+            return { latitude: -12.0464, longitude: -77.0428 };
+        if (normalized.includes('lurigancho'))
+            return { latitude: -11.9833, longitude: -77.0167 };
+        if (normalized.includes('comas'))
+            return { latitude: -11.9333, longitude: -77.05 };
+        if (normalized.includes('carabayllo'))
+            return { latitude: -11.85, longitude: -77.0333 };
+        if (normalized.includes('independencia'))
+            return { latitude: -11.9833, longitude: -77.05 };
+        if (normalized.includes('rimac'))
+            return { latitude: -12.0292, longitude: -77.0278 };
+        return { latitude: -12.085, longitude: -77.03 };
+    }
     async create(ownerId, createGymDto) {
+        let latitude = null;
+        let longitude = null;
+        if (createGymDto.address) {
+            const coords = await this.geocodeAddress(createGymDto.address, createGymDto.city, createGymDto.district, createGymDto.province);
+            if (coords) {
+                latitude = coords.latitude;
+                longitude = coords.longitude;
+            }
+        }
         return this.prisma.gym.create({
             data: {
                 ...createGymDto,
                 ownerId,
+                latitude,
+                longitude,
             },
         });
     }
@@ -96,9 +181,20 @@ let GymsService = class GymsService {
         if (!isAdmin && gym.ownerId !== currentUserId) {
             throw new common_1.ForbiddenException('No tienes permiso para actualizar este gimnasio');
         }
+        const updatedData = { ...updateGymDto };
+        const hasAddressChanged = (updateGymDto.address && updateGymDto.address !== gym.address) ||
+            (updateGymDto.district && updateGymDto.district !== gym.district) ||
+            (updateGymDto.city && updateGymDto.city !== gym.city);
+        if (hasAddressChanged) {
+            const coords = await this.geocodeAddress(updateGymDto.address || gym.address || '', updateGymDto.city || gym.city || undefined, updateGymDto.district || gym.district || undefined, updateGymDto.province || gym.province || undefined);
+            if (coords) {
+                updatedData.latitude = coords.latitude;
+                updatedData.longitude = coords.longitude;
+            }
+        }
         return this.prisma.gym.update({
             where: { id },
-            data: updateGymDto,
+            data: updatedData,
         });
     }
     async remove(id, currentUserId, isAdmin) {

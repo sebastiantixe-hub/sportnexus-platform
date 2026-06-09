@@ -3,6 +3,8 @@ import { CreateGymDto, UpdateGymDto } from './dto/gym.dto';
 export declare class GymsService {
     private prisma;
     constructor(prisma: PrismaService);
+    private geocodeAddress;
+    private getDistrictCoordsFallback;
     create(ownerId: string, createGymDto: CreateGymDto): Promise<{
         id: string;
         createdAt: Date;

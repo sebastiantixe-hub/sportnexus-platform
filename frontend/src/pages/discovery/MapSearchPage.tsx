@@ -247,6 +247,49 @@ const getGymDisplaySport = (gym: any, activeFilter: string): { label: string; va
   return gymMatch || { label: '📍 Local', value: '' };
 };
 
+const getDistrictCoords = (name: string, gymName: string = ''): { latitude: number; longitude: number } => {
+  const normalized = name.toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  
+  let base = { latitude: -12.085, longitude: -77.03 };
+  
+  if (normalized.includes('olivos')) base = { latitude: -11.9614, longitude: -77.0708 };
+  else if (normalized.includes('isidro')) base = { latitude: -12.085, longitude: -77.03 };
+  else if (normalized.includes('miraflores')) base = { latitude: -12.1225, longitude: -77.0292 };
+  else if (normalized.includes('chorrillos')) base = { latitude: -12.1811, longitude: -77.0142 };
+  else if (normalized.includes('callao')) base = { latitude: -12.0566, longitude: -77.1181 };
+  else if (normalized.includes('surco')) base = { latitude: -12.1383, longitude: -76.9917 };
+  else if (normalized.includes('molina')) base = { latitude: -12.0883, longitude: -76.9383 };
+  else if (normalized.includes('borja')) base = { latitude: -12.0889, longitude: -77.0017 };
+  else if (normalized.includes('miguel')) base = { latitude: -12.0764, longitude: -77.0944 };
+  else if (normalized.includes('ate')) base = { latitude: -12.0267, longitude: -76.9167 };
+  else if (normalized.includes('barranco')) base = { latitude: -12.1492, longitude: -77.0222 };
+  else if (normalized.includes('lince')) base = { latitude: -12.0833, longitude: -77.0333 };
+  else if (normalized.includes('maria')) base = { latitude: -12.075, longitude: -77.05 };
+  else if (normalized.includes('magdalena')) base = { latitude: -12.0911, longitude: -77.0708 };
+  else if (normalized.includes('surquillo')) base = { latitude: -12.1167, longitude: -77.0167 };
+  else if (normalized.includes('libre')) base = { latitude: -12.0789, longitude: -77.0628 };
+  else if (normalized.includes('brena')) base = { latitude: -12.0583, longitude: -77.0433 };
+  else if (normalized.includes('lima')) base = { latitude: -12.0464, longitude: -77.0428 };
+  else if (normalized.includes('lurigancho')) base = { latitude: -11.9833, longitude: -77.0167 };
+  else if (normalized.includes('comas')) base = { latitude: -11.9333, longitude: -77.05 };
+  else if (normalized.includes('carabayllo')) base = { latitude: -11.85, longitude: -77.0333 };
+  else if (normalized.includes('independencia')) base = { latitude: -11.9833, longitude: -77.05 };
+  else if (normalized.includes('rimac')) base = { latitude: -12.0292, longitude: -77.0278 };
+  
+  if (gymName) {
+    const seed = gymName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const latOffset = ((seed % 100) - 50) * 0.0001;
+    const lngOffset = (((seed + 7) % 100) - 50) * 0.0001;
+    return {
+      latitude: base.latitude + latOffset,
+      longitude: base.longitude + lngOffset,
+    };
+  }
+  
+  return base;
+};
+
 const MapSearchPage: React.FC = () => {
   const { user } = useAuth();
   const [gyms, setGyms] = useState<any[]>([]);
@@ -272,11 +315,22 @@ const MapSearchPage: React.FC = () => {
     const loadGyms = async (isPoll = false) => {
       try {
         const { data } = await api.get('/gyms');
-        
+        const parsedData = data.map((g: any) => {
+          if (!g.latitude || !g.longitude) {
+            const coords = getDistrictCoords(g.district || g.city || '', g.name);
+            return {
+              ...g,
+              latitude: coords.latitude,
+              longitude: coords.longitude,
+            };
+          }
+          return g;
+        });
+
         // Verificar en tiempo real si hay un nuevo gimnasio creado por dueños/admins
         if (isPoll && activeGyms.length > 0) {
           const existingIds = new Set(activeGyms.map(g => g.id));
-          const newGyms = data.filter((g: any) => !existingIds.has(g.id));
+          const newGyms = parsedData.filter((g: any) => !existingIds.has(g.id));
           
           if (newGyms.length > 0) {
             newGyms.forEach((newGym: any) => {
@@ -288,8 +342,8 @@ const MapSearchPage: React.FC = () => {
           }
         }
         
-        activeGyms = data;
-        setGyms(data);
+        activeGyms = parsedData;
+        setGyms(parsedData);
       } catch (err) {
         console.error('Error al sincronizar locales en tiempo real:', err);
       } finally {
