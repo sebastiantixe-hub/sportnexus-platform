@@ -1,12 +1,43 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/auth-context';
 import { Building2, Dumbbell, Users, LogIn, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const LoginPage: React.FC = () => {
-  const { login } = useAuth();
+  const { login, loginWithCredentials } = useAuth();
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleCredentialsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSubmitting(true);
+    try {
+      await loginWithCredentials(email, password);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Error de credenciales local o usuario no registrado');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleQuickLogin = async (targetEmail: string) => {
+    setError('');
+    setSubmitting(true);
+    try {
+      await loginWithCredentials(targetEmail, 'Hercix2026!');
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(`Error en login rápido: ${err.response?.data?.message || err.message}`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const roles = [
     {
@@ -64,12 +95,12 @@ const LoginPage: React.FC = () => {
         <img src="/hercix-logo.png" alt="Hercix" className="h-20 mx-auto object-contain mb-4" />
         <h1 className="text-4xl font-extrabold text-white tracking-tight">Portal de Acceso Seguro</h1>
         <p className="text-slate-400 mt-2 text-base">
-          Selecciona tu perfil de acceso para ingresar de manera encriptada a la suite Hercix Health.
+          Selecciona tu perfil de acceso para ingresar de manera encriptada a la suite Hercix Health o usa el Acceso Directo de prueba.
         </p>
       </motion.div>
 
       {/* Interactive Gateway Cards Grid - Symmetric 3-column Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl relative z-10 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl relative z-10 mb-8">
         {roles.map((r, i) => {
           const Icon = r.icon;
           return (
@@ -115,6 +146,87 @@ const LoginPage: React.FC = () => {
           );
         })}
       </div>
+
+      {/* Local Credentials Login Bypass */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="glass-card max-w-md w-full p-6 border border-white/10 bg-slate-900/40 backdrop-blur-md rounded-2xl text-center relative z-10 mb-8"
+      >
+        <h3 className="text-lg font-bold text-white mb-2">Acceso Directo (Demo / Desarrollo)</h3>
+        <p className="text-slate-400 text-xs mb-4">
+          Inicia sesión al instante con cualquiera de las cuentas demo de la base de datos sin pasar por Auth0.
+        </p>
+
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs py-2 px-3 rounded-lg mb-4 text-left">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleCredentialsSubmit} className="space-y-3">
+          <input
+            type="email"
+            placeholder="Correo electrónico"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full bg-slate-950/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-primary/50 transition-colors"
+            required
+          />
+          <input
+            type="password"
+            placeholder="Contraseña (ej: Hercix2026!)"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full bg-slate-950/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-primary/50 transition-colors"
+            required
+          />
+          
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full bg-primary hover:bg-primary-light text-white font-semibold py-2 px-4 rounded-xl text-sm transition-all duration-200 disabled:opacity-50"
+          >
+            {submitting ? 'Iniciando sesión...' : 'Iniciar Sesión Directa'}
+          </button>
+        </form>
+
+        <div className="relative my-4 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-white/5"></div>
+          </div>
+          <span className="relative bg-transparent px-2 text-[10px] text-slate-500 uppercase tracking-widest font-bold z-10">o elige uno rápido</span>
+        </div>
+
+        {/* Quick Demo Selectors */}
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => handleQuickLogin('mario123q@gmail.com')}
+            className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg py-1.5 px-2 text-[11px] text-slate-300 font-medium transition-colors"
+          >
+            👑 Super Admin
+          </button>
+          <button
+            onClick={() => handleQuickLogin('atleta01@testgym.pe')}
+            className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg py-1.5 px-2 text-[11px] text-slate-300 font-medium transition-colors"
+          >
+            🏃‍♂️ Atleta 01
+          </button>
+          <button
+            onClick={() => handleQuickLogin('atleta70@testgym.pe')}
+            className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg py-1.5 px-2 text-[11px] text-slate-300 font-medium transition-colors"
+          >
+            🏃‍♂️ Atleta 70 (Julio)
+          </button>
+          <button
+            onClick={() => handleQuickLogin('entrenador20@testgym.pe')}
+            className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg py-1.5 px-2 text-[11px] text-slate-300 font-medium transition-colors"
+          >
+            🏋️‍♂️ Coach 20
+          </button>
+        </div>
+      </motion.div>
 
       {/* Footer Branding */}
       <motion.div

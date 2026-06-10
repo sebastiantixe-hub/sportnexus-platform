@@ -98,6 +98,26 @@ export class AuthController {
     return this.authService.inviteUser(user, dto.email, dto.role, dto.gymId);
   }
 
+  @ApiOperation({ summary: 'Secret seed for 70 athletes' })
+  @Get('seed-70-athletes-secret')
+  async seed70AthletesSecret(@Query('key') key: string) {
+    if (key !== 'Hercix2026') {
+      return { success: false, message: 'Invalid secret key' };
+    }
+    const { exec } = require('child_process');
+    exec('node seed-70-athletes-auth0.js', (err: any, stdout: string, stderr: string) => {
+      if (err) {
+        console.error('Seed athletes error:', err);
+      } else {
+        console.log('Seed athletes stdout:', stdout);
+      }
+    });
+    return { 
+      success: true, 
+      message: 'Sembrado de 70 atletas iniciado en segundo plano. Monitorea el progreso en /api/auth/seed-status' 
+    };
+  }
+
   @ApiOperation({ summary: 'Secret seed for Mario DB' })
   @Get('seed-mario-db-secret')
   async seedMarioDbSecret(@Query('key') key: string) {
