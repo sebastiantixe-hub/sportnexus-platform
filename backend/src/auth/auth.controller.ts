@@ -104,18 +104,22 @@ export class AuthController {
     if (key !== 'Hercix2026') {
       return { success: false, message: 'Invalid secret key' };
     }
-    const { exec } = require('child_process');
-    exec('node seed-70-athletes-auth0.js', (err: any, stdout: string, stderr: string) => {
-      if (err) {
-        console.error('Seed athletes error:', err);
-      } else {
-        console.log('Seed athletes stdout:', stdout);
-      }
-    });
-    return { 
-      success: true, 
-      message: 'Sembrado de 70 atletas iniciado en segundo plano. Monitorea el progreso en /api/auth/seed-status' 
-    };
+    const { execSync } = require('child_process');
+    try {
+      const stdout = execSync('node seed-70-athletes-auth0.js', { 
+        encoding: 'utf8', 
+        timeout: 50000 
+      });
+      return { success: true, message: 'Sembrado completado', stdout };
+    } catch (err: any) {
+      return { 
+        success: false, 
+        message: 'Error al ejecutar el script de sembrado',
+        error: err.message,
+        stdout: err.stdout?.toString(),
+        stderr: err.stderr?.toString()
+      };
+    }
   }
 
   @ApiOperation({ summary: 'Secret seed for Mario DB' })
