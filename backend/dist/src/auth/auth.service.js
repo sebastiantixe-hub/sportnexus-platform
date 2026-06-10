@@ -341,6 +341,66 @@ let AuthService = class AuthService {
                 activities: sortedActivities,
             };
         }
+        else if (userRole === 'TRAINER') {
+            const trainerProfile = await this.prisma.trainerProfile.findUnique({
+                where: { userId },
+                include: {
+                    classes: {
+                        where: { isActive: true },
+                        include: {
+                            _count: {
+                                select: { reservations: { where: { status: 'CONFIRMED' } } }
+                            },
+                            gym: true,
+                        }
+                    },
+                    gymTrainers: {
+                        include: { gym: true }
+                    }
+                }
+            });
+            if (!trainerProfile) {
+                return {
+                    classes: 0,
+                    members: 0,
+                    services: 0,
+                    gyms: 0,
+                    activities: [],
+                };
+            }
+            const servicesCount = await this.prisma.professionalService.count({
+                where: { providerId: userId }
+            });
+            const classIds = trainerProfile.classes.map(c => c.id);
+            const uniqueAthletes = new Set();
+            if (classIds.length > 0) {
+                const reservations = await this.prisma.reservation.findMany({
+                    where: { classId: { in: classIds }, status: 'CONFIRMED' }
+                });
+                reservations.forEach(r => uniqueAthletes.add(r.userId));
+            }
+            const recentBookings = classIds.length > 0 ? await this.prisma.reservation.findMany({
+                where: { classId: { in: classIds }, status: 'CONFIRMED' },
+                include: { user: true, class: { include: { gym: true } } },
+                orderBy: { bookedAt: 'desc' },
+                take: 5,
+            }) : [];
+            const activities = recentBookings.map(res => ({
+                id: res.id,
+                type: 'RESERVATION',
+                title: `Nueva reserva: ${res.class.title}`,
+                description: `${res.user.name} reservó en ${res.class.gym.name}`,
+                date: res.bookedAt,
+            }));
+            return {
+                classes: trainerProfile.classes.length,
+                members: uniqueAthletes.size,
+                services: servicesCount,
+                gyms: trainerProfile.gymTrainers.length,
+                activities,
+                isTrainer: true,
+            };
+        }
         else {
             const reservations = await this.prisma.reservation.findMany({
                 where: { userId, status: 'CONFIRMED' },

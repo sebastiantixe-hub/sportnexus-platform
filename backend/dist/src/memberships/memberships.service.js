@@ -34,7 +34,7 @@ let MembershipsService = class MembershipsService {
         });
     }
     async findAllPlans(gymId) {
-        return this.prisma.membershipPlan.findMany({
+        let plans = await this.prisma.membershipPlan.findMany({
             where: {
                 ...(gymId ? { gymId } : {}),
                 isActive: true,
@@ -43,6 +43,88 @@ let MembershipsService = class MembershipsService {
                 gym: { select: { name: true } },
             },
         });
+        if (plans.length === 0 && !gymId) {
+            const totalActivePlans = await this.prisma.membershipPlan.count({
+                where: { isActive: true },
+            });
+            if (totalActivePlans === 0) {
+                let gym = await this.prisma.gym.findFirst({
+                    where: { status: 'ACTIVE' },
+                });
+                if (!gym) {
+                    let user = await this.prisma.user.findFirst();
+                    if (!user) {
+                        user = await this.prisma.user.create({
+                            data: {
+                                name: 'Administrador SportNexus',
+                                email: 'admin@sportnexus.com',
+                                role: 'ADMIN',
+                                isActive: true,
+                            },
+                        });
+                    }
+                    gym = await this.prisma.gym.create({
+                        data: {
+                            name: 'Gimnasio SportNexus Central',
+                            ownerId: user.id,
+                            address: 'Av. Principal 123',
+                            city: 'Lima',
+                            phone: '+51 999 999 999',
+                            status: 'ACTIVE',
+                        },
+                    });
+                }
+                const defaultPlans = [
+                    {
+                        name: 'Plan Inicial',
+                        description: 'Acceso básico a las instalaciones en horarios valle.',
+                        price: 59.99,
+                        durationDays: 30,
+                        maxClasses: 8,
+                        includesMarketplace: false,
+                    },
+                    {
+                        name: 'Estándar',
+                        description: 'Acceso completo a sala de musculación y clases grupales.',
+                        price: 89.99,
+                        durationDays: 30,
+                        maxClasses: 16,
+                        includesMarketplace: true,
+                    },
+                    {
+                        name: 'Premium Élite',
+                        description: 'Acceso ilimitado, entrenamiento personalizado y descuentos exclusivos.',
+                        price: 129.99,
+                        durationDays: 30,
+                        maxClasses: null,
+                        includesMarketplace: true,
+                    },
+                ];
+                for (const plan of defaultPlans) {
+                    await this.prisma.membershipPlan.create({
+                        data: {
+                            gymId: gym.id,
+                            name: plan.name,
+                            description: plan.description,
+                            price: plan.price,
+                            durationDays: plan.durationDays,
+                            maxClasses: plan.maxClasses || undefined,
+                            includesMarketplace: plan.includesMarketplace,
+                            isActive: true,
+                        },
+                    });
+                }
+                plans = await this.prisma.membershipPlan.findMany({
+                    where: {
+                        isActive: true,
+                    },
+                    include: {
+                        gym: { select: { name: true } },
+                    },
+                });
+            }
+        }
+        return plans;
     }
     async subscribe(userId, dto) {
         const plan = await this.prisma.membershipPlan.findUnique({
@@ -55,6 +137,26 @@ let MembershipsService = class MembershipsService {
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + plan.durationDays);
         return this.prisma.$transaction(async (tx) => {
+            const activeGymMemberships = await tx.userMembership.findMany({
+                where: {
+                    userId,
+                    status: client_1.MembershipStatus.ACTIVE,
+                    plan: {
+                        gymId: plan.gymId
+                    }
+                },
+                select: { id: true }
+            });
+            if (activeGymMemberships.length > 0) {
+                await tx.userMembership.updateMany({
+                    where: {
+                        id: { in: activeGymMemberships.map(m => m.id) }
+                    },
+                    data: {
+                        status: client_1.MembershipStatus.EXPIRED,
+                    },
+                });
+            }
             const membership = await tx.userMembership.create({
                 data: {
                     userId,

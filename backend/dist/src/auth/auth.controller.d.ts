@@ -117,6 +117,8 @@ export declare class AuthController {
             date: Date;
         }[];
         isAdmin: boolean;
+        services?: undefined;
+        isTrainer?: undefined;
         reservations?: undefined;
         points?: undefined;
         months?: undefined;
@@ -126,6 +128,38 @@ export declare class AuthController {
         members: number;
         revenue: number;
         activities: any[];
+        isAdmin?: undefined;
+        services?: undefined;
+        isTrainer?: undefined;
+        reservations?: undefined;
+        points?: undefined;
+        months?: undefined;
+    } | {
+        classes: number;
+        members: number;
+        services: number;
+        gyms: number;
+        activities: never[];
+        revenue?: undefined;
+        isAdmin?: undefined;
+        isTrainer?: undefined;
+        reservations?: undefined;
+        points?: undefined;
+        months?: undefined;
+    } | {
+        classes: number;
+        members: number;
+        services: number;
+        gyms: number;
+        activities: {
+            id: string;
+            type: string;
+            title: string;
+            description: string;
+            date: Date;
+        }[];
+        isTrainer: boolean;
+        revenue?: undefined;
         isAdmin?: undefined;
         reservations?: undefined;
         points?: undefined;
@@ -146,6 +180,8 @@ export declare class AuthController {
         members?: undefined;
         revenue?: undefined;
         isAdmin?: undefined;
+        services?: undefined;
+        isTrainer?: undefined;
     }>;
     invite(user: {
         id: string;
@@ -159,9 +195,17 @@ export declare class AuthController {
         invitationId: string;
         expiresAt: Date;
     }>;
+    seed70AthletesSecret(key: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
     seedMarioDbSecret(key: string): Promise<{
         success: boolean;
         message: string;
     }>;
     seedStatus(): Promise<any>;
+    purgeProductionDataSecure(key: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
 }

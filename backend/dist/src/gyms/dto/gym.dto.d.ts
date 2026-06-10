@@ -1,5 +1,7 @@
 import { GymStatus } from '@prisma/client';
 export declare class CreateGymDto {
+    latitude?: number;
+    longitude?: number;
     name: string;
     description?: string;
     address?: string;
@@ -16,6 +18,8 @@ export declare class CreateGymDto {
     logoUrl?: string;
 }
 export declare class UpdateGymDto {
+    latitude?: number;
+    longitude?: number;
     name?: string;
     description?: string;
     address?: string;

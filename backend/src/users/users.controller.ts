@@ -51,6 +51,18 @@ export class UsersController {
     return this.usersService.remove(id);
   }
 
+  // ── Admin: Update user ────────────────────────────────────────────────
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Actualizar un usuario del sistema (Solo Admin)' })
+  update(
+    @Param('id') id: string,
+    @Body() updateDto: { name: string; email: string; phone?: string; dni?: string; role: UserRole; isActive: boolean }
+  ) {
+    return this.usersService.update(id, updateDto);
+  }
+
   // ── Role Requests: Any logged user ────────────────────────────────────
 
   @Post('role-requests')

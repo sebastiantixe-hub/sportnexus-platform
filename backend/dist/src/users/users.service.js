@@ -197,14 +197,13 @@ let UsersService = class UsersService {
         if (requestedRole === client_1.UserRole.USER) {
             throw new common_1.BadRequestException('Ya tienes el rol de Atleta por defecto.');
         }
-        const existing = await this.prisma.roleRequest.findFirst({
-            where: { userId, status: 'PENDING' },
-        });
-        if (existing) {
-            throw new common_1.ConflictException('Ya tienes una solicitud de rol pendiente. Espera la respuesta del administrador.');
-        }
         return this.prisma.roleRequest.create({
-            data: { userId, requestedRole, reason, status: 'PENDING' },
+            data: {
+                userId,
+                requestedRole,
+                reason: reason || 'Solicitado desde el dashboard',
+                status: 'PENDING',
+            },
         });
     }
     async getAllRoleRequests() {
@@ -232,16 +231,30 @@ let UsersService = class UsersService {
                 throw new common_1.ConflictException('El límite de 4 administradores ha sido alcanzado.');
             }
         }
-        await this.prisma.$transaction([
-            this.prisma.user.update({
+        await this.prisma.$transaction(async (tx) => {
+            await tx.user.update({
                 where: { id: request.userId },
                 data: { role: request.requestedRole },
-            }),
-            this.prisma.roleRequest.update({
+            });
+            await tx.roleRequest.update({
                 where: { id: requestId },
                 data: { status: 'APPROVED', adminNote },
-            }),
-        ]);
+            });
+            if (request.requestedRole === client_1.UserRole.TRAINER) {
+                const existingProfile = await tx.trainerProfile.findUnique({
+                    where: { userId: request.userId }
+                });
+                if (!existingProfile) {
+                    await tx.trainerProfile.create({
+                        data: {
+                            userId: request.userId,
+                            bio: 'Perfil de entrenador Hercix',
+                            experienceYears: 0,
+                        }
+                    });
+                }
+            }
+        });
         return { success: true, message: `Solicitud aprobada. Rol ${request.requestedRole} asignado.` };
     }
     async rejectRoleRequest(requestId, adminNote) {

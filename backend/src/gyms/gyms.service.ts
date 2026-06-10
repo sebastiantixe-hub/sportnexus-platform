@@ -76,7 +76,10 @@ export class GymsService {
     let latitude: number | null = null;
     let longitude: number | null = null;
     
-    if (createGymDto.address) {
+    if (createGymDto.latitude !== undefined && createGymDto.longitude !== undefined) {
+      latitude = createGymDto.latitude;
+      longitude = createGymDto.longitude;
+    } else if (createGymDto.address) {
       const coords = await this.geocodeAddress(
         createGymDto.address,
         createGymDto.city,
@@ -189,21 +192,26 @@ export class GymsService {
 
     const updatedData: any = { ...updateGymDto };
 
-    const hasAddressChanged = 
-      (updateGymDto.address && updateGymDto.address !== gym.address) ||
-      (updateGymDto.district && updateGymDto.district !== gym.district) ||
-      (updateGymDto.city && updateGymDto.city !== gym.city);
+    if (updateGymDto.latitude !== undefined && updateGymDto.longitude !== undefined) {
+      updatedData.latitude = updateGymDto.latitude;
+      updatedData.longitude = updateGymDto.longitude;
+    } else {
+      const hasAddressChanged = 
+        (updateGymDto.address && updateGymDto.address !== gym.address) ||
+        (updateGymDto.district && updateGymDto.district !== gym.district) ||
+        (updateGymDto.city && updateGymDto.city !== gym.city);
 
-    if (hasAddressChanged) {
-      const coords = await this.geocodeAddress(
-        updateGymDto.address || gym.address || '',
-        updateGymDto.city || gym.city || undefined,
-        updateGymDto.district || gym.district || undefined,
-        updateGymDto.province || gym.province || undefined,
-      );
-      if (coords) {
-        updatedData.latitude = coords.latitude;
-        updatedData.longitude = coords.longitude;
+      if (hasAddressChanged) {
+        const coords = await this.geocodeAddress(
+          updateGymDto.address || gym.address || '',
+          updateGymDto.city || gym.city || undefined,
+          updateGymDto.district || gym.district || undefined,
+          updateGymDto.province || gym.province || undefined,
+        );
+        if (coords) {
+          updatedData.latitude = coords.latitude;
+          updatedData.longitude = coords.longitude;
+        }
       }
     }
 

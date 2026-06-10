@@ -13,6 +13,8 @@ exports.UpdateGymDto = exports.CreateGymDto = void 0;
 const class_validator_1 = require("class-validator");
 const client_1 = require("@prisma/client");
 class CreateGymDto {
+    latitude;
+    longitude;
     name;
     description;
     address;
@@ -29,6 +31,16 @@ class CreateGymDto {
     logoUrl;
 }
 exports.CreateGymDto = CreateGymDto;
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], CreateGymDto.prototype, "latitude", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], CreateGymDto.prototype, "longitude", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.MaxLength)(200),
@@ -100,6 +112,8 @@ __decorate([
     __metadata("design:type", String)
 ], CreateGymDto.prototype, "logoUrl", void 0);
 class UpdateGymDto {
+    latitude;
+    longitude;
     name;
     description;
     address;
@@ -117,6 +131,16 @@ class UpdateGymDto {
     logoUrl;
 }
 exports.UpdateGymDto = UpdateGymDto;
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], UpdateGymDto.prototype, "latitude", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], UpdateGymDto.prototype, "longitude", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.MaxLength)(200),

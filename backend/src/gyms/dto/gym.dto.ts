@@ -4,10 +4,19 @@ import {
   IsEmail,
   IsEnum,
   MaxLength,
+  IsNumber,
 } from 'class-validator';
 import { GymStatus } from '@prisma/client';
 
 export class CreateGymDto {
+  @IsNumber()
+  @IsOptional()
+  latitude?: number;
+
+  @IsNumber()
+  @IsOptional()
+  longitude?: number;
+
   @IsString()
   @MaxLength(200)
   name: string;
@@ -66,6 +75,14 @@ export class CreateGymDto {
 }
 
 export class UpdateGymDto {
+  @IsNumber()
+  @IsOptional()
+  latitude?: number;
+
+  @IsNumber()
+  @IsOptional()
+  longitude?: number;
+
   @IsString()
   @MaxLength(200)
   @IsOptional()

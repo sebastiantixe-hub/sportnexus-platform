@@ -112,6 +112,8 @@ export declare class AuthService {
             date: Date;
         }[];
         isAdmin: boolean;
+        services?: undefined;
+        isTrainer?: undefined;
         reservations?: undefined;
         points?: undefined;
         months?: undefined;
@@ -121,6 +123,38 @@ export declare class AuthService {
         members: number;
         revenue: number;
         activities: any[];
+        isAdmin?: undefined;
+        services?: undefined;
+        isTrainer?: undefined;
+        reservations?: undefined;
+        points?: undefined;
+        months?: undefined;
+    } | {
+        classes: number;
+        members: number;
+        services: number;
+        gyms: number;
+        activities: never[];
+        revenue?: undefined;
+        isAdmin?: undefined;
+        isTrainer?: undefined;
+        reservations?: undefined;
+        points?: undefined;
+        months?: undefined;
+    } | {
+        classes: number;
+        members: number;
+        services: number;
+        gyms: number;
+        activities: {
+            id: string;
+            type: string;
+            title: string;
+            description: string;
+            date: Date;
+        }[];
+        isTrainer: boolean;
+        revenue?: undefined;
         isAdmin?: undefined;
         reservations?: undefined;
         points?: undefined;
@@ -141,6 +175,8 @@ export declare class AuthService {
         members?: undefined;
         revenue?: undefined;
         isAdmin?: undefined;
+        services?: undefined;
+        isTrainer?: undefined;
     }>;
     findOrCreateAuth0User(params: {
         auth0Id: string;
