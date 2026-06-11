@@ -5,7 +5,7 @@ services:
     runtime: node
     rootDir: backend
     buildCommand: npm install --include=dev && npx prisma generate && npm run build
-    startCommand: npx prisma db push && node dist/main
+    startCommand: npx prisma db push && node dist/src/main
     envVars:
       - key: NODE_ENV
         value: production
@@ -40,9 +40,9 @@ services:
       - key: SMTP_PASS
         sync: false
       - key: AUTH0_DOMAIN
-        value: dev-6d0mok1v1ohx5iez.us.auth0.com
+        value: dev-khvop4d61s5ip8d3.us.auth0.com
       - key: AUTH0_AUDIENCE
-        value: https://sportnexus-api
+        value: https://hercix-api
       - key: FITBIT_CLIENT_ID
         sync: false
       - key: FITBIT_CLIENT_SECRET
