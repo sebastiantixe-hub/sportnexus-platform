@@ -198,6 +198,21 @@ export declare class AuthController {
     seed70AthletesSecret(key: string): Promise<{
         success: boolean;
         message: string;
+        stdout?: undefined;
+        error?: undefined;
+        stderr?: undefined;
+    } | {
+        success: boolean;
+        message: string;
+        stdout: any;
+        error?: undefined;
+        stderr?: undefined;
+    } | {
+        success: boolean;
+        message: string;
+        error: any;
+        stdout: any;
+        stderr: any;
     }>;
     seedMarioDbSecret(key: string): Promise<{
         success: boolean;

@@ -10,8 +10,8 @@ export declare class GymsController {
         email: string | null;
         phone: string | null;
         updatedAt: Date;
-        description: string | null;
         ownerId: string;
+        description: string | null;
         address: string | null;
         city: string | null;
         district: string | null;
@@ -40,8 +40,8 @@ export declare class GymsController {
         email: string | null;
         phone: string | null;
         updatedAt: Date;
-        description: string | null;
         ownerId: string;
+        description: string | null;
         address: string | null;
         city: string | null;
         district: string | null;
@@ -70,8 +70,8 @@ export declare class GymsController {
         email: string | null;
         phone: string | null;
         updatedAt: Date;
-        description: string | null;
         ownerId: string;
+        description: string | null;
         address: string | null;
         city: string | null;
         district: string | null;
@@ -133,8 +133,8 @@ export declare class GymsController {
         email: string | null;
         phone: string | null;
         updatedAt: Date;
-        description: string | null;
         ownerId: string;
+        description: string | null;
         address: string | null;
         city: string | null;
         district: string | null;
@@ -163,8 +163,8 @@ export declare class GymsController {
         email: string | null;
         phone: string | null;
         updatedAt: Date;
-        description: string | null;
         ownerId: string;
+        description: string | null;
         address: string | null;
         city: string | null;
         district: string | null;
@@ -186,8 +186,8 @@ export declare class GymsController {
         email: string | null;
         phone: string | null;
         updatedAt: Date;
-        description: string | null;
         ownerId: string;
+        description: string | null;
         address: string | null;
         city: string | null;
         district: string | null;

@@ -8,8 +8,8 @@ export declare class MarketingController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         status: import("@prisma/client").$Enums.CampaignStatus;
+        title: string;
         gymId: string;
         scheduledAt: Date | null;
         subject: string | null;
@@ -21,8 +21,8 @@ export declare class MarketingController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         status: import("@prisma/client").$Enums.CampaignStatus;
+        title: string;
         gymId: string;
         scheduledAt: Date | null;
         subject: string | null;

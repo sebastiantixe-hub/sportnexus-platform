@@ -8,8 +8,8 @@ export declare class EventsService {
         date: Date;
         createdAt: Date;
         isActive: boolean;
-        title: string;
         description: string | null;
+        title: string;
         eventType: import("@prisma/client").$Enums.EventType;
         price: import("@prisma/client/runtime/library").Decimal;
         location: string | null;
@@ -27,8 +27,8 @@ export declare class EventsService {
         date: Date;
         createdAt: Date;
         isActive: boolean;
-        title: string;
         description: string | null;
+        title: string;
         eventType: import("@prisma/client").$Enums.EventType;
         price: import("@prisma/client/runtime/library").Decimal;
         location: string | null;
@@ -46,8 +46,8 @@ export declare class EventsService {
         date: Date;
         createdAt: Date;
         isActive: boolean;
-        title: string;
         description: string | null;
+        title: string;
         eventType: import("@prisma/client").$Enums.EventType;
         price: import("@prisma/client/runtime/library").Decimal;
         location: string | null;
@@ -59,8 +59,8 @@ export declare class EventsService {
         date: Date;
         createdAt: Date;
         isActive: boolean;
-        title: string;
         description: string | null;
+        title: string;
         eventType: import("@prisma/client").$Enums.EventType;
         price: import("@prisma/client/runtime/library").Decimal;
         location: string | null;
@@ -72,8 +72,8 @@ export declare class EventsService {
         date: Date;
         createdAt: Date;
         isActive: boolean;
-        title: string;
         description: string | null;
+        title: string;
         eventType: import("@prisma/client").$Enums.EventType;
         price: import("@prisma/client/runtime/library").Decimal;
         location: string | null;

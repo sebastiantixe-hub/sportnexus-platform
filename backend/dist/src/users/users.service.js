@@ -184,6 +184,62 @@ let UsersService = class UsersService {
         await this.prisma.user.delete({ where: { id } });
         return { success: true, message: 'Usuario eliminado correctamente' };
     }
+    async update(id, updateDto) {
+        const user = await this.prisma.user.findUnique({ where: { id } });
+        if (!user) {
+            throw new common_1.NotFoundException('Usuario no encontrado');
+        }
+        if (updateDto.role === client_1.UserRole.ADMIN && user.role !== client_1.UserRole.ADMIN) {
+            const adminCount = await this.prisma.user.count({ where: { role: client_1.UserRole.ADMIN } });
+            if (adminCount >= 4) {
+                throw new common_1.ConflictException('El límite de administradores (4) ha sido alcanzado.');
+            }
+        }
+        if (updateDto.email.toLowerCase() !== user.email.toLowerCase()) {
+            const emailExists = await this.prisma.user.findUnique({
+                where: { email: updateDto.email.toLowerCase() },
+            });
+            if (emailExists) {
+                throw new common_1.ConflictException('El correo ya está registrado por otro usuario.');
+            }
+        }
+        if (updateDto.role === client_1.UserRole.TRAINER && user.role !== client_1.UserRole.TRAINER) {
+            const existingProfile = await this.prisma.trainerProfile.findUnique({
+                where: { userId: id }
+            });
+            if (!existingProfile) {
+                await this.prisma.trainerProfile.create({
+                    data: {
+                        userId: id,
+                        bio: 'Perfil de entrenador Hercix',
+                        experienceYears: 0,
+                    }
+                });
+            }
+        }
+        const updatedUser = await this.prisma.user.update({
+            where: { id },
+            data: {
+                name: updateDto.name,
+                email: updateDto.email.toLowerCase(),
+                phone: updateDto.phone || null,
+                dni: updateDto.dni || null,
+                role: updateDto.role,
+                isActive: updateDto.isActive,
+            },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                phone: true,
+                dni: true,
+                isActive: true,
+                createdAt: true,
+            }
+        });
+        return updatedUser;
+    }
     async updateLastLogin(userId) {
         await this.prisma.user.update({
             where: { id: userId },

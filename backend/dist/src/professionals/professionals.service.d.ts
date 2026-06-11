@@ -7,8 +7,8 @@ export declare class ProfessionalsService {
         id: string;
         createdAt: Date;
         isActive: boolean;
-        title: string;
         description: string | null;
+        title: string;
         price: import("@prisma/client/runtime/library").Decimal;
         durationMin: number;
         serviceType: import("@prisma/client").$Enums.ServiceType;
@@ -25,8 +25,8 @@ export declare class ProfessionalsService {
         id: string;
         createdAt: Date;
         isActive: boolean;
-        title: string;
         description: string | null;
+        title: string;
         price: import("@prisma/client/runtime/library").Decimal;
         durationMin: number;
         serviceType: import("@prisma/client").$Enums.ServiceType;
@@ -42,8 +42,8 @@ export declare class ProfessionalsService {
         id: string;
         createdAt: Date;
         isActive: boolean;
-        title: string;
         description: string | null;
+        title: string;
         price: import("@prisma/client/runtime/library").Decimal;
         durationMin: number;
         serviceType: import("@prisma/client").$Enums.ServiceType;
@@ -53,8 +53,8 @@ export declare class ProfessionalsService {
         id: string;
         createdAt: Date;
         isActive: boolean;
-        title: string;
         description: string | null;
+        title: string;
         price: import("@prisma/client/runtime/library").Decimal;
         durationMin: number;
         serviceType: import("@prisma/client").$Enums.ServiceType;
@@ -64,8 +64,8 @@ export declare class ProfessionalsService {
         id: string;
         createdAt: Date;
         isActive: boolean;
-        title: string;
         description: string | null;
+        title: string;
         price: import("@prisma/client/runtime/library").Decimal;
         durationMin: number;
         serviceType: import("@prisma/client").$Enums.ServiceType;
@@ -76,8 +76,8 @@ export declare class ProfessionalsService {
             id: string;
             createdAt: Date;
             isActive: boolean;
-            title: string;
             description: string | null;
+            title: string;
             price: import("@prisma/client/runtime/library").Decimal;
             durationMin: number;
             serviceType: import("@prisma/client").$Enums.ServiceType;
@@ -114,8 +114,8 @@ export declare class ProfessionalsService {
             id: string;
             createdAt: Date;
             isActive: boolean;
-            title: string;
             description: string | null;
+            title: string;
             price: import("@prisma/client/runtime/library").Decimal;
             durationMin: number;
             serviceType: import("@prisma/client").$Enums.ServiceType;
@@ -140,8 +140,8 @@ export declare class ProfessionalsService {
             id: string;
             createdAt: Date;
             isActive: boolean;
-            title: string;
             description: string | null;
+            title: string;
             price: import("@prisma/client/runtime/library").Decimal;
             durationMin: number;
             serviceType: import("@prisma/client").$Enums.ServiceType;
@@ -195,8 +195,8 @@ export declare class ProfessionalsService {
             id: string;
             createdAt: Date;
             isActive: boolean;
-            title: string;
             description: string | null;
+            title: string;
             price: import("@prisma/client/runtime/library").Decimal;
             durationMin: number;
             serviceType: import("@prisma/client").$Enums.ServiceType;

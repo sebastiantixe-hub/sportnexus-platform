@@ -8,13 +8,15 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var GymsService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GymsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const client_1 = require("@prisma/client");
-let GymsService = class GymsService {
+let GymsService = GymsService_1 = class GymsService {
     prisma;
+    logger = new common_1.Logger(GymsService_1.name);
     constructor(prisma) {
         this.prisma = prisma;
     }
@@ -116,22 +118,28 @@ let GymsService = class GymsService {
         });
     }
     async findAll(ownerId) {
-        const where = { status: client_1.GymStatus.ACTIVE };
-        if (ownerId)
-            where.ownerId = ownerId;
-        return this.prisma.gym.findMany({
-            where,
-            include: {
-                owner: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        avatarUrl: true,
+        try {
+            const where = { status: client_1.GymStatus.ACTIVE };
+            if (ownerId)
+                where.ownerId = ownerId;
+            return await this.prisma.gym.findMany({
+                where,
+                include: {
+                    owner: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                            avatarUrl: true,
+                        },
                     },
                 },
-            },
-        });
+            });
+        }
+        catch (err) {
+            this.logger.error(`Error in findAll gyms: ${err.message}`, err.stack);
+            throw err;
+        }
     }
     async findNearby(lat, lng, radiusKm) {
         const gyms = await this.findAll();
@@ -250,7 +258,7 @@ let GymsService = class GymsService {
     }
 };
 exports.GymsService = GymsService;
-exports.GymsService = GymsService = __decorate([
+exports.GymsService = GymsService = GymsService_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService])
 ], GymsService);

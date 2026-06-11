@@ -8,8 +8,8 @@ export declare class ClassesController {
         createdAt: Date;
         isActive: boolean;
         updatedAt: Date;
-        title: string;
         description: string | null;
+        title: string;
         price: import("@prisma/client/runtime/library").Decimal;
         location: string | null;
         capacity: number;
@@ -29,13 +29,13 @@ export declare class ClassesController {
             };
             status: import("@prisma/client").$Enums.ReservationStatus;
         }[];
-        _count: {
-            reservations: number;
-        };
         gym: {
             name: string;
             ownerId: string;
             city: string | null;
+        };
+        _count: {
+            reservations: number;
         };
         trainer: ({
             user: {
@@ -59,8 +59,8 @@ export declare class ClassesController {
         createdAt: Date;
         isActive: boolean;
         updatedAt: Date;
-        title: string;
         description: string | null;
+        title: string;
         price: import("@prisma/client/runtime/library").Decimal;
         location: string | null;
         capacity: number;
@@ -93,8 +93,8 @@ export declare class ClassesController {
             email: string | null;
             phone: string | null;
             updatedAt: Date;
-            description: string | null;
             ownerId: string;
+            description: string | null;
             address: string | null;
             city: string | null;
             district: string | null;
@@ -131,8 +131,8 @@ export declare class ClassesController {
         createdAt: Date;
         isActive: boolean;
         updatedAt: Date;
-        title: string;
         description: string | null;
+        title: string;
         price: import("@prisma/client/runtime/library").Decimal;
         location: string | null;
         capacity: number;
@@ -155,8 +155,8 @@ export declare class ClassesController {
                 email: string | null;
                 phone: string | null;
                 updatedAt: Date;
-                description: string | null;
                 ownerId: string;
+                description: string | null;
                 address: string | null;
                 city: string | null;
                 district: string | null;
@@ -176,8 +176,8 @@ export declare class ClassesController {
             createdAt: Date;
             isActive: boolean;
             updatedAt: Date;
-            title: string;
             description: string | null;
+            title: string;
             price: import("@prisma/client/runtime/library").Decimal;
             location: string | null;
             capacity: number;
@@ -238,8 +238,8 @@ export declare class ClassesController {
         createdAt: Date;
         isActive: boolean;
         updatedAt: Date;
-        title: string;
         description: string | null;
+        title: string;
         price: import("@prisma/client/runtime/library").Decimal;
         location: string | null;
         capacity: number;
@@ -255,8 +255,8 @@ export declare class ClassesController {
         createdAt: Date;
         isActive: boolean;
         updatedAt: Date;
-        title: string;
         description: string | null;
+        title: string;
         price: import("@prisma/client/runtime/library").Decimal;
         location: string | null;
         capacity: number;

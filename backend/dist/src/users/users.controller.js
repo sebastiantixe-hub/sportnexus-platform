@@ -40,6 +40,9 @@ let UsersController = class UsersController {
     remove(id) {
         return this.usersService.remove(id);
     }
+    update(id, updateDto) {
+        return this.usersService.update(id, updateDto);
+    }
     createRoleRequest(user, dto) {
         return this.usersService.createRoleRequest(user.id, dto.requestedRole, dto.reason);
     }
@@ -96,6 +99,17 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "remove", null);
+__decorate([
+    (0, common_1.Patch)(':id'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
+    (0, swagger_1.ApiOperation)({ summary: 'Actualizar un usuario del sistema (Solo Admin)' }),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "update", null);
 __decorate([
     (0, common_1.Post)('role-requests'),
     (0, common_1.UseGuards)(any_auth_guard_1.AnyAuthGuard),

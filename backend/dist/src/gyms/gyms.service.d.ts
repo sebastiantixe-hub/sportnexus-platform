@@ -2,6 +2,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateGymDto, UpdateGymDto } from './dto/gym.dto';
 export declare class GymsService {
     private prisma;
+    private readonly logger;
     constructor(prisma: PrismaService);
     private geocodeAddress;
     private getDistrictCoordsFallback;
@@ -12,8 +13,8 @@ export declare class GymsService {
         email: string | null;
         phone: string | null;
         updatedAt: Date;
-        description: string | null;
         ownerId: string;
+        description: string | null;
         address: string | null;
         city: string | null;
         district: string | null;
@@ -42,8 +43,8 @@ export declare class GymsService {
         email: string | null;
         phone: string | null;
         updatedAt: Date;
-        description: string | null;
         ownerId: string;
+        description: string | null;
         address: string | null;
         city: string | null;
         district: string | null;
@@ -72,8 +73,8 @@ export declare class GymsService {
         email: string | null;
         phone: string | null;
         updatedAt: Date;
-        description: string | null;
         ownerId: string;
+        description: string | null;
         address: string | null;
         city: string | null;
         district: string | null;
@@ -135,8 +136,8 @@ export declare class GymsService {
         email: string | null;
         phone: string | null;
         updatedAt: Date;
-        description: string | null;
         ownerId: string;
+        description: string | null;
         address: string | null;
         city: string | null;
         district: string | null;
@@ -158,8 +159,8 @@ export declare class GymsService {
         email: string | null;
         phone: string | null;
         updatedAt: Date;
-        description: string | null;
         ownerId: string;
+        description: string | null;
         address: string | null;
         city: string | null;
         district: string | null;
@@ -181,8 +182,8 @@ export declare class GymsService {
         email: string | null;
         phone: string | null;
         updatedAt: Date;
-        description: string | null;
         ownerId: string;
+        description: string | null;
         address: string | null;
         city: string | null;
         district: string | null;

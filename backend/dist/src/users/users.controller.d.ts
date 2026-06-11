@@ -42,6 +42,23 @@ export declare class UsersController {
         success: boolean;
         message: string;
     }>;
+    update(id: string, updateDto: {
+        name: string;
+        email: string;
+        phone?: string;
+        dni?: string;
+        role: UserRole;
+        isActive: boolean;
+    }): Promise<{
+        id: string;
+        createdAt: Date;
+        name: string;
+        email: string;
+        role: import("@prisma/client").$Enums.UserRole;
+        phone: string | null;
+        dni: string | null;
+        isActive: boolean;
+    }>;
     createRoleRequest(user: {
         id: string;
     }, dto: {
