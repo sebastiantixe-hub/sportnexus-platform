@@ -85,10 +85,25 @@ interface CreateGymModalProps {
 }
 
 const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, initialData }) => {
+  const parseAddress = (fullAddress: string) => {
+    if (!fullAddress) return { address: '', urbanization: '' };
+    const urbPattern = /,\s*(urb\.|urbanización|urbanizacion)\s*/i;
+    const match = fullAddress.match(urbPattern);
+    if (match && match.index !== undefined) {
+      const address = fullAddress.substring(0, match.index).trim();
+      const urbanization = fullAddress.substring(match.index + match[0].length).trim();
+      return { address, urbanization };
+    }
+    return { address: fullAddress, urbanization: '' };
+  };
+
+  const parsed = parseAddress(initialData?.address || '');
+
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
     description: initialData?.description || '',
-    address: initialData?.address || '',
+    address: parsed.address,
+    urbanization: parsed.urbanization,
     city: initialData?.city || '',
     district: initialData?.district || '',
     province: initialData?.province || '',
@@ -126,7 +141,10 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
     }
     setSearchingCoords(true);
     try {
-      const queryParts = [formData.address, formData.district, formData.province, formData.city].filter(Boolean);
+      const fullAddressQuery = formData.urbanization 
+        ? `${formData.address}, Urb. ${formData.urbanization}` 
+        : formData.address;
+      const queryParts = [fullAddressQuery, formData.district, formData.province, formData.city].filter(Boolean);
       const query = queryParts.join(', ');
       const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`, {
         headers: {
@@ -157,11 +175,21 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
     setLoading(true);
     setError('');
 
+    const finalAddress = formData.urbanization 
+      ? `${formData.address}, Urb. ${formData.urbanization}` 
+      : formData.address;
+
+    const payload = {
+      ...formData,
+      address: finalAddress,
+    };
+    delete (payload as any).urbanization;
+
     try {
       if (initialData) {
-        await api.patch(`/gyms/${initialData.id}`, formData);
+        await api.patch(`/gyms/${initialData.id}`, payload);
       } else {
-        await api.post('/gyms', formData);
+        await api.post('/gyms', payload);
       }
       onCreated();
       onClose();
@@ -280,7 +308,7 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
 
           {/* Dirección */}
           <div className="space-y-2">
-            <label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Dirección Física</label>
+            <label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Dirección Física (Ej: Manzana D Lote 40)</label>
             <div className="flex gap-2">
               <div className="relative flex-grow">
                 <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-primary-light w-4 h-4" />
@@ -364,6 +392,17 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Urbanización */}
+          <div className="space-y-2">
+            <label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Urbanización (Ej: Las Begonias)</label>
+            <input
+              value={formData.urbanization}
+              onChange={e => setFormData({ ...formData, urbanization: e.target.value })}
+              className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 px-4 border rounded-xl text-white outline-none"
+              placeholder="Urb. Nombre de tu Urbanización"
+            />
           </div>
 
           {/* Departamento, Provincia, Distrito */}
