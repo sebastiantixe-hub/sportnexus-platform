@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateGymDto, UpdateGymDto } from './dto/gym.dto';
@@ -9,6 +10,7 @@ import { GymStatus } from '@prisma/client';
 
 @Injectable()
 export class GymsService {
+  private readonly logger = new Logger(GymsService.name);
   constructor(private prisma: PrismaService) {}
 
   private async geocodeAddress(
@@ -103,22 +105,27 @@ export class GymsService {
   }
 
   async findAll(ownerId?: string) {
-    const where: any = { status: GymStatus.ACTIVE };
-    if (ownerId) where.ownerId = ownerId;
+    try {
+      const where: any = { status: GymStatus.ACTIVE };
+      if (ownerId) where.ownerId = ownerId;
 
-    return this.prisma.gym.findMany({
-      where,
-      include: {
-        owner: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatarUrl: true,
+      return await this.prisma.gym.findMany({
+        where,
+        include: {
+          owner: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              avatarUrl: true,
+            },
           },
         },
-      },
-    });
+      });
+    } catch (err: any) {
+      this.logger.error(`Error in findAll gyms: ${err.message}`, err.stack);
+      throw err;
+    }
   }
 
   async findNearby(lat: number, lng: number, radiusKm: number) {
