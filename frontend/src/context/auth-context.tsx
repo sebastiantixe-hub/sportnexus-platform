@@ -17,7 +17,6 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (options?: { allowSignUp?: boolean }) => void;
-  loginWithCredentials: (email: string, password: string) => Promise<void>;
   logout: () => void;
   updateUserProfile: (data: { name: string; phone?: string; dni?: string }) => Promise<void>;
   switchUserRole: (role: string) => Promise<void>;
@@ -132,30 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const loginWithCredentials = async (email: string, passwordHash: string) => {
-    setBackendLoading(true);
-    try {
-      const { data } = await api.post('/auth/login', { email, password: passwordHash });
-      console.log('Login local exitoso para:', email);
-      localStorage.setItem('token', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
-      
-      const meRes = await api.get('/auth/me');
-      if (!meRes.data.roles) {
-        const computedRoles: string[] = ['USER'];
-        if (meRes.data.role === 'ADMIN') computedRoles.push('ADMIN');
-        if (meRes.data.role === 'GYM_OWNER') computedRoles.push('GYM_OWNER');
-        if (meRes.data.role === 'TRAINER') computedRoles.push('TRAINER');
-        meRes.data.roles = computedRoles;
-      }
-      setUser(meRes.data);
-    } catch (error) {
-      console.error('Error en login local:', error);
-      throw error;
-    } finally {
-      setBackendLoading(false);
-    }
-  };
+
   
   const logout = () => {
     setIsLoggingOut(true);
@@ -210,7 +186,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       user, 
       loading: auth0Loading || (isAuthenticated && backendLoading) || isLoggingOut, 
       login, 
-      loginWithCredentials,
       logout,
       updateUserProfile,
       switchUserRole

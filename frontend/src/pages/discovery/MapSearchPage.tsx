@@ -151,23 +151,30 @@ const userLocationIcon = L.divIcon({
   iconAnchor: [16, 16]
 });
 
-// Custom Icons with Glow Effect
+// Custom Icons with Glow Effect (Google Maps style red teardrop pin)
 const getCustomIcon = (sportLabel: string) => {
   const emoji = sportLabel.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]|\u200D|./u)?.[0] || '📍';
   
   return L.divIcon({
     html: `
       <div class="relative flex items-center justify-center marker-glow">
-        <div class="absolute w-12 h-12 bg-red-500/30 rounded-full blur-md animate-pulse"></div>
-        <div class="relative w-9 h-9 bg-slate-950 border-2 border-red-500 rounded-full flex items-center justify-center shadow-2xl transition-transform hover:scale-110 active:scale-95">
-          <span class="text-lg leading-none select-none">${emoji}</span>
-          <div class="absolute -bottom-1 w-2.5 h-2.5 bg-red-500 rotate-45 rounded-sm"></div>
+        <!-- Pulse effect behind the pin -->
+        <div class="absolute w-10 h-10 bg-red-500/20 rounded-full blur-md animate-pulse"></div>
+        <!-- Google Maps style Red Teardrop Pin -->
+        <svg width="40" height="50" viewBox="0 0 24 30" fill="none" xmlns="http://www.w3.org/2000/svg" class="filter drop-shadow-2xl transition-transform hover:scale-110 active:scale-95">
+          <path d="M12 0C5.37 0 0 5.37 0 12C0 21 12 30 12 30C12 30 24 21 24 12C24 5.37 18.63 0 12 0Z" fill="#ef4444"/>
+          <!-- Inner circle for premium look -->
+          <circle cx="12" cy="12" r="7.5" fill="#0f172a" stroke="#ffffff" stroke-width="1.5"/>
+        </svg>
+        <!-- Sport Emoji centered inside the circle of the pin -->
+        <div class="absolute top-[8px] left-[10px] w-[20px] h-[20px] flex items-center justify-center select-none text-[12px] leading-none">
+          ${emoji}
         </div>
       </div>
     `,
     className: 'custom-sport-icon',
-    iconSize: [48, 48],
-    iconAnchor: [24, 48],
+    iconSize: [40, 50],
+    iconAnchor: [20, 50],
   });
 };
 

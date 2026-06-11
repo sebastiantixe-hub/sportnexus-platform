@@ -1,13 +1,68 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../../api/api-client';
-import { X, Loader2, Dumbbell, MapPin, Phone, Globe, Plus, Clock, CalendarDays } from 'lucide-react';
+import { X, Loader2, Dumbbell, MapPin, Phone, Globe, Plus, Clock, CalendarDays, Navigation } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 
-interface CreateGymModalProps {
-  onClose: () => void;
-  onCreated: () => void;
-  initialData?: any;
-}
+const redPinIcon = L.divIcon({
+  html: `
+    <div class="relative flex items-center justify-center">
+      <svg width="32" height="40" viewBox="0 0 24 30" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.4));">
+        <path d="M12 0C5.37 0 0 5.37 0 12C0 21 12 30 12 30C12 30 24 21 24 12C24 5.37 18.63 0 12 0Z" fill="#ef4444"/>
+        <circle cx="12" cy="12" r="5" fill="#0f172a" stroke="#ffffff" stroke-width="1.5"/>
+      </svg>
+    </div>
+  `,
+  className: 'custom-red-pin-icon',
+  iconSize: [32, 40],
+  iconAnchor: [16, 40],
+});
+
+const MapController = ({ position }: { position: [number, number] | null }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (position) {
+      map.setView(position, map.getZoom());
+    }
+  }, [position, map]);
+  return null;
+};
+
+const LocationMarker = ({ 
+  position, 
+  setPosition, 
+  setFormData 
+}: { 
+  position: [number, number] | null; 
+  setPosition: React.Dispatch<React.SetStateAction<[number, number] | null>>; 
+  setFormData: React.Dispatch<React.SetStateAction<any>>; 
+}) => {
+  useMapEvents({
+    click(e) {
+      const { lat, lng } = e.latlng;
+      setPosition([lat, lng]);
+      setFormData((prev: any) => ({ ...prev, latitude: lat, longitude: lng }));
+    },
+  });
+
+  return position === null ? null : (
+    <Marker 
+      position={position} 
+      draggable={true}
+      eventHandlers={{
+        dragend(e) {
+          const marker = e.target;
+          const { lat, lng } = marker.getLatLng();
+          setPosition([lat, lng]);
+          setFormData((prev: any) => ({ ...prev, latitude: lat, longitude: lng }));
+        }
+      }}
+      icon={redPinIcon}
+    />
+  );
+};
 
 const DAYS_OPTIONS = [
   'Lunes a Viernes',
@@ -23,6 +78,12 @@ const TIME_OPTIONS = [
   '09:00 PM', '10:00 PM', '11:00 PM', '12:00 AM',
 ];
 
+interface CreateGymModalProps {
+  onClose: () => void;
+  onCreated: () => void;
+  initialData?: any;
+}
+
 const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, initialData }) => {
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
@@ -37,10 +98,59 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
     openTime: initialData?.openTime || '06:00 AM',
     closeTime: initialData?.closeTime || '10:00 PM',
     logoUrl: initialData?.logoUrl || '',
+    latitude: initialData?.latitude || undefined,
+    longitude: initialData?.longitude || undefined,
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const [position, setPosition] = useState<[number, number] | null>(
+    initialData?.latitude && initialData?.longitude 
+      ? [initialData.latitude, initialData.longitude] 
+      : null
+  );
+  
+  const [renderMap, setRenderMap] = useState(false);
+  const [searchingCoords, setSearchingCoords] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setRenderMap(true), 350);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const locateAddressOnMap = async () => {
+    if (!formData.address) {
+      alert("Por favor ingresa primero la dirección física.");
+      return;
+    }
+    setSearchingCoords(true);
+    try {
+      const queryParts = [formData.address, formData.district, formData.province, formData.city].filter(Boolean);
+      const query = queryParts.join(', ');
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'User-Agent': 'HercixPlatform/1.0 (contact@hercix.com)'
+        }
+      });
+      const data = await response.json();
+      if (Array.isArray(data) && data.length > 0) {
+        const lat = parseFloat(data[0].lat);
+        const lon = parseFloat(data[0].lon);
+        setPosition([lat, lon]);
+        setFormData(prev => ({ ...prev, latitude: lat, longitude: lon }));
+      } else {
+        alert("No se pudo ubicar la dirección automáticamente. Por favor haz clic directamente en el mapa para posicionar el pin rojo.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error buscando la dirección. Intenta colocar el pin manualmente haciendo clic en el mapa.");
+    } finally {
+      setSearchingCoords(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,15 +281,88 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
           {/* Dirección */}
           <div className="space-y-2">
             <label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Dirección Física</label>
-            <div className="relative">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-primary-light w-4 h-4" />
-              <input
-                required
-                value={formData.address}
-                onChange={e => setFormData({ ...formData, address: e.target.value })}
-                className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 pl-12 pr-4 border rounded-xl text-white outline-none"
-                placeholder="Av. Principal 123, Ciudad"
-              />
+            <div className="flex gap-2">
+              <div className="relative flex-grow">
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-primary-light w-4 h-4" />
+                <input
+                  required
+                  value={formData.address}
+                  onChange={e => setFormData({ ...formData, address: e.target.value })}
+                  className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 pl-12 pr-4 border rounded-xl text-white outline-none"
+                  placeholder="Av. Principal 123, Ciudad"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={locateAddressOnMap}
+                disabled={searchingCoords}
+                className="bg-primary/20 hover:bg-primary border border-primary/30 text-primary-light hover:text-white px-4 py-3 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
+              >
+                {searchingCoords ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Navigation className="w-3.5 h-3.5" />
+                )}
+                <span>Ubicar</span>
+              </button>
+            </div>
+
+            {/* Interactive Map Selector */}
+            <div className="space-y-1.5 mt-2">
+              <label className="text-slate-500 text-[11px] font-medium flex items-center justify-between">
+                <span>📍 Ubicación en el Mapa</span>
+                {formData.latitude && formData.longitude ? (
+                  <span className="text-emerald-400 font-bold">Ubicación fijada ✓</span>
+                ) : (
+                  <span className="text-amber-400 font-bold">Ubicación no fijada (se usará aproximación)</span>
+                )}
+              </label>
+              
+              <div className="h-52 w-full rounded-2xl border border-white/10 overflow-hidden relative z-10 bg-slate-950">
+                {renderMap ? (
+                  <MapContainer
+                    center={position || [-12.085, -77.03]}
+                    zoom={13}
+                    style={{ width: '100%', height: '100%' }}
+                    zoomControl={false}
+                  >
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                      url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                    />
+                    <LocationMarker 
+                      position={position} 
+                      setPosition={setPosition} 
+                      setFormData={setFormData} 
+                    />
+                    <MapController position={position} />
+                  </MapContainer>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-slate-500 text-xs gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                    <span>Cargando mapa interactivo...</span>
+                  </div>
+                )}
+              </div>
+              <p className="text-[10px] text-slate-400 leading-relaxed italic">
+                * Haz clic en el mapa o arrastra el marcador rojo para posicionar tu gimnasio de forma exacta.
+              </p>
+              {formData.latitude && formData.longitude && (
+                <div className="bg-slate-950/50 border border-white/5 rounded-lg p-2 text-[10px] text-slate-400 font-mono flex justify-between items-center">
+                  <span>Lat: {formData.latitude.toFixed(6)}</span>
+                  <span>Lng: {formData.longitude.toFixed(6)}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPosition(null);
+                      setFormData((prev: any) => ({ ...prev, latitude: undefined, longitude: undefined }));
+                    }}
+                    className="text-red-400 hover:text-red-300 font-bold uppercase tracking-wider text-[9px]"
+                  >
+                    Limpiar
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 

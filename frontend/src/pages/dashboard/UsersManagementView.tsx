@@ -18,6 +18,7 @@ import {
   XCircle,
   Bell,
   UserCheck,
+  Edit2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -42,6 +43,19 @@ const UsersManagementView: React.FC = () => {
     phone: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Edit Modal State
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    id: '',
+    name: '',
+    email: '',
+    phone: '',
+    dni: '',
+    role: 'USER',
+    isActive: true,
+  });
+  const [isEditing, setIsEditing] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -101,6 +115,41 @@ const UsersManagementView: React.FC = () => {
       toast.error(err.response?.data?.message || 'Error al crear usuario');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleEditClick = (user: any) => {
+    setEditFormData({
+      id: user.id,
+      name: user.name || '',
+      email: user.email || '',
+      phone: user.phone || '',
+      dni: user.dni || '',
+      role: user.role || 'USER',
+      isActive: user.isActive !== false,
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setIsEditing(true);
+      await api.patch(`/users/${editFormData.id}`, {
+        name: editFormData.name,
+        email: editFormData.email,
+        phone: editFormData.phone,
+        dni: editFormData.dni,
+        role: editFormData.role,
+        isActive: editFormData.isActive,
+      });
+      toast.success('Usuario actualizado exitosamente');
+      setShowEditModal(false);
+      fetchUsers();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Error al actualizar usuario');
+    } finally {
+      setIsEditing(false);
     }
   };
 
@@ -287,15 +336,30 @@ const UsersManagementView: React.FC = () => {
                         {formatDate(u.lastLoginAt)}
                       </td>
                       <td className="py-4 px-4 text-right">
-                        {u.role !== 'ADMIN' && (
+                        <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
                           <button
-                            onClick={() => handleDelete(u.id, u.role)}
-                            className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                            title="Eliminar usuario"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditClick(u);
+                            }}
+                            className="p-2 text-slate-500 hover:text-primary-light hover:bg-primary/10 rounded-lg transition-colors"
+                            title="Editar usuario"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Edit2 className="w-4 h-4" />
                           </button>
-                        )}
+                          {u.role !== 'ADMIN' && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(u.id, u.role);
+                              }}
+                              className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                              title="Eliminar usuario"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -443,6 +507,77 @@ const UsersManagementView: React.FC = () => {
                   <button type="button" onClick={() => setShowModal(false)} className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl transition-colors font-medium">Cancelar</button>
                   <button type="submit" disabled={isSubmitting} className="flex-1 px-4 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl transition-colors font-medium flex justify-center items-center">
                     {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Crear Cuenta'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal Editar Usuario */}
+      <AnimatePresence>
+        {showEditModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setShowEditModal(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-slate-900 border border-white/10 p-6 rounded-2xl w-full max-w-md relative z-10 shadow-2xl"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-white">Editar Usuario</h2>
+                <button onClick={() => setShowEditModal(false)} className="text-slate-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleEditSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Nombre Completo</label>
+                  <input required type="text" value={editFormData.name} onChange={e => setEditFormData({...editFormData, name: e.target.value})} className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-primary" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Correo Electrónico</label>
+                  <input required type="email" value={editFormData.email} onChange={e => setEditFormData({...editFormData, email: e.target.value})} className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-primary" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Teléfono</label>
+                  <input type="text" value={editFormData.phone || ''} onChange={e => setEditFormData({...editFormData, phone: e.target.value})} className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-primary" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">DNI</label>
+                  <input type="text" value={editFormData.dni || ''} onChange={e => setEditFormData({...editFormData, dni: e.target.value})} className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-primary" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Rol</label>
+                  <select value={editFormData.role} onChange={e => setEditFormData({...editFormData, role: e.target.value})} className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-primary">
+                    <option value="USER">Atleta (USER)</option>
+                    <option value="TRAINER">Entrenador (TRAINER)</option>
+                    <option value="GYM_OWNER">Dueño de Gimnasio (GYM_OWNER)</option>
+                    <option value="ADMIN">Administrador (ADMIN)</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-3 py-2">
+                  <input 
+                    type="checkbox" 
+                    id="edit_isActive"
+                    checked={editFormData.isActive} 
+                    onChange={e => setEditFormData({...editFormData, isActive: e.target.checked})} 
+                    className="w-4 h-4 rounded bg-slate-800 border-white/10 text-primary focus:ring-0 focus:ring-offset-0 focus:outline-none cursor-pointer"
+                  />
+                  <label htmlFor="edit_isActive" className="text-sm font-semibold text-slate-300 cursor-pointer select-none">Cuenta Activa</label>
+                </div>
+
+                <div className="pt-4 flex gap-3">
+                  <button type="button" onClick={() => setShowEditModal(false)} className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl transition-colors font-medium">Cancelar</button>
+                  <button type="submit" disabled={isEditing} className="flex-1 px-4 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl transition-colors font-medium flex justify-center items-center">
+                    {isEditing ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Guardar Cambios'}
                   </button>
                 </div>
               </form>
