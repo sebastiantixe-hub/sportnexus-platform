@@ -58,7 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('Token de Auth0 obtenido con éxito');
           localStorage.setItem('token', token);
           
-          const { data } = await api.get('/auth/me');
+          const { data } = await api.get('/auth/me', { timeout: 5000 });
           console.log('Perfil sincronizado desde Backend:', data.email);
           
           // Contingencia local: si el backend no devolvió la propiedad 'roles' (por caché o falta de compilación), la calculamos en el cliente
@@ -88,7 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (token) {
           setBackendLoading(true);
           try {
-            const { data } = await api.get('/auth/me');
+            const { data } = await api.get('/auth/me', { timeout: 5000 });
             console.log('Perfil restaurado con éxito desde localStorage:', data.email);
             
             if (!data.roles) {
