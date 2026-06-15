@@ -30,6 +30,7 @@ const UsersManagementView: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [loadingRequests, setLoadingRequests] = useState(true);
   const [search, setSearch] = useState('');
+  const [searchRequests, setSearchRequests] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'users' | 'requests'>('users');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -190,6 +191,12 @@ const UsersManagementView: React.FC = () => {
   const filteredUsers = usersList.filter(u =>
     u.name.toLowerCase().includes(search.toLowerCase()) ||
     u.email.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const filteredRequests = roleRequests.filter(req =>
+    (req.user?.name || '').toLowerCase().includes(searchRequests.toLowerCase()) ||
+    (req.user?.email || '').toLowerCase().includes(searchRequests.toLowerCase()) ||
+    (req.requestedRole || '').toLowerCase().includes(searchRequests.toLowerCase())
   );
 
   const pendingCount = roleRequests.filter(r => r.status === 'PENDING').length;
@@ -387,15 +394,27 @@ const UsersManagementView: React.FC = () => {
             )}
           </h2>
 
+          {/* Buscador de solicitudes */}
+          <div className="relative mb-6">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Buscar solicitudes por nombre, correo o rol..."
+              value={searchRequests}
+              onChange={(e) => setSearchRequests(e.target.value)}
+              className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-primary-light outline-none transition-all"
+            />
+          </div>
+
           {loadingRequests ? (
             <div className="flex justify-center py-20">
               <Loader2 className="w-8 h-8 text-primary animate-spin" />
             </div>
-          ) : roleRequests.length === 0 ? (
-            <div className="text-center py-16 text-slate-500 italic">No hay solicitudes de rol registradas.</div>
+          ) : filteredRequests.length === 0 ? (
+            <div className="text-center py-16 text-slate-500 italic">No se encontraron solicitudes.</div>
           ) : (
             <div className="space-y-4">
-              {roleRequests.map((req) => (
+              {filteredRequests.map((req) => (
                 <motion.div
                   key={req.id}
                   initial={{ opacity: 0, y: 10 }}
