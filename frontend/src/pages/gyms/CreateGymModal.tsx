@@ -141,19 +141,50 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
     }
     setSearchingCoords(true);
     try {
+      // 1. Intento con dirección completa (con urbanización si existe)
       const fullAddressQuery = formData.urbanization 
         ? `${formData.address}, Urb. ${formData.urbanization}` 
         : formData.address;
       const queryParts = [fullAddressQuery, formData.district, formData.province, formData.city].filter(Boolean);
       const query = queryParts.join(', ');
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`, {
+      
+      let response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
           'User-Agent': 'HercixPlatform/1.0 (contact@hercix.com)'
         }
       });
-      const data = await response.json();
+      let data = await response.json();
+
+      // 2. Si falló y teníamos urbanización, intentamos sin urbanización
+      if ((!Array.isArray(data) || data.length === 0) && formData.urbanization) {
+        const fallbackParts = [formData.address, formData.district, formData.province, formData.city].filter(Boolean);
+        const fallbackQuery = fallbackParts.join(', ');
+        response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(fallbackQuery)}&format=json&limit=1`, {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'User-Agent': 'HercixPlatform/1.0 (contact@hercix.com)'
+          }
+        });
+        data = await response.json();
+      }
+
+      // 3. Si sigue fallando, intentamos una búsqueda muy simplificada: dirección y distrito
+      if (!Array.isArray(data) || data.length === 0) {
+        const superFallbackParts = [formData.address, formData.district].filter(Boolean);
+        const superFallbackQuery = superFallbackParts.join(', ');
+        response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(superFallbackQuery)}&format=json&limit=1`, {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'User-Agent': 'HercixPlatform/1.0 (contact@hercix.com)'
+          }
+        });
+        data = await response.json();
+      }
+
       if (Array.isArray(data) && data.length > 0) {
         const lat = parseFloat(data[0].lat);
         const lon = parseFloat(data[0].lon);
