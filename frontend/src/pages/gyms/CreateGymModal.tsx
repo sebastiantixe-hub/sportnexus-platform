@@ -84,6 +84,17 @@ interface CreateGymModalProps {
   initialData?: any;
 }
 
+const AVAILABLE_SPORTS = [
+  { id: 'Gimnasio', label: '🏋️ Gimnasio' },
+  { id: 'Fútbol', label: '⚽ Fútbol' },
+  { id: 'Vóley', label: '🏐 Vóley' },
+  { id: 'Básquetbol', label: '🏀 Básquetbol' },
+  { id: 'Tenis', label: '🎾 Tenis' },
+  { id: 'Natación', label: '🏊 Natación' },
+  { id: 'Box', label: '🥊 Box' },
+  { id: 'Atletismo', label: '🏃 Atletismo' },
+];
+
 const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, initialData }) => {
   const parseAddress = (fullAddress: string) => {
     if (!fullAddress) return { address: '', urbanization: '' };
@@ -97,11 +108,25 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
     return { address: fullAddress, urbanization: '' };
   };
 
+  const parseDescription = (desc: string) => {
+    if (!desc) return { cleanDesc: '', sports: [] as string[] };
+    const marker = '\n\n[Categorías: ';
+    const index = desc.lastIndexOf(marker);
+    if (index !== -1) {
+      const cleanDesc = desc.substring(0, index).trim();
+      const sportsStr = desc.substring(index + marker.length, desc.length - 1);
+      const sports = sportsStr.split(',').map(s => s.trim()).filter(Boolean);
+      return { cleanDesc, sports };
+    }
+    return { cleanDesc: desc, sports: [] as string[] };
+  };
+
   const parsed = parseAddress(initialData?.address || '');
+  const parsedDesc = parseDescription(initialData?.description || '');
 
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
-    description: initialData?.description || '',
+    description: parsedDesc.cleanDesc,
     address: parsed.address,
     urbanization: parsed.urbanization,
     city: initialData?.city || '',
@@ -116,6 +141,8 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
     latitude: initialData?.latitude || undefined,
     longitude: initialData?.longitude || undefined,
   });
+
+  const [selectedSports, setSelectedSports] = useState<string[]>(parsedDesc.sports);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -210,8 +237,13 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
       ? `${formData.address}, Urb. ${formData.urbanization}` 
       : formData.address;
 
+    const finalDescription = selectedSports.length > 0
+      ? `${formData.description}\n\n[Categorías: ${selectedSports.join(', ')}]`
+      : formData.description;
+
     const payload = {
       ...formData,
+      description: finalDescription,
       address: finalAddress,
     };
     delete (payload as any).urbanization;
@@ -274,6 +306,50 @@ const CreateGymModal: React.FC<CreateGymModalProps> = ({ onClose, onCreated, ini
               className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 px-4 border rounded-xl text-white outline-none min-h-[80px]"
               placeholder="Cuenta un poco sobre tu gimnasio..."
             />
+          </div>
+
+          {/* Categorías Deportivas */}
+          <div className="space-y-3">
+            <label className="text-slate-400 text-xs font-bold uppercase tracking-wider block">
+              🏷️ Categorías / Deportes que ofrece
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {AVAILABLE_SPORTS.map((sport) => {
+                const isSelected = selectedSports.includes(sport.id);
+                return (
+                  <button
+                    key={sport.id}
+                    type="button"
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelectedSports(selectedSports.filter(s => s !== sport.id));
+                      } else {
+                        setSelectedSports([...selectedSports, sport.id]);
+                      }
+                    }}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all ${
+                      isSelected
+                        ? 'bg-primary/20 border-primary text-white shadow-lg shadow-primary/10'
+                        : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <div className={`w-5 h-5 rounded flex items-center justify-center border transition-colors ${
+                      isSelected ? 'bg-primary border-primary text-white' : 'border-white/20'
+                    }`}>
+                      {isSelected && (
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                    <span className="text-xs font-bold">{sport.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[10px] text-slate-500 italic">
+              * Selecciona uno o más deportes para aparecer en los filtros del buscador y mapa de Hercix.
+            </p>
           </div>
 
           {/* Imagen de Portada / Logo */}

@@ -59,7 +59,9 @@ const GymCard: React.FC<{
 
     <div className="p-6">
       <h3 className="text-xl font-bold text-white group-hover:text-primary-light transition-colors">{gym.name}</h3>
-      <p className="text-slate-400 text-sm mt-2 line-clamp-2">{gym.description || 'Sin descripción disponible.'}</p>
+      <p className="text-slate-400 text-sm mt-2 line-clamp-2">
+        {gym.description ? gym.description.split('\n\n[Categorías:')[0] : 'Sin descripción disponible.'}
+      </p>
 
       <div className="mt-6 flex flex-col gap-2">
         <div className="flex items-center gap-2 text-slate-400 text-xs text-secondary-light">
@@ -151,7 +153,8 @@ const GymsPage: React.FC = () => {
 
   const filteredGyms = gyms.filter(g => {
     const s = normalize(search);
-    const fields = [g.name, g.address, g.description, g.city, g.district, g.province];
+    const cleanDesc = g.description ? g.description.split('\n\n[Categorías:')[0] : '';
+    const fields = [g.name, g.address, cleanDesc, g.city, g.district, g.province];
     return fields.some(field => normalize(field || '').includes(s));
   });
 

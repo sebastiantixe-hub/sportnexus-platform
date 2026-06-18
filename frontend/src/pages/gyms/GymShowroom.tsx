@@ -333,7 +333,9 @@ const GymShowroom: React.FC = () => {
         <div className="lg:col-span-1 space-y-6">
           <div className="glass-card p-6 border-white/5 space-y-4">
              <h3 className="text-white font-bold text-sm uppercase tracking-widest opacity-50">Información</h3>
-             <p className="text-slate-400 text-sm leading-relaxed">{gym.description || 'Este negocio ofrece los mejores servicios deportivos del sector.'}</p>
+             <p className="text-slate-400 text-sm leading-relaxed">
+               {gym.description ? gym.description.split('\n\n[Categorías:')[0] : 'Este negocio ofrece los mejores servicios deportivos del sector.'}
+             </p>
              <div className="space-y-3 pt-4">
                <div className="flex items-center gap-3 text-sm text-slate-300">
                  <Phone className="w-4 h-4 text-primary-light" /> {gym.phone || '+51 900 100 200'}

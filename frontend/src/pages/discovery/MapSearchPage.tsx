@@ -191,6 +191,20 @@ const SPORT_FILTERS = [
 ];
 
 const getGymSports = (gym: any): string[] => {
+  // 1. Intentar extraer de la descripción si contiene el marcador de categorías manuales
+  if (gym.description) {
+    const marker = '[Categorías: ';
+    const index = gym.description.lastIndexOf(marker);
+    if (index !== -1) {
+      const sportsStr = gym.description.substring(index + marker.length, gym.description.length - 1);
+      const manualSports = sportsStr.split(',').map((s: string) => s.trim()).filter(Boolean);
+      if (manualSports.length > 0) {
+        return Array.from(new Set(manualSports));
+      }
+    }
+  }
+
+  // Fallback: Detección inteligente automática por nombre comercial
   const sports: string[] = [];
   const name = gym.name.toLowerCase();
   
@@ -576,7 +590,8 @@ const MapSearchPage: React.FC = () => {
 
   const filtered = gyms.filter(g => {
     const s = normalize(search);
-    const fields = [g.name, g.address, g.city, g.district, g.province, g.description || ''];
+    const cleanDesc = g.description ? g.description.split('\n\n[Categorías:')[0] : '';
+    const fields = [g.name, g.address, g.city, g.district, g.province, cleanDesc];
     const sports = getGymSports(g);
     const sportsString = sports.join(' ');
     
@@ -1029,7 +1044,7 @@ const MapSearchPage: React.FC = () => {
 
                 {selectedGym.description && (
                   <div className="border-t border-white/5 pt-4">
-                    <p className="text-slate-400 text-sm leading-relaxed">{selectedGym.description}</p>
+                    <p className="text-slate-400 text-sm leading-relaxed">{selectedGym.description.split('\n\n[Categorías:')[0]}</p>
                   </div>
                 )}
 
