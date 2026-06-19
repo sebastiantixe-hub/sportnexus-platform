@@ -513,33 +513,7 @@ const MapSearchPage: React.FC = () => {
     setLoadingClasses(true);
     try {
       const { data } = await api.get(`/classes?gymId=${gym.id}`);
-      const sports = getGymSports(gym);
-      
-      const finalClasses = [...data];
-      const classTitles = data.map((c: any) => c.title.toLowerCase());
-      
-      sports.forEach((sport: string) => {
-        if (sport === 'Gimnasio') return;
-        const normalizedSport = normalize(sport);
-        
-        const hasClassForSport = classTitles.some((t: string) => t.includes(normalizedSport));
-        if (!hasClassForSport) {
-          finalClasses.push({
-            id: `injected-${gym.id}-${sport}`,
-            gymId: gym.id,
-            title: `Academia de ${sport} - Nivel Inicial/Intermedio`,
-            description: `Aprende técnicas, tácticas y mejora tu condición física jugando ${sport}. Clases dirigidas por profesionales certificados.`,
-            classType: 'IN_PERSON',
-            capacity: 25,
-            durationMin: 90,
-            price: 35.00,
-            scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-            isActive: true,
-          });
-        }
-      });
-      
-      setGymClasses(finalClasses);
+      setGymClasses(data);
     } catch { 
       setGymClasses([]); 
     } finally { 
