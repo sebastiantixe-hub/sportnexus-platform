@@ -60,7 +60,7 @@ const ClassCard: React.FC<{
         {/* Manager Recommendation: Occupation alert / spots left */}
         {(user?.role === 'GYM_OWNER' || user?.role === 'ADMIN') && (
           <div className="mt-1">
-            {(classItem.reservationsCount || 0) >= classItem.capacity ? (
+            {((classItem._count?.reservations || classItem.reservations?.length || 0)) >= classItem.capacity ? (
               <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-400 text-[11px] font-bold px-3 py-1.5 rounded-xl animate-pulse">
                 <span className="h-2 w-2 rounded-full bg-red-500"></span>
                 <span>⚠️ Límite de alumnos alcanzado (Aforo lleno)</span>
@@ -68,7 +68,7 @@ const ClassCard: React.FC<{
             ) : (
               <div className="flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[11px] font-bold px-3 py-1.5 rounded-xl">
                 <span className="h-2 w-2 rounded-full bg-indigo-500"></span>
-                <span>⏳ Faltan {classItem.capacity - (classItem.reservationsCount || 0)} alumnos para llenar</span>
+                <span>⏳ Faltan {classItem.capacity - (classItem._count?.reservations || classItem.reservations?.length || 0)} alumnos para llenar</span>
               </div>
             )}
           </div>
@@ -86,7 +86,7 @@ const ClassCard: React.FC<{
           </div>
           <div className="flex items-center gap-2 text-slate-300 text-xs">
             <Users className="w-3.5 h-3.5 text-primary-light" />
-            <span>{classItem.reservationsCount || 0} / {classItem.capacity}</span>
+            <span>{classItem._count?.reservations || classItem.reservations?.length || 0} / {classItem.capacity}</span>
           </div>
           <div className="flex items-center gap-2 text-slate-300 text-xs">
             <Video className="w-3.5 h-3.5 text-primary-light" />
@@ -327,8 +327,8 @@ const ClassesPage: React.FC = () => {
     });
   });
   const registeredAthletesCount = uniqueAthletes.size;
-  const limitReachedClasses = ownerGymClasses.filter(c => (c.reservationsCount || 0) >= c.capacity).length;
-  const totalSpotsLeft = ownerGymClasses.reduce((acc, c) => acc + Math.max(0, c.capacity - (c.reservationsCount || 0)), 0);
+  const limitReachedClasses = ownerGymClasses.filter(c => (c._count?.reservations || c.reservations?.length || 0) >= c.capacity).length;
+  const totalSpotsLeft = ownerGymClasses.reduce((acc, c) => acc + Math.max(0, c.capacity - (c._count?.reservations || c.reservations?.length || 0)), 0);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
