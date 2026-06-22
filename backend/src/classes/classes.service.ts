@@ -63,7 +63,7 @@ export class ClassesService {
           trainer: { include: { user: { select: { name: true, avatarUrl: true } } } },
           reservations: {
             where: { status: { in: [ReservationStatus.CONFIRMED, ReservationStatus.ATTENDED] } },
-            select: { id: true, userId: true, status: true, user: { select: { name: true } } }
+            select: { id: true, userId: true, status: true, user: { select: { id: true, name: true, role: true, dni: true, email: true, avatarUrl: true } } }
           },
           _count: { select: { reservations: { where: { status: ReservationStatus.CONFIRMED } } } },
         },
@@ -87,7 +87,7 @@ export class ClassesService {
         },
         reservations: {
           where: { status: { in: [ReservationStatus.CONFIRMED, ReservationStatus.ATTENDED] } },
-          select: { id: true, userId: true, status: true, user: { select: { name: true } } }
+          select: { id: true, userId: true, status: true, user: { select: { id: true, name: true, role: true, dni: true, email: true, avatarUrl: true } } }
         },
         _count: {
           select: { reservations: { where: { status: ReservationStatus.CONFIRMED } } },
@@ -112,7 +112,7 @@ export class ClassesService {
         reservations: {
           where: { status: ReservationStatus.CONFIRMED },
           include: {
-            user: { select: { name: true, avatarUrl: true } },
+            user: { select: { id: true, name: true, role: true, dni: true, email: true, avatarUrl: true } },
           },
         },
       },

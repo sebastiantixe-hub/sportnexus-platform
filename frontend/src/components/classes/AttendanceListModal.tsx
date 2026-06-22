@@ -187,8 +187,8 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
     }
   };
 
-  const confirmed = localReservations.filter(r => r.status === 'CONFIRMED');
-  const attended = localReservations.filter(r => r.status === 'ATTENDED');
+  const confirmed = localReservations.filter(r => r.status === 'CONFIRMED' && (!r.user?.role || r.user?.role === 'USER'));
+  const attended = localReservations.filter(r => r.status === 'ATTENDED' && (!r.user?.role || r.user?.role === 'USER'));
 
   // ── Dynamic Production-Ready Weekly Calendar Generator ──
   const classDate = selectedWeekDate;
@@ -243,22 +243,22 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
     return `${year}-${month}-${day}`;
   };
 
-  // Find all unique users who have a reservation in any of the classes of the selected week
-  // to show the real active athletes of this navigated week!
   const getWeekReservations = () => {
     const weekRes: any[] = [];
     const seenUserIds = new Set<string>();
     
     weekClasses.forEach((c: any) => {
       c.reservations?.forEach((r: any) => {
-        if (r.userId && !seenUserIds.has(r.userId)) {
+        const isAthlete = !r.user?.role || r.user?.role === 'USER';
+        if (r.userId && isAthlete && !seenUserIds.has(r.userId)) {
           seenUserIds.add(r.userId);
           weekRes.push(r);
         }
       });
     });
     
-    return weekRes.length > 0 ? weekRes : localReservations;
+    const fallbackReservations = localReservations.filter(r => !r.user?.role || r.user?.role === 'USER');
+    return weekRes.length > 0 ? weekRes : fallbackReservations;
   };
   
   const displayReservations = getWeekReservations();
@@ -584,13 +584,15 @@ const AttendanceListModal: React.FC<AttendanceListModalProps> = ({
 
                   {/* List Container */}
                   <div className="max-h-[300px] overflow-y-auto divide-y divide-white/5 border border-white/5 rounded-2xl bg-slate-950/30">
-                    {localReservations.length === 0 ? (
+                    {localReservations.filter(r => !r.user?.role || r.user?.role === 'USER').length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-12 text-center px-6">
                         <Users className="w-10 h-10 text-slate-700 mb-3" />
                         <p className="text-slate-400 font-medium">Nadie ha reservado esta clase aún.</p>
                       </div>
                     ) : (
-                      localReservations.map(reservation => {
+                      localReservations
+                        .filter(r => !r.user?.role || r.user?.role === 'USER')
+                        .map(reservation => {
                         const isAttended = reservation.status === 'ATTENDED';
                         const isLoading = loadingId === reservation.id;
 
