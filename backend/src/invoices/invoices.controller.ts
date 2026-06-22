@@ -9,6 +9,12 @@ import { Roles } from '../auth/decorators/roles.decorator';
 export class InvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}
 
+  @Get()
+  @Roles('ADMIN')
+  async getAllInvoices() {
+    return this.invoicesService.getAllInvoices();
+  }
+
   @Get('user')
   async getUserInvoices(@Request() req) {
     return this.invoicesService.getUserInvoices(req.user.id);

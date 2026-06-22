@@ -18,10 +18,12 @@ const InvoicesView: React.FC = () => {
       try {
         if (!user) return; // Wait for user context
 
-        if (user.role === 'GYM_OWNER' || user.role === 'ADMIN') {
-          // Obtener gimnasios del usuario
+        if (user.role === 'ADMIN') {
+          const { data } = await api.get('/invoices');
+          setInvoices(data);
+        } else if (user.role === 'GYM_OWNER') {
           const { data: gyms } = await api.get('/gyms');
-          const ownerGyms = gyms.filter((g: any) => typeof g.ownerId === 'string' || g.ownerId);
+          const ownerGyms = gyms.filter((g: any) => g.ownerId === user.id);
           const currentGymId = ownerGyms.length > 0 ? ownerGyms[0].id : gyms[0]?.id;
 
           if (currentGymId) {
@@ -59,25 +61,81 @@ const InvoicesView: React.FC = () => {
     });
   };
 
-  const isOwner = user?.role === 'GYM_OWNER' || user?.role === 'ADMIN';
+  const isOwner = user?.role === 'GYM_OWNER';
+  const isAdmin = user?.role === 'ADMIN';
+
+  // Compute financial KPIs
+  const totalFacturado = invoices.reduce((acc, inv) => acc + (Number(inv.total) || 0), 0);
+  const totalFacturas = invoices.length;
+  const ticketPromedio = totalFacturas > 0 ? Math.round(totalFacturado / totalFacturas) : 0;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-500 pb-20">
+    <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in duration-500 pb-20">
       <div className="flex items-center gap-4">
         <button onClick={() => navigate(-1)} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors">
           <ArrowLeft className="w-5 h-5 text-white" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-white">Facturación</h1>
-          <p className="text-slate-400 text-sm">
-            {isOwner ? 'Historial de pagos y facturas emitidas de tu gimnasio.' : 'Historial de pagos y soporte de suscripciones.'}
+          <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
+            <FileText className="w-8 h-8 text-primary-light" />
+            {isAdmin ? 'Facturación Global' : isOwner ? 'Facturación del Gimnasio' : 'Mis Facturas'}
+          </h1>
+          <p className="text-slate-400 text-sm mt-1">
+            {isAdmin 
+              ? 'Historial consolidado de todos los pagos y facturas emitidas a nivel plataforma.'
+              : isOwner 
+                ? 'Historial de pagos y facturas de tus locales.' 
+                : 'Historial de pagos y soporte de suscripciones.'}
           </p>
         </div>
       </div>
 
+      {/* Tarjetas de Estadísticas Financieras */}
+      {!loading && invoices.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20 rounded-3xl p-6 shadow-xl backdrop-blur-sm">
+            <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block">
+              {user?.role === 'USER' ? 'Total Invertido' : 'Total Facturado'}
+            </span>
+            <span className="text-3xl font-black text-white mt-2 block tracking-tight">
+              {formatCurrency(totalFacturado)}
+            </span>
+            <span className="text-[10px] text-emerald-400 font-semibold mt-1 inline-block">
+              {user?.role === 'USER' ? 'Suscripciones y clases' : 'Ingresos consolidados'}
+            </span>
+          </div>
+
+          <div className="bg-gradient-to-br from-indigo-500/10 to-indigo-600/5 border border-indigo-500/20 rounded-3xl p-6 shadow-xl backdrop-blur-sm">
+            <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block">
+              {user?.role === 'USER' ? 'Facturas Recibidas' : 'Facturas Emitidas'}
+            </span>
+            <span className="text-3xl font-black text-white mt-2 block tracking-tight">
+              {totalFacturas}
+            </span>
+            <span className="text-[10px] text-indigo-400 font-semibold mt-1 inline-block">
+              Comprobantes de pago
+            </span>
+          </div>
+
+          <div className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border border-amber-500/20 rounded-3xl p-6 shadow-xl backdrop-blur-sm">
+            <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block">
+              Ticket Promedio
+            </span>
+            <span className="text-3xl font-black text-white mt-2 block tracking-tight">
+              {formatCurrency(ticketPromedio)}
+            </span>
+            <span className="text-[10px] text-amber-400 font-semibold mt-1 inline-block">
+              Valor medio de compra
+            </span>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
         <div className="p-6 border-b border-white/5 flex justify-between items-center">
-          <h2 className="text-lg font-bold text-white">{isOwner ? 'Últimas Facturas Emitidas' : 'Tus Facturas Generadas'}</h2>
+          <h2 className="text-lg font-bold text-white">
+            {isAdmin ? 'Últimos Pagos Registrados' : isOwner ? 'Últimas Facturas Emitidas' : 'Tus Facturas Generadas'}
+          </h2>
         </div>
         
         {loading ? (
@@ -91,7 +149,7 @@ const InvoicesView: React.FC = () => {
               <FileText className="w-10 h-10 text-slate-500" />
             </div>
             <p className="text-slate-400">
-              {isOwner ? 'Tu gimnasio aún no tiene facturas emitidas.' : 'No tienes facturas generadas todavía.'}
+              {isAdmin ? 'No hay facturas registradas en el sistema.' : isOwner ? 'Tu gimnasio aún no tiene facturas emitidas.' : 'No tienes facturas generadas todavía.'}
             </p>
           </div>
         ) : (
@@ -101,7 +159,8 @@ const InvoicesView: React.FC = () => {
                 <tr>
                   <th scope="col" className="px-6 py-4">No. Factura</th>
                   <th scope="col" className="px-6 py-4">Fecha</th>
-                  <th scope="col" className="px-6 py-4">{isOwner ? 'Cliente / Atleta' : 'Concepto (Gimnasio)'}</th>
+                  {isAdmin && <th scope="col" className="px-6 py-4">Gimnasio</th>}
+                  <th scope="col" className="px-6 py-4">{(isOwner || isAdmin) ? 'Cliente / Atleta' : 'Concepto (Gimnasio)'}</th>
                   <th scope="col" className="px-6 py-4">Monto Total</th>
                   <th scope="col" className="px-6 py-4">Estado</th>
                   <th scope="col" className="px-6 py-4 text-center">Acción</th>
@@ -117,15 +176,20 @@ const InvoicesView: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 font-medium">{formatDate(inv.issuedAt)}</td>
+                    {isAdmin && (
+                      <td className="px-6 py-4 text-primary-light font-bold">
+                        {inv.gym?.name || 'Hercix Global'}
+                      </td>
+                    )}
                     <td className="px-6 py-4 text-slate-400">
-                      {isOwner 
+                      {(isOwner || isAdmin)
                         ? inv.user?.name || inv.user?.email || 'Membresía General' 
                         : inv.gym?.name || 'Suscripción'}
                     </td>
                     <td className="px-6 py-4 font-bold text-white">{formatCurrency(inv.total)}</td>
                     <td className="px-6 py-4">
                       <span className="bg-green-500/10 text-green-400 px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-max">
-                        <CheckCircle2 className="w-3 h-3" /> {inv.status === 'PAID' ? 'Pagado' : inv.status}
+                        <CheckCircle2 className="w-3 h-3" /> {inv.status === 'PAID' ? 'Pagado' : inv.status === 'ISSUED' ? 'Emitida' : inv.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center">
