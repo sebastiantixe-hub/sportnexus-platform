@@ -625,7 +625,11 @@ const EventsPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-white flex items-center gap-3">
             <Trophy className="text-primary-light" /> Eventos y Torneos
           </h1>
-          <p className="text-slate-400 mt-1">Compite, aprende y conecta con la comunidad deportiva.</p>
+          <p className="text-slate-400 mt-1">
+            {user?.role === 'GYM_OWNER' || user?.role === 'TRAINER'
+              ? 'Tus eventos publicados y panel de gestión.'
+              : 'Compite, aprende y conecta con la comunidad deportiva.'}
+          </p>
         </div>
         {canCreate && (
           <button onClick={() => setShowModal(true)} className="btn-primary flex items-center gap-2 shrink-0">
