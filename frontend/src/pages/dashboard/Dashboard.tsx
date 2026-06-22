@@ -5,7 +5,7 @@ import api from '../../api/api-client';
 import {
   Users, Dumbbell, Calendar, TrendingUp, Clock, AlertCircle,
   ShoppingBag, Trophy, CreditCard, ArrowRight, Star, Activity,
-  CheckCircle2, BarChart, Mail, Watch, Receipt, ShieldCheck,
+  CheckCircle2, BarChart, Mail, Receipt, ShieldCheck,
   Building2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
