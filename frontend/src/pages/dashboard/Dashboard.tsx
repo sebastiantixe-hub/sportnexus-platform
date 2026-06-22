@@ -1213,7 +1213,6 @@ const Dashboard: React.FC = () => {
               )}
               {!isOwner && !isTrainer && (
                 <>
-                  <QuickAction label="Mis Wearables" icon={Watch} to="/dashboard/wearables" desc="Sincroniza tu actividad" />
                   <QuickAction label="Mis Facturas" icon={Receipt} to="/dashboard/invoices" desc="Historial de pagos" />
                 </>
               )}
