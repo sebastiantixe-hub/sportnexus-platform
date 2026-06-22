@@ -117,6 +117,9 @@ const GymsPage: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingGym, setEditingGym] = useState<any>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false);
+  const [selectedSport, setSelectedSport] = useState('');
+  const [selectedDistrict, setSelectedDistrict] = useState('');
   const { user } = useAuth();
 
   const fetchGyms = async () => {
@@ -149,13 +152,45 @@ const GymsPage: React.FC = () => {
     }
   };
 
+  const getGymSports = (g: any): string[] => {
+    if (!g.description || !g.description.includes('[Categorías: ')) return [];
+    try {
+      const parts = g.description.split('[Categorías: ');
+      if (parts.length > 1) {
+        return parts[1].replace(']', '').split(',').map((s: string) => s.trim());
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return [];
+  };
+
+  const availableSports = Array.from(
+    new Set(
+      gyms.flatMap(g => getGymSports(g))
+    )
+  ).sort();
+
+  const availableDistricts = Array.from(
+    new Set(
+      gyms.map(g => g.district).filter(Boolean)
+    )
+  ).sort();
+
   const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
   const filteredGyms = gyms.filter(g => {
     const s = normalize(search);
     const cleanDesc = g.description ? g.description.split('\n\n[Categorías:')[0] : '';
     const fields = [g.name, g.address, cleanDesc, g.city, g.district, g.province];
-    return fields.some(field => normalize(field || '').includes(s));
+    const matchesSearch = s === '' || fields.some(field => normalize(field || '').includes(s));
+
+    const sports = getGymSports(g);
+    const matchesSport = selectedSport === '' || sports.some(sport => sport.toLowerCase() === selectedSport.toLowerCase());
+
+    const matchesDistrict = selectedDistrict === '' || (g.district && g.district.toLowerCase() === selectedDistrict.toLowerCase());
+
+    return matchesSearch && matchesSport && matchesDistrict;
   });
 
   return (
@@ -216,11 +251,74 @@ const GymsPage: React.FC = () => {
             className="bg-white/5 border-white/10 focus:border-primary-light w-full py-4 pr-4 pl-12 border rounded-2xl text-white outline-none transition-all"
           />
         </div>
-        <button className="glass-card px-6 py-4 flex items-center gap-2 hover:bg-white/10 transition-all font-medium">
-          <Filter className="w-5 h-5" />
+        <button
+          onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+          className={`glass-card px-6 py-4 flex items-center gap-2 hover:bg-white/10 transition-all font-medium border ${
+            showFiltersPanel || selectedSport || selectedDistrict ? 'border-primary/50 bg-primary/10 text-white' : 'border-white/5 text-slate-300'
+          }`}
+        >
+          <Filter className={`w-5 h-5 ${selectedSport || selectedDistrict ? 'text-primary-light' : ''}`} />
           <span>Filtros</span>
+          {(selectedSport || selectedDistrict) && (
+            <span className="w-2 h-2 rounded-full bg-primary-light animate-pulse" />
+          )}
         </button>
       </div>
+
+      {/* Panel de Filtros Desplegable */}
+      {showFiltersPanel && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-card p-6 grid grid-cols-1 sm:grid-cols-3 gap-4 border-white/10 bg-slate-900/60 backdrop-blur-md rounded-2xl"
+        >
+          <div>
+            <label className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">Deporte / Categoría</label>
+            <select
+              value={selectedSport}
+              onChange={(e) => setSelectedSport(e.target.value)}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-primary-light cursor-pointer"
+            >
+              <option value="">Todos los Deportes</option>
+              {availableSports.map(sport => (
+                <option key={sport} value={sport}>{sport}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-2 block">Distrito / Zona</label>
+            <select
+              value={selectedDistrict}
+              onChange={(e) => setSelectedDistrict(e.target.value)}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-primary-light cursor-pointer"
+            >
+              <option value="">Todos los Distritos</option>
+              {availableDistricts.map(dist => (
+                <option key={dist} value={dist}>{dist}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-end">
+            {(selectedSport || selectedDistrict) ? (
+              <button
+                onClick={() => {
+                  setSelectedSport('');
+                  setSelectedDistrict('');
+                }}
+                className="w-full py-2.5 rounded-xl border border-red-500/20 hover:border-red-500/40 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold transition-all text-xs active:scale-95 flex items-center justify-center gap-1.5"
+              >
+                Limpiar Filtros
+              </button>
+            ) : (
+              <div className="text-[10px] text-slate-500 italic pb-2 text-center w-full">
+                Selecciona filtros para refinar los gimnasios.
+              </div>
+            )}
+          </div>
+        </motion.div>
+      )}
 
       {loading ? (
         <div className="flex h-64 items-center justify-center">
