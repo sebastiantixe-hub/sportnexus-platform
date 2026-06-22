@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Send, Mail, Bell, CheckCircle, Loader2, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/api-client';
+import { useAuth } from '../../context/auth-context';
 
 const CRMView: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -21,11 +23,14 @@ const CRMView: React.FC = () => {
   });
 
   useEffect(() => {
+    if (!user?.id) return;
     const initData = async () => {
       try {
-        const { data: gyms } = await api.get('/gyms');
-        const ownerGyms = gyms.filter((g: any) => typeof g.ownerId === 'string' || g.ownerId);
-        const currentGymId = ownerGyms.length > 0 ? ownerGyms[0].id : gyms[0]?.id;
+        const { data: gyms } = await api.get('/gyms', {
+          params: { ownerId: user.id }
+        });
+        const ownerGyms = gyms.filter((g: any) => g.ownerId === user.id);
+        const currentGymId = ownerGyms.length > 0 ? ownerGyms[0].id : null;
         
         if (currentGymId) {
           setGymId(currentGymId);
@@ -33,6 +38,10 @@ const CRMView: React.FC = () => {
             loadCampaigns(currentGymId),
             loadMembers(currentGymId)
           ]);
+        } else {
+          setGymId(null);
+          setCampaigns([]);
+          setMembers([]);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -41,7 +50,7 @@ const CRMView: React.FC = () => {
       }
     };
     initData();
-  }, []);
+  }, [user]);
 
   const loadCampaigns = async (id: string) => {
     try {
