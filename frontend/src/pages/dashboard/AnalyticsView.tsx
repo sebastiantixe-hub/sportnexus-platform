@@ -3,32 +3,59 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { ArrowLeft, TrendingUp, Users, Calendar, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/api-client';
+import { useAuth } from '../../context/auth-context';
+import { toast } from 'sonner';
 
 const AnalyticsView: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [gyms, setGyms] = useState<any[]>([]);
+  const [selectedGymId, setSelectedGymId] = useState<string>('');
   const [stats, setStats] = useState<any>(null);
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        // Primero obtener el gym del dueño
-        const { data: gyms } = await api.get('/gyms'); // o /gyms si el backend filtra por auth token
-        const ownerGyms = gyms.filter((g: any) => typeof g.ownerId === 'string' || g.ownerId); // Simplification, backend /gyms gives user gyms
-        const gymId = ownerGyms.length > 0 ? ownerGyms[0].id : gyms[0]?.id;
+  const fetchAnalytics = async (gymId: string) => {
+    try {
+      setLoading(true);
+      const { data: analyticsData } = await api.get(`/analytics/gym/${gymId}/dashboard`);
+      setStats(analyticsData);
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+      toast.error('Error al cargar la analítica del gimnasio');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        if (gymId) {
-          const { data: analyticsData } = await api.get(`/analytics/gym/${gymId}/dashboard`);
+  useEffect(() => {
+    const fetchGyms = async () => {
+      if (!user) return;
+      try {
+        setLoading(true);
+        // Traer únicamente los negocios del dueño logueado
+        const { data } = await api.get(`/gyms?ownerId=${user.id}`);
+        setGyms(data);
+        
+        if (data && data.length > 0) {
+          setSelectedGymId(data[0].id);
+          const { data: analyticsData } = await api.get(`/analytics/gym/${data[0].id}/dashboard`);
           setStats(analyticsData);
+        } else {
+          setStats({ hasGyms: false });
         }
       } catch (error) {
-        console.error('Error fetching analytics:', error);
+        console.error('Error fetching gyms or analytics:', error);
       } finally {
         setLoading(false);
       }
     };
-    fetchStats();
-  }, []);
+    fetchGyms();
+  }, [user]);
+
+  const handleGymChange = async (gymId: string) => {
+    setSelectedGymId(gymId);
+    await fetchAnalytics(gymId);
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-CO', {
@@ -47,6 +74,29 @@ const AnalyticsView: React.FC = () => {
     );
   }
 
+  // Onboarding screen if the owner has no gyms registered yet
+  if (stats && stats.hasGyms === false) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center max-w-md mx-auto space-y-6 animate-in fade-in duration-500">
+        <div className="w-20 h-20 bg-primary/10 rounded-[2rem] flex items-center justify-center text-primary-light border border-primary/20 shadow-xl shadow-primary/5">
+          <TrendingUp className="w-10 h-10 animate-pulse" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-black text-white tracking-tight">Sin Negocios Registrados</h2>
+          <p className="text-slate-400 text-sm leading-relaxed">
+            Para poder calcular tu analítica avanzada (MRR, retención de atletas, y clases asistidas), primero necesitas registrar al menos un gimnasio en la plataforma.
+          </p>
+        </div>
+        <button 
+          onClick={() => navigate('/gyms')} 
+          className="btn-primary px-8 py-3.5 font-bold rounded-2xl active:scale-95 transition-transform flex items-center gap-2 shadow-lg shadow-primary/20"
+        >
+          Registrar mi primer gimnasio
+        </button>
+      </div>
+    );
+  }
+
   if (!stats) {
     return (
       <div className="text-center mt-20">
@@ -58,14 +108,34 @@ const AnalyticsView: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
-      <div className="flex items-center gap-4">
-        <button onClick={() => navigate(-1)} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors">
-          <ArrowLeft className="w-5 h-5 text-white" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-white">Analítica Avanzada</h1>
-          <p className="text-slate-400 text-sm">Resumen de rendimiento de tu gimnasio</p>
+      {/* Header and Gym Selector */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <button onClick={() => navigate(-1)} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors">
+            <ArrowLeft className="w-5 h-5 text-white" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-white">Analítica Avanzada</h1>
+            <p className="text-slate-400 text-sm">Resumen de rendimiento de tu gimnasio</p>
+          </div>
         </div>
+
+        {gyms.length > 1 && (
+          <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-2 self-start md:self-auto">
+            <span className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Sede:</span>
+            <select
+              value={selectedGymId}
+              onChange={(e) => handleGymChange(e.target.value)}
+              className="bg-transparent text-sm font-bold text-white outline-none cursor-pointer pr-2"
+            >
+              {gyms.map((g) => (
+                <option key={g.id} value={g.id} className="bg-slate-900 text-white">
+                  {g.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
