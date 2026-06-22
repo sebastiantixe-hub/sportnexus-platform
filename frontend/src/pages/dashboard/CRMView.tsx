@@ -3,6 +3,7 @@ import { ArrowLeft, Send, Mail, Bell, CheckCircle, Loader2, Users } from 'lucide
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/api-client';
 import { useAuth } from '../../context/auth-context';
+import { toast } from 'sonner';
 
 const CRMView: React.FC = () => {
   const navigate = useNavigate();
@@ -12,6 +13,8 @@ const CRMView: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
+  const [gyms, setGyms] = useState<any[]>([]);
+  const [selectedGymId, setSelectedGymId] = useState<string>('');
   const [gymId, setGymId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
@@ -26,20 +29,22 @@ const CRMView: React.FC = () => {
     if (!user?.id) return;
     const initData = async () => {
       try {
-        const { data: gyms } = await api.get('/gyms', {
-          params: { ownerId: user.id }
-        });
-        const ownerGyms = gyms.filter((g: any) => g.ownerId === user.id);
-        const currentGymId = ownerGyms.length > 0 ? ownerGyms[0].id : null;
+        setLoading(true);
+        // Filtrar directamente por el ownerId del dueño
+        const { data: ownerGyms } = await api.get(`/gyms?ownerId=${user.id}`);
+        setGyms(ownerGyms);
         
-        if (currentGymId) {
+        if (ownerGyms && ownerGyms.length > 0) {
+          const currentGymId = ownerGyms[0].id;
           setGymId(currentGymId);
+          setSelectedGymId(currentGymId);
           await Promise.all([
             loadCampaigns(currentGymId),
             loadMembers(currentGymId)
           ]);
         } else {
           setGymId(null);
+          setSelectedGymId('');
           setCampaigns([]);
           setMembers([]);
         }
@@ -70,6 +75,22 @@ const CRMView: React.FC = () => {
     }
   };
 
+  const handleGymChange = async (id: string) => {
+    setGymId(id);
+    setSelectedGymId(id);
+    setLoading(true);
+    try {
+      await Promise.all([
+        loadCampaigns(id),
+        loadMembers(id)
+      ]);
+    } catch (error) {
+      console.error('Error loading CRM data for gym:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!gymId) return;
@@ -86,27 +107,81 @@ const CRMView: React.FC = () => {
       });
       
       setSuccess(true);
+      toast.success('¡Campaña enviada con éxito!');
       setFormData({ subject: '', type: 'EMAIL', content: '', toEmail: '', sendToAll: false });
       await loadCampaigns(gymId);
       
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       console.error('Error sending campaign:', err);
+      toast.error('Error al enviar la campaña');
     } finally {
       setSaving(false);
     }
   };
 
+  if (loading && gyms.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+        <Loader2 className="w-10 h-10 text-primary-light animate-spin" />
+        <p className="text-slate-400">Cargando módulo de marketing...</p>
+      </div>
+    );
+  }
+
+  // Onboarding view if no gyms are owned by the current user
+  if (!loading && gyms.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center max-w-md mx-auto space-y-6 animate-in fade-in duration-500">
+        <div className="w-20 h-20 bg-primary/10 rounded-[2rem] flex items-center justify-center text-primary-light border border-primary/20 shadow-xl shadow-primary/5">
+          <Mail className="w-10 h-10 animate-pulse" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-black text-white tracking-tight">Sin Negocios Registrados</h2>
+          <p className="text-slate-400 text-sm leading-relaxed">
+            Para poder enviar campañas de marketing por correo electrónico y notificaciones push a tus atletas, primero necesitas registrar al menos un gimnasio en la plataforma.
+          </p>
+        </div>
+        <button 
+          onClick={() => navigate('/gyms')} 
+          className="btn-primary px-8 py-3.5 font-bold rounded-2xl active:scale-95 transition-transform flex items-center gap-2 shadow-lg shadow-primary/20"
+        >
+          Registrar mi primer gimnasio
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-500 pb-20">
-      <div className="flex items-center gap-4">
-        <button onClick={() => navigate(-1)} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors">
-          <ArrowLeft className="w-5 h-5 text-white" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-white">Marketing y CRM</h1>
-          <p className="text-slate-400 text-sm">Fideliza a tus atletas con notificaciones y correos reales.</p>
+      {/* Header and Gym Selector */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <button onClick={() => navigate(-1)} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors">
+            <ArrowLeft className="w-5 h-5 text-white" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-white">Marketing y CRM</h1>
+            <p className="text-slate-400 text-sm">Fideliza a tus atletas con notificaciones y correos reales.</p>
+          </div>
         </div>
+
+        {gyms.length > 1 && (
+          <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-2 self-start md:self-auto">
+            <span className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Sede:</span>
+            <select
+              value={selectedGymId}
+              onChange={(e) => handleGymChange(e.target.value)}
+              className="bg-transparent text-sm font-bold text-white outline-none cursor-pointer pr-2"
+            >
+              {gyms.map((g) => (
+                <option key={g.id} value={g.id} className="bg-slate-900 text-white">
+                  {g.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -232,42 +307,42 @@ const CRMView: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Bell className="w-5 h-5 text-secondary-light" /> Historial de Campañas
-          </h2>
-          
-          {loading ? (
-            <div className="flex justify-center py-10">
-              <Loader2 className="w-8 h-8 text-slate-500 animate-spin" />
-            </div>
-          ) : campaigns.length === 0 ? (
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center backdrop-blur-sm">
-              <Mail className="w-8 h-8 text-slate-600 mx-auto mb-3" />
-              <p className="text-slate-400 text-sm">No has enviado campañas todavía.</p>
-            </div>
-          ) : (
-            <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-              {campaigns.map((camp) => (
-                <div key={camp.id} className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm shadow-xl hover:border-white/20 transition-all">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-white font-bold text-sm line-clamp-1 pr-2">{camp.title || camp.subject}</h3>
-                    <span className="text-[10px] text-green-400 bg-green-500/20 px-2 py-0.5 rounded-full uppercase font-bold shrink-0">
-                      {camp.status}
-                    </span>
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <Bell className="w-5 h-5 text-secondary-light" /> Historial de Campañas
+            </h2>
+            
+            {loading ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="w-8 h-8 text-slate-500 animate-spin" />
+              </div>
+            ) : campaigns.length === 0 ? (
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center backdrop-blur-sm">
+                <Mail className="w-8 h-8 text-slate-600 mx-auto mb-3" />
+                <p className="text-slate-400 text-sm">No has enviado campañas todavía.</p>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                {campaigns.map((camp) => (
+                  <div key={camp.id} className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm shadow-xl hover:border-white/20 transition-all">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="text-white font-bold text-sm line-clamp-1 pr-2">{camp.title || camp.subject}</h3>
+                      <span className="text-[10px] text-green-400 bg-green-500/20 px-2 py-0.5 rounded-full uppercase font-bold shrink-0">
+                        {camp.status}
+                      </span>
+                    </div>
+                    <p className="text-slate-400 text-xs line-clamp-2">{camp.content}</p>
+                    <div className="flex items-center justify-between mt-3">
+                      <p className="text-primary-light text-xs font-semibold">{camp.sentCount} Receptores</p>
+                      <p className="text-slate-500 text-[10px]">
+                        {new Date(camp.createdAt).toLocaleDateString('es-CO')}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-slate-400 text-xs line-clamp-2">{camp.content}</p>
-                  <div className="flex items-center justify-between mt-3">
-                    <p className="text-primary-light text-xs font-semibold">{camp.sentCount} Receptores</p>
-                    <p className="text-slate-500 text-[10px]">
-                      {new Date(camp.createdAt).toLocaleDateString('es-CO')}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
       </div>
     </div>
   );
