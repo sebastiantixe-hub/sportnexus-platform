@@ -28,6 +28,7 @@ const UsersManagementView: React.FC = () => {
   const [usersList, setUsersList] = useState<any[]>([]);
   const [roleRequests, setRoleRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedRoleFilter, setSelectedRoleFilter] = useState<string>('ALL');
   const [loadingRequests, setLoadingRequests] = useState(true);
   const [search, setSearch] = useState('');
   const [searchRequests, setSearchRequests] = useState('');
@@ -188,10 +189,12 @@ const UsersManagementView: React.FC = () => {
     );
   };
 
-  const filteredUsers = usersList.filter(u =>
-    u.name.toLowerCase().includes(search.toLowerCase()) ||
-    u.email.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredUsers = usersList.filter(u => {
+    const matchesSearch = u.name.toLowerCase().includes(search.toLowerCase()) ||
+                          u.email.toLowerCase().includes(search.toLowerCase());
+    const matchesRole = selectedRoleFilter === 'ALL' || u.role === selectedRoleFilter;
+    return matchesSearch && matchesRole;
+  });
 
   const filteredRequests = roleRequests.filter(req =>
     (req.user?.name || '').toLowerCase().includes(searchRequests.toLowerCase()) ||
@@ -288,6 +291,37 @@ const UsersManagementView: React.FC = () => {
               onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-primary-light outline-none transition-all"
             />
+          </div>
+
+          {/* Chips de filtro por rol */}
+          <div className="flex flex-wrap gap-2 mb-6 items-center">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-2">Filtrar por Rol:</span>
+            {[
+              { key: 'ALL', label: 'Todos', count: usersList.length, color: 'hover:border-primary/50', activeBg: 'bg-primary text-white border-primary' },
+              { key: 'USER', label: 'Atletas', count: usersList.filter(u => u.role === 'USER').length, color: 'hover:border-green-500/50', activeBg: 'bg-green-500/10 text-green-400 border-green-500/30' },
+              { key: 'GYM_OWNER', label: 'Dueños', count: usersList.filter(u => u.role === 'GYM_OWNER').length, color: 'hover:border-blue-500/50', activeBg: 'bg-blue-500/10 text-blue-400 border-blue-500/30' },
+              { key: 'TRAINER', label: 'Coaches', count: usersList.filter(u => u.role === 'TRAINER').length, color: 'hover:border-yellow-500/50', activeBg: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30' },
+              { key: 'ADMIN', label: 'Admins', count: usersList.filter(u => u.role === 'ADMIN').length, color: 'hover:border-red-500/50', activeBg: 'bg-red-500/10 text-red-400 border-red-500/30' }
+            ].map(chip => {
+              const isActive = selectedRoleFilter === chip.key;
+              return (
+                <button
+                  key={chip.key}
+                  type="button"
+                  onClick={() => setSelectedRoleFilter(chip.key)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${
+                    isActive 
+                      ? chip.activeBg 
+                      : 'bg-slate-900/50 text-slate-400 border-white/5 ' + chip.color
+                  }`}
+                >
+                  {chip.label}
+                  <span className={`px-1.5 py-0.5 rounded-md text-[10px] ${isActive ? 'bg-white/15 text-white' : 'bg-white/5 text-slate-500'}`}>
+                    {chip.count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
           {loading ? (
