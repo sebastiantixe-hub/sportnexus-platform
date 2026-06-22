@@ -579,6 +579,12 @@ const EventsPage: React.FC = () => {
   const normalize = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
   const filtered = events.filter(e => {
+    // Si es dueño de gimnasio o entrenador, solo mostrar sus propios eventos
+    const isOrganizer = user?.role === 'GYM_OWNER' || user?.role === 'TRAINER';
+    if (isOrganizer && e.organizerId !== user?.id) {
+      return false;
+    }
+
     const s = normalize(search);
     const fields = [e.title, e.description, e.organizer?.name];
     const matchSearch = !search || fields.some(f => normalize(f || '').includes(s));
