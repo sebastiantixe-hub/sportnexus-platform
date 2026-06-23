@@ -29,8 +29,14 @@ let HealthController = class HealthController {
     async findAll(req) {
         return this.healthService.findAll(req.user.id);
     }
+    async findUserMetrics(userId) {
+        return this.healthService.findAll(userId);
+    }
     async findGoal(req) {
         return this.healthService.findGoal(req.user.id);
+    }
+    async findUserGoal(userId) {
+        return this.healthService.findGoal(userId);
     }
     async updateGoal(req, dto) {
         return this.healthService.createOrUpdateGoal(req.user.id, dto);
@@ -76,6 +82,14 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], HealthController.prototype, "findAll", null);
 __decorate([
+    (0, common_1.Get)('metrics/:userId'),
+    (0, swagger_1.ApiOperation)({ summary: 'Obtener todas las métricas de un usuario específico' }),
+    __param(0, (0, common_1.Param)('userId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], HealthController.prototype, "findUserMetrics", null);
+__decorate([
     (0, common_1.Get)('goals'),
     (0, swagger_1.ApiOperation)({ summary: 'Obtener las metas de salud del usuario' }),
     __param(0, (0, common_1.Request)()),
@@ -83,6 +97,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], HealthController.prototype, "findGoal", null);
+__decorate([
+    (0, common_1.Get)('goals/:userId'),
+    (0, swagger_1.ApiOperation)({ summary: 'Obtener las metas de salud de un usuario específico' }),
+    __param(0, (0, common_1.Param)('userId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], HealthController.prototype, "findUserGoal", null);
 __decorate([
     (0, common_1.Post)('goals'),
     (0, swagger_1.ApiOperation)({ summary: 'Crear o actualizar metas de salud' }),

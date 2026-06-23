@@ -40,6 +40,9 @@ let MarketingController = class MarketingController {
         }
         return this.marketingService.getCampaigns(gymId);
     }
+    async getAllCampaigns() {
+        return this.marketingService.getAllCampaigns();
+    }
 };
 exports.MarketingController = MarketingController;
 __decorate([
@@ -61,6 +64,13 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], MarketingController.prototype, "getCampaigns", null);
+__decorate([
+    (0, common_1.Get)('all-campaigns'),
+    (0, roles_decorator_1.Roles)('ADMIN'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], MarketingController.prototype, "getAllCampaigns", null);
 exports.MarketingController = MarketingController = __decorate([
     (0, common_1.Controller)('marketing'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),

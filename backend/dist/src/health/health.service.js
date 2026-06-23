@@ -122,39 +122,106 @@ let HealthService = class HealthService {
         });
     }
     async getCoachAthletes(coachId) {
-        const athletes = await this.prisma.user.findMany({
-            where: { role: client_1.UserRole.USER },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                weight: true,
-                avatarUrl: true,
-                healthMetrics: {
-                    orderBy: { date: 'desc' },
-                    take: 50,
-                },
-                coachRecommendations: {
-                    orderBy: { createdAt: 'desc' },
-                    take: 1,
-                },
+        const trainerProfile = await this.prisma.trainerProfile.findUnique({
+            where: { userId: coachId },
+            include: {
+                gymTrainers: { select: { gymId: true } },
             },
         });
-        return athletes.map(ath => {
-            const caloriesList = ath.healthMetrics.filter(m => m.type === client_1.HealthMetricType.CALORIES_BURNED);
-            const stepsList = ath.healthMetrics.filter(m => m.type === client_1.HealthMetricType.STEPS);
-            const totalCalories = caloriesList.reduce((sum, c) => sum + c.value, 0);
-            const avgSteps = stepsList.length > 0 ? Math.round(stepsList.reduce((sum, s) => sum + s.value, 0) / stepsList.length) : 0;
-            const lastWeight = ath.healthMetrics.find(m => m.type === client_1.HealthMetricType.WEIGHT)?.value || ath.weight || 70;
+        const today = new Date();
+        today.setUTCHours(0, 0, 0, 0);
+        let athletes;
+        if (trainerProfile && trainerProfile.gymTrainers.length > 0) {
+            const gymIds = trainerProfile.gymTrainers.map((g) => g.gymId);
+            const memberships = await this.prisma.userMembership.findMany({
+                where: {
+                    status: 'ACTIVE',
+                    plan: { gymId: { in: gymIds } },
+                },
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                            weight: true,
+                            avatarUrl: true,
+                            healthMetrics: {
+                                orderBy: { date: 'desc' },
+                                take: 60,
+                            },
+                            coachRecommendations: {
+                                orderBy: { createdAt: 'desc' },
+                                take: 1,
+                                include: { coach: { select: { name: true } } },
+                            },
+                        },
+                    },
+                },
+            });
+            const seen = new Set();
+            athletes = memberships
+                .map((m) => m.user)
+                .filter((u) => {
+                if (seen.has(u.id))
+                    return false;
+                seen.add(u.id);
+                return true;
+            });
+        }
+        else {
+            athletes = await this.prisma.user.findMany({
+                where: { role: client_1.UserRole.USER },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    weight: true,
+                    avatarUrl: true,
+                    healthMetrics: {
+                        orderBy: { date: 'desc' },
+                        take: 60,
+                    },
+                    coachRecommendations: {
+                        orderBy: { createdAt: 'desc' },
+                        take: 1,
+                        include: { coach: { select: { name: true } } },
+                    },
+                },
+            });
+        }
+        const todayStr = today.toISOString().split('T')[0];
+        return athletes.map((ath) => {
+            const metrics = ath.healthMetrics || [];
+            const todayMetrics = metrics.filter((m) => {
+                const d = m.date instanceof Date ? m.date.toISOString() : String(m.date);
+                return d.startsWith(todayStr);
+            });
+            const todaySteps = todayMetrics.find((m) => m.type === client_1.HealthMetricType.STEPS)?.value || 0;
+            const todayCalories = todayMetrics.find((m) => m.type === client_1.HealthMetricType.CALORIES_BURNED)?.value || 0;
+            const todayWater = todayMetrics.find((m) => m.type === client_1.HealthMetricType.WATER)?.value || 0;
+            const trainedToday = todayMetrics.length > 0;
+            const allCalories = metrics.filter((m) => m.type === client_1.HealthMetricType.CALORIES_BURNED);
+            const allSteps = metrics.filter((m) => m.type === client_1.HealthMetricType.STEPS);
+            const totalCaloriesBurned = allCalories.reduce((sum, c) => sum + c.value, 0);
+            const averageSteps = allSteps.length > 0
+                ? Math.round(allSteps.reduce((sum, s) => sum + s.value, 0) / allSteps.length)
+                : 0;
+            const lastWeight = metrics.find((m) => m.type === client_1.HealthMetricType.WEIGHT)?.value || ath.weight || 70;
             return {
                 id: ath.id,
                 name: ath.name,
                 email: ath.email,
                 weight: lastWeight,
                 avatarUrl: ath.avatarUrl,
-                totalCaloriesBurned: totalCalories,
-                averageSteps: avgSteps,
-                lastObservation: ath.coachRecommendations[0]?.observation || 'Sin observaciones registradas',
+                totalCaloriesBurned,
+                averageSteps,
+                lastObservation: ath.coachRecommendations?.[0]?.observation || 'Sin observaciones registradas',
+                trainedToday,
+                todaySteps,
+                todayCalories: parseFloat(todayCalories.toFixed(1)),
+                todayWater,
+                lastActivityDate: metrics[0]?.date || null,
             };
         });
     }

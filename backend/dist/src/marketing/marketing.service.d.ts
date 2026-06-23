@@ -32,4 +32,21 @@ export declare class MarketingService {
         content: string;
         sentCount: number;
     }[]>;
+    getAllCampaigns(): Promise<({
+        gym: {
+            name: string;
+        };
+    } & {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        status: import("@prisma/client").$Enums.CampaignStatus;
+        title: string;
+        gymId: string;
+        scheduledAt: Date | null;
+        subject: string | null;
+        type: import("@prisma/client").$Enums.CampaignType;
+        content: string;
+        sentCount: number;
+    })[]>;
 }

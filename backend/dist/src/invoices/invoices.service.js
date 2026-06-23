@@ -31,6 +31,15 @@ let InvoicesService = class InvoicesService {
             include: { user: { select: { name: true, email: true } } },
         });
     }
+    async getAllInvoices() {
+        return this.prisma.invoice.findMany({
+            orderBy: { issuedAt: 'desc' },
+            include: {
+                user: { select: { name: true, email: true } },
+                gym: { select: { name: true } },
+            },
+        });
+    }
     async getInvoiceById(id) {
         return this.prisma.invoice.findUnique({
             where: { id },

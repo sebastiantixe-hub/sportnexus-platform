@@ -25,7 +25,12 @@ export declare class ClassesController {
             id: string;
             userId: string;
             user: {
+                id: string;
                 name: string;
+                email: string;
+                role: import("@prisma/client").$Enums.UserRole;
+                dni: string | null;
+                avatarUrl: string | null;
             };
             status: import("@prisma/client").$Enums.ReservationStatus;
         }[];
@@ -74,7 +79,11 @@ export declare class ClassesController {
     findOne(id: string): Promise<{
         reservations: ({
             user: {
+                id: string;
                 name: string;
+                email: string;
+                role: import("@prisma/client").$Enums.UserRole;
+                dni: string | null;
                 avatarUrl: string | null;
             };
         } & {

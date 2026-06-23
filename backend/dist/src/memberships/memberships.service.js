@@ -210,14 +210,31 @@ let MembershipsService = class MembershipsService {
             orderBy: { createdAt: 'desc' },
         });
     }
-    async updatePlan(planId, ownerId, dto) {
+    async getAllMembershipsForAdmin(gymId) {
+        return this.prisma.userMembership.findMany({
+            where: gymId ? { plan: { gymId } } : {},
+            include: {
+                plan: {
+                    include: { gym: { select: { name: true } } },
+                },
+                user: {
+                    select: { id: true, name: true, email: true },
+                },
+                payments: {
+                    select: { id: true, amount: true, status: true, paidAt: true, gatewayTxId: true },
+                },
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+    async updatePlan(planId, ownerId, dto, isAdmin = false) {
         const plan = await this.prisma.membershipPlan.findUnique({
             where: { id: planId },
             include: { gym: true }
         });
         if (!plan)
             throw new common_1.NotFoundException('Plan no encontrado');
-        if (plan.gym.ownerId !== ownerId) {
+        if (!isAdmin && plan.gym.ownerId !== ownerId) {
             throw new common_1.ForbiddenException('No tienes permisos para modificar este plan');
         }
         return this.prisma.membershipPlan.update({
@@ -225,14 +242,14 @@ let MembershipsService = class MembershipsService {
             data: dto,
         });
     }
-    async deletePlan(planId, ownerId) {
+    async deletePlan(planId, ownerId, isAdmin = false) {
         const plan = await this.prisma.membershipPlan.findUnique({
             where: { id: planId },
             include: { gym: true }
         });
         if (!plan)
             throw new common_1.NotFoundException('Plan no encontrado');
-        if (plan.gym.ownerId !== ownerId) {
+        if (!isAdmin && plan.gym.ownerId !== ownerId) {
             throw new common_1.ForbiddenException('No tienes permisos para eliminar este plan');
         }
         return this.prisma.membershipPlan.update({

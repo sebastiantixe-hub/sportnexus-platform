@@ -39,11 +39,16 @@ let MembershipsController = class MembershipsController {
     getMyMemberships(user) {
         return this.membershipsService.getUserMemberships(user.id);
     }
+    getAllMemberships(gymId) {
+        return this.membershipsService.getAllMembershipsForAdmin(gymId);
+    }
     updatePlan(planId, user, dto) {
-        return this.membershipsService.updatePlan(planId, user.id, dto);
+        const isAdmin = user.role === client_1.UserRole.ADMIN;
+        return this.membershipsService.updatePlan(planId, user.id, dto, isAdmin);
     }
     deletePlan(planId, user) {
-        return this.membershipsService.deletePlan(planId, user.id);
+        const isAdmin = user.role === client_1.UserRole.ADMIN;
+        return this.membershipsService.deletePlan(planId, user.id, isAdmin);
     }
 };
 exports.MembershipsController = MembershipsController;
@@ -92,11 +97,23 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], MembershipsController.prototype, "getMyMemberships", null);
 __decorate([
+    (0, common_1.Get)('all'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Obtener todas las membresías del sistema (Solo Admin)' }),
+    (0, swagger_1.ApiQuery)({ name: 'gymId', required: false }),
+    __param(0, (0, common_1.Query)('gymId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], MembershipsController.prototype, "getAllMemberships", null);
+__decorate([
     (0, common_1.Patch)('plans/:planId'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(client_1.UserRole.GYM_OWNER, client_1.UserRole.ADMIN),
     (0, swagger_1.ApiBearerAuth)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Actualizar un plan de membresía (Dueño)' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Actualizar un plan de membresía' }),
     __param(0, (0, common_1.Param)('planId')),
     __param(1, (0, current_user_decorator_1.CurrentUser)()),
     __param(2, (0, common_1.Body)()),
@@ -109,7 +126,7 @@ __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(client_1.UserRole.GYM_OWNER, client_1.UserRole.ADMIN),
     (0, swagger_1.ApiBearerAuth)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Eliminar un plan de membresía (Dueño)' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Eliminar un plan de membresía' }),
     __param(0, (0, common_1.Param)('planId')),
     __param(1, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),

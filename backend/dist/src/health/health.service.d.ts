@@ -93,14 +93,19 @@ export declare class HealthService {
         athleteId: string;
     })[]>;
     getCoachAthletes(coachId: string): Promise<{
-        id: string;
-        name: string;
-        email: string;
-        weight: number;
-        avatarUrl: string | null;
-        totalCaloriesBurned: number;
+        id: any;
+        name: any;
+        email: any;
+        weight: any;
+        avatarUrl: any;
+        totalCaloriesBurned: any;
         averageSteps: number;
-        lastObservation: string;
+        lastObservation: any;
+        trainedToday: boolean;
+        todaySteps: any;
+        todayCalories: number;
+        todayWater: any;
+        lastActivityDate: any;
     }[]>;
     getOwnerStats(ownerId: string): Promise<{
         gymCount: number;

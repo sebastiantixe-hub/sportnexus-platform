@@ -69,28 +69,40 @@ export class MembershipsController {
     return this.membershipsService.getUserMemberships(user.id);
   }
 
+  @Get('all')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Obtener todas las membresías del sistema (Solo Admin)' })
+  @ApiQuery({ name: 'gymId', required: false })
+  getAllMemberships(@Query('gymId') gymId?: string) {
+    return this.membershipsService.getAllMembershipsForAdmin(gymId);
+  }
+
   @Patch('plans/:planId')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.GYM_OWNER, UserRole.ADMIN)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Actualizar un plan de membresía (Dueño)' })
+  @ApiOperation({ summary: 'Actualizar un plan de membresía' })
   updatePlan(
     @Param('planId') planId: string,
     @CurrentUser() user: any,
     @Body() dto: UpdateMembershipPlanDto,
   ) {
-    return this.membershipsService.updatePlan(planId, user.id, dto);
+    const isAdmin = user.role === UserRole.ADMIN;
+    return this.membershipsService.updatePlan(planId, user.id, dto, isAdmin);
   }
 
   @Delete('plans/:planId')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.GYM_OWNER, UserRole.ADMIN)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Eliminar un plan de membresía (Dueño)' })
+  @ApiOperation({ summary: 'Eliminar un plan de membresía' })
   deletePlan(
     @Param('planId') planId: string,
     @CurrentUser() user: any,
   ) {
-    return this.membershipsService.deletePlan(planId, user.id);
+    const isAdmin = user.role === UserRole.ADMIN;
+    return this.membershipsService.deletePlan(planId, user.id, isAdmin);
   }
 }

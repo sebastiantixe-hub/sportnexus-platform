@@ -27,17 +27,33 @@ let MarketingService = class MarketingService {
     async createCampaign(gymId, data) {
         let sentCount = 0;
         let recipients = [];
+        let usersToNotify = [];
         if (data.sendToAll) {
             const members = await this.prisma.user.findMany({
                 where: {
-                    userMemberships: { some: { plan: { gymId }, status: 'ACTIVE' } }
+                    OR: [
+                        {
+                            userMemberships: { some: { plan: { gymId }, status: 'ACTIVE' } }
+                        },
+                        {
+                            reservations: { some: { class: { gymId }, status: { in: ['CONFIRMED', 'ATTENDED'] } } }
+                        }
+                    ]
                 },
-                select: { email: true }
+                select: { id: true, email: true }
             });
             recipients = members.map(m => m.email);
+            usersToNotify = members;
         }
         else if (data.toEmail) {
             recipients = [data.toEmail];
+            const user = await this.prisma.user.findUnique({
+                where: { email: data.toEmail },
+                select: { id: true }
+            });
+            if (user) {
+                usersToNotify = [user];
+            }
         }
         if (recipients.length > 0 && (!data.type || data.type === 'EMAIL')) {
             try {
@@ -51,11 +67,6 @@ let MarketingService = class MarketingService {
                 }).then(() => sentCount++)
                     .catch(err => console.error("Error en campaña individual", err)));
                 await Promise.all(sendPromises);
-                const usersToNotify = await this.prisma.user.findMany({
-                    where: {
-                        userMemberships: { some: { plan: { gymId }, status: 'ACTIVE' } }
-                    }
-                });
                 for (const user of usersToNotify) {
                     await this.notificationsService.create(user.id, {
                         title: data.title || data.subject,
@@ -86,6 +97,18 @@ let MarketingService = class MarketingService {
         return this.prisma.marketingCampaign.findMany({
             where: { gymId },
             orderBy: { createdAt: 'desc' },
+        });
+    }
+    async getAllCampaigns() {
+        return this.prisma.marketingCampaign.findMany({
+            orderBy: { createdAt: 'desc' },
+            include: {
+                gym: {
+                    select: {
+                        name: true,
+                    },
+                },
+            },
         });
     }
 };

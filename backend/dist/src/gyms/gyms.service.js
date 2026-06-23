@@ -228,12 +228,24 @@ let GymsService = GymsService_1 = class GymsService {
     async findMembers(gymId) {
         return this.prisma.user.findMany({
             where: {
-                userMemberships: {
-                    some: {
-                        plan: { gymId },
-                        status: 'ACTIVE'
+                OR: [
+                    {
+                        userMemberships: {
+                            some: {
+                                plan: { gymId },
+                                status: 'ACTIVE'
+                            }
+                        }
+                    },
+                    {
+                        reservations: {
+                            some: {
+                                class: { gymId },
+                                status: { in: ['CONFIRMED', 'ATTENDED'] }
+                            }
+                        }
                     }
-                }
+                ]
             },
             select: {
                 id: true,

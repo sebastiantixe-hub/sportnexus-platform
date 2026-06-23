@@ -61,7 +61,7 @@ let ClassesService = class ClassesService {
                     trainer: { include: { user: { select: { name: true, avatarUrl: true } } } },
                     reservations: {
                         where: { status: { in: [client_1.ReservationStatus.CONFIRMED, client_1.ReservationStatus.ATTENDED] } },
-                        select: { id: true, userId: true, status: true, user: { select: { name: true } } }
+                        select: { id: true, userId: true, status: true, user: { select: { id: true, name: true, role: true, dni: true, email: true, avatarUrl: true } } }
                     },
                     _count: { select: { reservations: { where: { status: client_1.ReservationStatus.CONFIRMED } } } },
                 },
@@ -84,7 +84,7 @@ let ClassesService = class ClassesService {
                 },
                 reservations: {
                     where: { status: { in: [client_1.ReservationStatus.CONFIRMED, client_1.ReservationStatus.ATTENDED] } },
-                    select: { id: true, userId: true, status: true, user: { select: { name: true } } }
+                    select: { id: true, userId: true, status: true, user: { select: { id: true, name: true, role: true, dni: true, email: true, avatarUrl: true } } }
                 },
                 _count: {
                     select: { reservations: { where: { status: client_1.ReservationStatus.CONFIRMED } } },
@@ -106,7 +106,7 @@ let ClassesService = class ClassesService {
                 reservations: {
                     where: { status: client_1.ReservationStatus.CONFIRMED },
                     include: {
-                        user: { select: { name: true, avatarUrl: true } },
+                        user: { select: { id: true, name: true, role: true, dni: true, email: true, avatarUrl: true } },
                     },
                 },
             },

@@ -237,13 +237,31 @@ export class MembershipsService {
     });
   }
 
-  async updatePlan(planId: string, ownerId: string, dto: UpdateMembershipPlanDto) {
+  async getAllMembershipsForAdmin(gymId?: string) {
+    return this.prisma.userMembership.findMany({
+      where: gymId ? { plan: { gymId } } : {},
+      include: {
+        plan: {
+          include: { gym: { select: { name: true } } },
+        },
+        user: {
+          select: { id: true, name: true, email: true },
+        },
+        payments: {
+          select: { id: true, amount: true, status: true, paidAt: true, gatewayTxId: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async updatePlan(planId: string, ownerId: string, dto: UpdateMembershipPlanDto, isAdmin = false) {
     const plan = await this.prisma.membershipPlan.findUnique({
       where: { id: planId },
       include: { gym: true }
     });
     if (!plan) throw new NotFoundException('Plan no encontrado');
-    if (plan.gym.ownerId !== ownerId) {
+    if (!isAdmin && plan.gym.ownerId !== ownerId) {
       throw new ForbiddenException('No tienes permisos para modificar este plan');
     }
 
@@ -253,13 +271,13 @@ export class MembershipsService {
     });
   }
 
-  async deletePlan(planId: string, ownerId: string) {
+  async deletePlan(planId: string, ownerId: string, isAdmin = false) {
     const plan = await this.prisma.membershipPlan.findUnique({
       where: { id: planId },
       include: { gym: true }
     });
     if (!plan) throw new NotFoundException('Plan no encontrado');
-    if (plan.gym.ownerId !== ownerId) {
+    if (!isAdmin && plan.gym.ownerId !== ownerId) {
       throw new ForbiddenException('No tienes permisos para eliminar este plan');
     }
 

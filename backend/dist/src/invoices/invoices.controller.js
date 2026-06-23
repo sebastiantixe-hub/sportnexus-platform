@@ -23,6 +23,9 @@ let InvoicesController = class InvoicesController {
     constructor(invoicesService) {
         this.invoicesService = invoicesService;
     }
+    async getAllInvoices() {
+        return this.invoicesService.getAllInvoices();
+    }
     async getUserInvoices(req) {
         return this.invoicesService.getUserInvoices(req.user.id);
     }
@@ -34,6 +37,13 @@ let InvoicesController = class InvoicesController {
     }
 };
 exports.InvoicesController = InvoicesController;
+__decorate([
+    (0, common_1.Get)(),
+    (0, roles_decorator_1.Roles)('ADMIN'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], InvoicesController.prototype, "getAllInvoices", null);
 __decorate([
     (0, common_1.Get)('user'),
     __param(0, (0, common_1.Request)()),
