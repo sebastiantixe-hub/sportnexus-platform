@@ -82,6 +82,7 @@ const HealthView: React.FC = () => {
   const [simulationPace, setSimulationPace] = useState<'slow' | 'medium' | 'fast'>('medium');
   const [hydrationAlertFrequency, setHydrationAlertFrequency] = useState<number>(0); // 0 = off, 10 = 10s, 1800 = 30m
   const [showWaterAlert, setShowWaterAlert] = useState(false);
+  const [userWeight, setUserWeight] = useState<number>(70);
 
   // Efecto para la simulación del Smartwatch con ritmos dinámicos
   useEffect(() => {
@@ -308,9 +309,14 @@ const HealthView: React.FC = () => {
       // Intentar cargar recomendaciones del coach si existen
       try {
         const meRes = await api.get('/auth/me');
-        if (meRes.data && meRes.data.id) {
-          const recRes = await api.get(`/health/recommendations/${meRes.data.id}`);
-          setCoachComments(recRes.data);
+        if (meRes.data) {
+          if (meRes.data.weight) {
+            setUserWeight(meRes.data.weight);
+          }
+          if (meRes.data.id) {
+            const recRes = await api.get(`/health/recommendations/${meRes.data.id}`);
+            setCoachComments(recRes.data);
+          }
         }
       } catch (err) {
         console.error('Error fetching coach recommendations', err);
@@ -427,7 +433,7 @@ const HealthView: React.FC = () => {
   const todayMetrics = {
     steps: metrics.find(m => m.type === 'STEPS' && m.date.startsWith(today))?.value || 0,
     calories: metrics.find(m => m.type === 'CALORIES_BURNED' && m.date.startsWith(today))?.value || 0,
-    weight: metrics.find(m => m.type === 'WEIGHT')?.value || 70,
+    weight: metrics.find(m => m.type === 'WEIGHT')?.value || userWeight,
     water: metrics.find(m => m.type === 'WATER' && m.date.startsWith(today))?.value || 0,
   };
 
@@ -846,6 +852,11 @@ const HealthView: React.FC = () => {
           unit="pasos"
           goal={goal.targetSteps}
           color="blue"
+          onClick={() => {
+            setNewMetric(prev => ({ ...prev, type: 'STEPS', unit: 'pasos' }));
+            setManageModalTab('log');
+            setShowManageModal(true);
+          }}
           description={
             (() => {
               const comp = getStepsComparison();
@@ -871,6 +882,11 @@ const HealthView: React.FC = () => {
           unit="kcal"
           goal={goal.targetCalories}
           color="orange"
+          onClick={() => {
+            setNewMetric(prev => ({ ...prev, type: 'CALORIES_BURNED', unit: 'kcal' }));
+            setManageModalTab('log');
+            setShowManageModal(true);
+          }}
         />
         <StatCard 
           icon={<Scale className="text-emerald-400 w-6 h-6" />}
@@ -879,6 +895,11 @@ const HealthView: React.FC = () => {
           unit="kg"
           trend="Último registrado"
           color="emerald"
+          onClick={() => {
+            setNewMetric(prev => ({ ...prev, type: 'WEIGHT', unit: 'kg' }));
+            setManageModalTab('log');
+            setShowManageModal(true);
+          }}
         />
         {/* Interactive Hydration Card */}
         <div className="bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-3xl p-6 relative overflow-hidden group hover:border-white/10 transition-all flex flex-col justify-between">
@@ -1761,11 +1782,16 @@ const HealthView: React.FC = () => {
   );
 };
 
-const StatCard = ({ icon, title, value, unit, goal, color, trend, description }: any) => {
+const StatCard = ({ icon, title, value, unit, goal, color, trend, description, onClick }: any) => {
   const percentage = goal ? Math.min((value / goal) * 100, 100) : 100;
   
   return (
-    <div className="bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-3xl p-6 relative overflow-hidden group hover:border-white/10 transition-all">
+    <div 
+      onClick={onClick}
+      className={`bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-3xl p-6 relative overflow-hidden group hover:border-white/10 transition-all ${
+        onClick ? 'cursor-pointer hover:bg-slate-900/80 active:scale-98' : ''
+      }`}
+    >
       <div className="flex items-start justify-between mb-4">
         <div className="p-3 bg-white/5 rounded-2xl group-hover:scale-110 transition-transform">
           {icon}
