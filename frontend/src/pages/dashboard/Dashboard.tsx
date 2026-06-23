@@ -259,42 +259,7 @@ const Dashboard: React.FC = () => {
         console.error(e);
       }
     }
-    return [
-      {
-        id: 'c1',
-        name: 'Roberto "Tito" Valenzuela',
-        dni: '45879612',
-        birthDate: '1996-09-18',
-        healthStatus: 'HEALTHY',
-        healthDetails: 'Excelente salud, entrenando a tope 💪',
-        history: [
-          { planName: 'Plan Pro Mensual', price: 45, dateCompra: '2026-01-01', dateFin: '2026-02-01', status: 'ACTIVE' },
-          { planName: 'Plan Trimestral', price: 110, dateCompra: '2026-02-02', dateFin: '2026-05-02', status: 'ACTIVE' }
-        ]
-      },
-      {
-        id: 'c2',
-        name: 'Carlos Eduardo Ruiz',
-        dni: '70412589',
-        birthDate: '1990-05-04',
-        healthStatus: 'INJURED',
-        healthDetails: 'Fractura de rodilla en partido local 🩹',
-        history: [
-          { planName: 'Plan Básico Mensual', price: 30, dateCompra: '2025-11-10', dateFin: '2025-12-10', status: 'EXPIRED' }
-        ]
-      },
-      {
-        id: 'c3',
-        name: 'Sofía Milagros Arequipa',
-        dni: '33458912',
-        birthDate: '1998-11-23',
-        healthStatus: 'CHURNED',
-        healthDetails: 'Mudanza a Arequipa por motivos laborales ✈️',
-        history: [
-          { planName: 'Plan Premium Semestral', price: 200, dateCompra: '2025-07-15', dateFin: '2026-01-15', status: 'EXPIRED' }
-        ]
-      }
-    ];
+    return [];
   });
 
   const isOwner = user?.role === 'GYM_OWNER';
@@ -452,58 +417,66 @@ const Dashboard: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5 text-sm text-slate-300">
-                  {clients.map(c => (
-                    <tr key={c.id} className="hover:bg-white/5 transition-all">
-                      <td className="p-4 pl-6">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-slate-950 border border-white/10 flex items-center justify-center font-bold text-primary-light">
-                            {c.name[0]}
+                  {clients.length > 0 ? (
+                    clients.map(c => (
+                      <tr key={c.id} className="hover:bg-white/5 transition-all">
+                        <td className="p-4 pl-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-slate-950 border border-white/10 flex items-center justify-center font-bold text-primary-light">
+                              {c.name[0]}
+                            </div>
+                            <div>
+                              <p className="text-white font-bold">{c.name}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-white font-bold">{c.name}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4 font-mono text-xs">{c.dni}</td>
-                      <td className="p-4">{new Date(c.birthDate).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
-                      <td className="p-4">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                          c.healthStatus === 'HEALTHY' ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
-                          c.healthStatus === 'INJURED' ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' :
-                          'bg-red-500/10 text-red-400 border border-red-500/20'
-                        }`}>
-                          {c.healthDetails}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <button 
-                          onClick={() => {
-                            setSelectedClient(c);
-                            setActiveModal('history');
-                          }}
-                          className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2.5 py-1 rounded-lg text-xs font-semibold hover:bg-indigo-500/20"
-                        >
-                          Ver historial ({c.history.length})
-                        </button>
-                      </td>
-                      <td className="p-4 text-right pr-6">
-                        <button
-                          onClick={() => {
-                            setSelectedClient(c);
-                            setEditedName(c.name);
-                            setEditedDni(c.dni);
-                            setEditedBirthDate(c.birthDate);
-                            setEditedHealthStatus(c.healthStatus);
-                            setEditedHealthDetails(c.healthDetails);
-                            setActiveModal('edit');
-                          }}
-                          className="text-slate-400 hover:text-white text-xs font-bold underline"
-                        >
-                          Editar Datos
-                        </button>
+                        </td>
+                        <td className="p-4 font-mono text-xs">{c.dni}</td>
+                        <td className="p-4">{new Date(c.birthDate).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
+                        <td className="p-4">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                            c.healthStatus === 'HEALTHY' ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
+                            c.healthStatus === 'INJURED' ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' :
+                            'bg-red-500/10 text-red-400 border border-red-500/20'
+                          }`}>
+                            {c.healthDetails}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <button 
+                            onClick={() => {
+                              setSelectedClient(c);
+                              setActiveModal('history');
+                            }}
+                            className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2.5 py-1 rounded-lg text-xs font-semibold hover:bg-indigo-500/20"
+                          >
+                            Ver historial ({c.history?.length || 0})
+                          </button>
+                        </td>
+                        <td className="p-4 text-right pr-6">
+                          <button 
+                            onClick={() => {
+                              setSelectedClient(c);
+                              setEditedName(c.name);
+                              setEditedDni(c.dni);
+                              setEditedBirthDate(c.birthDate);
+                              setEditedHealthStatus(c.healthStatus);
+                              setEditedHealthDetails(c.healthDetails);
+                              setActiveModal('edit');
+                            }}
+                            className="text-slate-400 hover:text-white text-xs font-bold underline"
+                          >
+                            Editar Datos
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="p-12 text-center text-slate-500 italic">
+                        No hay atletas registrados aún. Haz clic en "+ Registrar Atleta" para agregar uno nuevo.
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
@@ -569,75 +542,81 @@ const Dashboard: React.FC = () => {
         {/* Tab 3: CRM Churn y Alientos */}
         {suiteTab === 'crm' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-300">
-            {clients.filter(c => c.healthStatus !== 'HEALTHY').map(c => {
-              const isInjured = c.healthStatus === 'INJURED';
-              
-              const mensajeAliento = isInjured 
-                ? `¡Hola ${c.name.split(' ')[0]}! Espero que tu recuperación de la fractura vaya excelente. Todo el equipo de la academia te envía un abrazo muy fuerte de aliento. ¡Te extrañamos mucho y te esperamos de vuelta cuando estés listo! 💪⚽`
-                : `¡Hola ${c.name.split(' ')[0]}! Esperamos que todo esté marchando de maravilla en la bella ciudad de Arequipa. Te extrañamos un montón en los entrenamientos. ¡Mucho éxito en tus nuevos proyectos y a seguir dándole con toda! ✈️🌟`;
+            {clients.filter(c => c.healthStatus !== 'HEALTHY').length > 0 ? (
+              clients.filter(c => c.healthStatus !== 'HEALTHY').map(c => {
+                const isInjured = c.healthStatus === 'INJURED';
+                
+                const mensajeAliento = isInjured 
+                  ? `¡Hola ${c.name.split(' ')[0]}! Espero que tu recuperación de la fractura vaya excelente. Todo el equipo de la academia te envía un abrazo muy fuerte de aliento. ¡Te extrañamos mucho y te esperamos de vuelta cuando estés listo! 💪⚽`
+                  : `¡Hola ${c.name.split(' ')[0]}! Esperamos que todo esté marchando de maravilla en la bella ciudad de Arequipa. Te extrañamos un montón en los entrenamientos. ¡Mucho éxito en tus nuevos proyectos y a seguir dándole con toda! ✈️🌟`;
 
-              return (
-                <div key={c.id} className="glass-card p-6 border border-white/5 bg-slate-900/50 flex flex-col justify-between">
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg ${isInjured ? 'bg-yellow-500/10 text-yellow-400' : 'bg-red-500/10 text-red-400'}`}>
-                          {isInjured ? '🩹' : '✈️'}
+                return (
+                  <div key={c.id} className="glass-card p-6 border border-white/5 bg-slate-900/50 flex flex-col justify-between">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg ${isInjured ? 'bg-yellow-500/10 text-yellow-400' : 'bg-red-500/10 text-red-400'}`}>
+                            {isInjured ? '🩹' : '✈️'}
+                          </div>
+                          <div>
+                            <h4 className="text-md font-bold text-white">{c.name}</h4>
+                            <p className="text-xs text-slate-500">DNI: {c.dni}</p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="text-md font-bold text-white">{c.name}</h4>
-                          <p className="text-xs text-slate-500">DNI: {c.dni}</p>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                          isInjured ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                        }`}>
+                          {isInjured ? 'Lesión / Fractura' : 'Mudanza / Arequipa'}
+                        </span>
+                      </div>
+
+                      <div className="bg-slate-950/80 p-4 rounded-xl border border-white/5 space-y-2">
+                        <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">📝 Motivo de inactividad</p>
+                        <p className="text-xs text-slate-300 italic">"{c.healthDetails}"</p>
+                      </div>
+
+                      <div className="space-y-1">
+                        <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">💝 Mensaje de Aliento Sugerido</p>
+                        <div className="bg-indigo-950/20 p-3 rounded-xl border border-indigo-500/10 text-xs text-indigo-300 leading-relaxed">
+                          {mensajeAliento}
                         </div>
                       </div>
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                        isInjured ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                      }`}>
-                        {isInjured ? 'Lesión / Fractura' : 'Mudanza / Arequipa'}
-                      </span>
                     </div>
 
-                    <div className="bg-slate-950/80 p-4 rounded-xl border border-white/5 space-y-2">
-                      <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">📝 Motivo de inactividad</p>
-                      <p className="text-xs text-slate-300 italic">"{c.healthDetails}"</p>
-                    </div>
-
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">💝 Mensaje de Aliento Sugerido</p>
-                      <div className="bg-indigo-950/20 p-3 rounded-xl border border-indigo-500/10 text-xs text-indigo-300 leading-relaxed">
-                        {mensajeAliento}
-                      </div>
+                    <div className="mt-6 pt-4 border-t border-white/5 flex gap-2">
+                      <button 
+                        onClick={() => {
+                          setSelectedClient(c);
+                          setEditedName(c.name);
+                          setEditedDni(c.dni);
+                          setEditedBirthDate(c.birthDate);
+                          setEditedHealthStatus(c.healthStatus);
+                          setEditedHealthDetails(c.healthDetails);
+                          setActiveModal('edit');
+                        }}
+                        className="flex-1 py-2 px-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold transition-colors"
+                      >
+                        ✏️ Editar Estado
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setSelectedClient(c);
+                          setCustomMessage(mensajeAliento);
+                          setActiveModal('message');
+                        }}
+                        className="flex-1 py-2 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        <span>💌 Enviar Mensaje</span>
+                      </button>
                     </div>
                   </div>
-
-                  <div className="mt-6 pt-4 border-t border-white/5 flex gap-2">
-                    <button 
-                      onClick={() => {
-                        setSelectedClient(c);
-                        setEditedName(c.name);
-                        setEditedDni(c.dni);
-                        setEditedBirthDate(c.birthDate);
-                        setEditedHealthStatus(c.healthStatus);
-                        setEditedHealthDetails(c.healthDetails);
-                        setActiveModal('edit');
-                      }}
-                      className="flex-1 py-2 px-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold transition-colors"
-                    >
-                      ✏️ Editar Estado
-                    </button>
-                    <button 
-                      onClick={() => {
-                        setSelectedClient(c);
-                        setCustomMessage(mensajeAliento);
-                        setActiveModal('message');
-                      }}
-                      className="flex-1 py-2 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
-                    >
-                      <span>💌 Enviar Mensaje</span>
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+            ) : (
+              <div className="md:col-span-2 glass-card p-12 text-center text-slate-500 italic">
+                No hay atletas inactivos o lesionados registrados en este momento.
+              </div>
+            )}
           </div>
         )}
 
