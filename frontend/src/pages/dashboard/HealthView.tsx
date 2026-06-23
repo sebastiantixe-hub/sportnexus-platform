@@ -47,6 +47,18 @@ interface Goal {
   targetWeight?: number;
 }
 
+function formatLocalDate(dateStr: string) {
+  const parts = dateStr.split('T')[0].split('-');
+  if (parts.length === 3) {
+    const year = parseInt(parts[0]);
+    const month = parseInt(parts[1]) - 1;
+    const day = parseInt(parts[2]);
+    const dateObj = new Date(year, month, day);
+    return dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+  return new Date(dateStr).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
 function StatCard({ icon, title, value, unit, goal, color, trend, description, onClick }: any) {
   const percentage = goal ? Math.min((value / goal) * 100, 100) : 100;
   
@@ -622,18 +634,6 @@ const HealthView: React.FC = () => {
   const totalStepsCurrent = compData.reduce((s, d) => s + (d['Esta Semana'] as number), 0);
   const totalStepsPrev = compData.reduce((s, d) => s + (d['Semana Anterior'] as number), 0);
   const stepsGrowth = totalStepsPrev > 0 ? Math.round(((totalStepsCurrent - totalStepsPrev) / totalStepsPrev) * 100) : 0;
-
-  const formatLocalDate = (dateStr: string) => {
-    const parts = dateStr.split('T')[0].split('-');
-    if (parts.length === 3) {
-      const year = parseInt(parts[0]);
-      const month = parseInt(parts[1]) - 1;
-      const day = parseInt(parts[2]);
-      const dateObj = new Date(year, month, day);
-      return dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-    }
-    return new Date(dateStr).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-  };
 
   const getMetricDisplayInfo = (m: Metric) => {
     switch (m.type) {
