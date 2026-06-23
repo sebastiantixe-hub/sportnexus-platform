@@ -30,18 +30,28 @@ const CRMView: React.FC = () => {
     const initData = async () => {
       try {
         setLoading(true);
-        // Filtrar directamente por el ownerId del dueño
-        const { data: ownerGyms } = await api.get(`/gyms?ownerId=${user.id}`);
+        // Si es Admin, cargamos todos los gimnasios del sistema. Si es dueño, solo los suyos.
+        const url = user.role === 'ADMIN' ? '/gyms' : `/gyms?ownerId=${user.id}`;
+        const { data: ownerGyms } = await api.get(url);
         setGyms(ownerGyms);
         
         if (ownerGyms && ownerGyms.length > 0) {
-          const currentGymId = ownerGyms[0].id;
-          setGymId(currentGymId);
-          setSelectedGymId(currentGymId);
-          await Promise.all([
-            loadCampaigns(currentGymId),
-            loadMembers(currentGymId)
-          ]);
+          if (user.role === 'ADMIN') {
+            setSelectedGymId('all');
+            setGymId('all');
+            await Promise.all([
+              loadAllCampaigns(),
+              loadAllMembers()
+            ]);
+          } else {
+            const currentGymId = ownerGyms[0].id;
+            setGymId(currentGymId);
+            setSelectedGymId(currentGymId);
+            await Promise.all([
+              loadCampaigns(currentGymId),
+              loadMembers(currentGymId)
+            ]);
+          }
         } else {
           setGymId(null);
           setSelectedGymId('');
@@ -66,6 +76,15 @@ const CRMView: React.FC = () => {
     }
   };
 
+  const loadAllCampaigns = async () => {
+    try {
+      const { data } = await api.get('/marketing/all-campaigns');
+      setCampaigns(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const loadMembers = async (id: string) => {
     try {
       const { data } = await api.get(`/gyms/${id}/members`);
@@ -75,15 +94,32 @@ const CRMView: React.FC = () => {
     }
   };
 
+  const loadAllMembers = async () => {
+    try {
+      // Si es Admin en vista global, traemos todos los atletas
+      const { data } = await api.get('/users?role=USER');
+      setMembers(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleGymChange = async (id: string) => {
-    setGymId(id);
     setSelectedGymId(id);
+    setGymId(id === 'all' ? 'all' : id);
     setLoading(true);
     try {
-      await Promise.all([
-        loadCampaigns(id),
-        loadMembers(id)
-      ]);
+      if (id === 'all') {
+        await Promise.all([
+          loadAllCampaigns(),
+          loadAllMembers()
+        ]);
+      } else {
+        await Promise.all([
+          loadCampaigns(id),
+          loadMembers(id)
+        ]);
+      }
     } catch (error) {
       console.error('Error loading CRM data for gym:', error);
     } finally {
@@ -166,7 +202,7 @@ const CRMView: React.FC = () => {
           </div>
         </div>
 
-        {gyms.length > 1 && (
+        {(gyms.length > 0 || user?.role === 'ADMIN') && (
           <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-2 self-start md:self-auto">
             <span className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Sede:</span>
             <select
@@ -174,6 +210,11 @@ const CRMView: React.FC = () => {
               onChange={(e) => handleGymChange(e.target.value)}
               className="bg-transparent text-sm font-bold text-white outline-none cursor-pointer pr-2"
             >
+              {user?.role === 'ADMIN' && (
+                <option value="all" className="bg-slate-900 text-white">
+                  Todas las Sedes (Global)
+                </option>
+              )}
               {gyms.map((g) => (
                 <option key={g.id} value={g.id} className="bg-slate-900 text-white">
                   {g.name}
@@ -257,11 +298,17 @@ const CRMView: React.FC = () => {
             </div>
             <button 
               type="submit" 
-              disabled={saving || !gymId} 
-              className={`w-full flex justify-center items-center gap-2 py-3 rounded-xl font-bold transition-all ${saving || !gymId ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : 'btn-primary'}`}
+              disabled={saving || !gymId || gymId === 'all'} 
+              className={`w-full flex justify-center items-center gap-2 py-3 rounded-xl font-bold transition-all ${saving || !gymId || gymId === 'all' ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : 'btn-primary'}`}
             >
               {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Send className="w-4 h-4" /> Enviar Campaña</>}
             </button>
+            
+            {gymId === 'all' && (
+              <p className="text-amber-400 text-xs font-semibold text-center mt-2.5">
+                ⚠️ Selecciona una sede específica arriba para poder redactar y enviar una campaña.
+              </p>
+            )}
             
             {success && (
               <p className="text-green-400 text-sm font-bold flex items-center gap-2 justify-center mt-3 animate-in fade-in">
@@ -323,7 +370,14 @@ const CRMView: React.FC = () => {
             ) : (
               <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                 {campaigns.map((camp) => (
-                  <div key={camp.id} className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm shadow-xl hover:border-white/20 transition-all">
+                   <div key={camp.id} className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm shadow-xl hover:border-white/20 transition-all">
+                    {camp.gym?.name && (
+                      <div className="mb-2">
+                        <span className="inline-block text-[10px] font-bold text-primary-light bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-lg">
+                          🏫 {camp.gym.name}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="text-white font-bold text-sm line-clamp-1 pr-2">{camp.title || camp.subject}</h3>
                       <span className="text-[10px] text-green-400 bg-green-500/20 px-2 py-0.5 rounded-full uppercase font-bold shrink-0">

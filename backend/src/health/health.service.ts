@@ -129,36 +129,109 @@ export class HealthService {
     });
   }
 
-  // ── Coach View: All Athletes Performance ──────────────────────────────────
+  // ── Coach View: Athletes from Coach's Gym(s) ─────────────────────────────
 
   async getCoachAthletes(coachId: string) {
-    const athletes = await this.prisma.user.findMany({
-      where: { role: UserRole.USER },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        weight: true,
-        avatarUrl: true,
-        healthMetrics: {
-          orderBy: { date: 'desc' },
-          take: 50,
-        },
-        coachRecommendations: {
-          orderBy: { createdAt: 'desc' },
-          take: 1,
-        },
+    // 1. Encontrar el TrainerProfile del coach
+    const trainerProfile = await this.prisma.trainerProfile.findUnique({
+      where: { userId: coachId },
+      include: {
+        gymTrainers: { select: { gymId: true } },
       },
     });
 
-    return athletes.map(ath => {
-      // Computar calorías totales quemadas, pasos promedio, etc.
-      const caloriesList = ath.healthMetrics.filter(m => m.type === HealthMetricType.CALORIES_BURNED);
-      const stepsList = ath.healthMetrics.filter(m => m.type === HealthMetricType.STEPS);
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
 
-      const totalCalories = caloriesList.reduce((sum, c) => sum + c.value, 0);
-      const avgSteps = stepsList.length > 0 ? Math.round(stepsList.reduce((sum, s) => sum + s.value, 0) / stepsList.length) : 0;
-      const lastWeight = ath.healthMetrics.find(m => m.type === HealthMetricType.WEIGHT)?.value || ath.weight || 70;
+    let athletes: any[];
+
+    if (trainerProfile && trainerProfile.gymTrainers.length > 0) {
+      // 2a. Coach asignado a gym(s): buscar atletas con membresía activa en esos gyms
+      const gymIds = trainerProfile.gymTrainers.map((g) => g.gymId);
+
+      const memberships = await this.prisma.userMembership.findMany({
+        where: {
+          status: 'ACTIVE',
+          plan: { gymId: { in: gymIds } },
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              weight: true,
+              avatarUrl: true,
+              healthMetrics: {
+                orderBy: { date: 'desc' },
+                take: 60,
+              },
+              coachRecommendations: {
+                orderBy: { createdAt: 'desc' },
+                take: 1,
+                include: { coach: { select: { name: true } } },
+              },
+            },
+          },
+        },
+      });
+
+      // Deduplicar por userId
+      const seen = new Set<string>();
+      athletes = memberships
+        .map((m) => m.user)
+        .filter((u) => {
+          if (seen.has(u.id)) return false;
+          seen.add(u.id);
+          return true;
+        });
+    } else {
+      // 2b. Coach sin gym asignado aún: devolver todos los atletas (fallback)
+      athletes = await this.prisma.user.findMany({
+        where: { role: UserRole.USER },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          weight: true,
+          avatarUrl: true,
+          healthMetrics: {
+            orderBy: { date: 'desc' },
+            take: 60,
+          },
+          coachRecommendations: {
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+            include: { coach: { select: { name: true } } },
+          },
+        },
+      });
+    }
+
+    const todayStr = today.toISOString().split('T')[0];
+
+    return athletes.map((ath) => {
+      const metrics = ath.healthMetrics || [];
+
+      const todayMetrics = metrics.filter((m: any) => {
+        const d = m.date instanceof Date ? m.date.toISOString() : String(m.date);
+        return d.startsWith(todayStr);
+      });
+
+      const todaySteps = todayMetrics.find((m: any) => m.type === HealthMetricType.STEPS)?.value || 0;
+      const todayCalories = todayMetrics.find((m: any) => m.type === HealthMetricType.CALORIES_BURNED)?.value || 0;
+      const todayWater = todayMetrics.find((m: any) => m.type === HealthMetricType.WATER)?.value || 0;
+      const trainedToday = todayMetrics.length > 0;
+
+      const allCalories = metrics.filter((m: any) => m.type === HealthMetricType.CALORIES_BURNED);
+      const allSteps = metrics.filter((m: any) => m.type === HealthMetricType.STEPS);
+
+      const totalCaloriesBurned = allCalories.reduce((sum: number, c: any) => sum + c.value, 0);
+      const averageSteps = allSteps.length > 0
+        ? Math.round(allSteps.reduce((sum: number, s: any) => sum + s.value, 0) / allSteps.length)
+        : 0;
+
+      const lastWeight = metrics.find((m: any) => m.type === HealthMetricType.WEIGHT)?.value || ath.weight || 70;
 
       return {
         id: ath.id,
@@ -166,9 +239,15 @@ export class HealthService {
         email: ath.email,
         weight: lastWeight,
         avatarUrl: ath.avatarUrl,
-        totalCaloriesBurned: totalCalories,
-        averageSteps: avgSteps,
-        lastObservation: ath.coachRecommendations[0]?.observation || 'Sin observaciones registradas',
+        totalCaloriesBurned,
+        averageSteps,
+        lastObservation: ath.coachRecommendations?.[0]?.observation || 'Sin observaciones registradas',
+        // Nuevos campos de actividad de hoy
+        trainedToday,
+        todaySteps,
+        todayCalories: parseFloat(todayCalories.toFixed(1)),
+        todayWater,
+        lastActivityDate: metrics[0]?.date || null,
       };
     });
   }

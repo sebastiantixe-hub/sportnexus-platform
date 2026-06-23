@@ -97,4 +97,17 @@ export class MarketingService {
       orderBy: { createdAt: 'desc' },
     });
   }
+
+  async getAllCampaigns() {
+    return this.prisma.marketingCampaign.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        gym: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+  }
 }

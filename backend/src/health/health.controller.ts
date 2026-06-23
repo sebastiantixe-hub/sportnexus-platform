@@ -25,12 +25,24 @@ export class HealthController {
     return this.healthService.findAll(req.user.id);
   }
 
+  @Get('metrics/:userId')
+  @ApiOperation({ summary: 'Obtener todas las métricas de un usuario específico' })
+  async findUserMetrics(@Param('userId') userId: string) {
+    return this.healthService.findAll(userId);
+  }
+
   // ── User Goals ────────────────────────────────────────────────────────────
 
   @Get('goals')
   @ApiOperation({ summary: 'Obtener las metas de salud del usuario' })
   async findGoal(@Request() req) {
     return this.healthService.findGoal(req.user.id);
+  }
+
+  @Get('goals/:userId')
+  @ApiOperation({ summary: 'Obtener las metas de salud de un usuario específico' })
+  async findUserGoal(@Param('userId') userId: string) {
+    return this.healthService.findGoal(userId);
   }
 
   @Post('goals')

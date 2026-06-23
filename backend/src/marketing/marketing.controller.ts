@@ -32,4 +32,10 @@ export class MarketingController {
     }
     return this.marketingService.getCampaigns(gymId);
   }
+
+  @Get('all-campaigns')
+  @Roles('ADMIN')
+  async getAllCampaigns() {
+    return this.marketingService.getAllCampaigns();
+  }
 }
