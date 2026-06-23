@@ -8,7 +8,6 @@ import {
   Flame,
   Award,
   Sparkles,
-  Sliders,
   CheckCircle,
   TrendingUp,
   TrendingDown,
@@ -51,8 +50,8 @@ interface Goal {
 const HealthView: React.FC = () => {
   const [metrics, setMetrics] = useState<Metric[]>([]);
   const [goal, setGoal] = useState<Goal>({ targetCalories: 600, targetSteps: 10000, targetWater: 8, targetWeight: 70 });
-  const [showLogModal, setShowLogModal] = useState(false);
-  const [showGoalModal, setShowGoalModal] = useState(false);
+  const [showManageModal, setShowManageModal] = useState(false);
+  const [manageModalTab, setManageModalTab] = useState<'log' | 'goal'>('log');
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState<string>('ALL');
   const [coachComments, setCoachComments] = useState<any[]>([]);
@@ -345,7 +344,7 @@ const HealthView: React.FC = () => {
         value: val
       });
       toast.success('Métrica actualizada correctamente');
-      setShowLogModal(false);
+      setShowManageModal(false);
       // Reset form value
       setNewMetric(prev => ({ ...prev, value: '' }));
       fetchData();
@@ -360,7 +359,7 @@ const HealthView: React.FC = () => {
     try {
       await api.post('/health/goals', editGoal);
       toast.success('Metas de salud actualizadas');
-      setShowGoalModal(false);
+      setShowManageModal(false);
       fetchData();
     } catch (err: any) {
       const msg = err.response?.data?.message;
@@ -782,18 +781,14 @@ const HealthView: React.FC = () => {
           </div>
 
           <button 
-            onClick={() => setShowGoalModal(true)}
-            className="flex items-center gap-2 bg-slate-900 border border-white/10 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md"
-          >
-            <Sliders className="w-5 h-5" />
-            Configurar Metas
-          </button>
-          <button 
-            onClick={() => setShowLogModal(true)}
-            className="flex items-center gap-2 bg-primary hover:bg-primary-light text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-primary/20 group"
+            onClick={() => {
+              setManageModalTab('log');
+              setShowManageModal(true);
+            }}
+            className="flex items-center gap-2 bg-primary hover:bg-primary-light text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-primary/20 group animate-in fade-in duration-200"
           >
             <Plus className="w-5 h-5 transition-transform group-hover:rotate-90" />
-            Registrar Actividad
+            <span>Registrar / Metas</span>
           </button>
         </div>
       </div>
@@ -1430,164 +1425,180 @@ const HealthView: React.FC = () => {
       </div>
       )}
 
-      {/* Log Modal */}
-      {showLogModal && (
+      {/* Manage Health Modal (Logs and Goals combined) */}
+      {showManageModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
           <div className="bg-slate-900 border border-white/10 w-full max-w-md rounded-3xl p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+            {/* Header */}
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">Registrar Salud Novedad</h2>
-              <button onClick={() => setShowLogModal(false)} className="text-slate-400 hover:text-white">✕</button>
+              <h2 className="text-2xl font-bold">Gestión de Salud</h2>
+              <button onClick={() => setShowManageModal(false)} className="text-slate-400 hover:text-white">✕</button>
             </div>
-            <form onSubmit={handleAddMetric} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Tipo de Métrica</label>
-                <select 
-                  className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  value={newMetric.type}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    let unit = 'unid';
-                    if (val === 'STEPS') unit = 'pasos';
-                    if (val === 'WEIGHT') unit = 'kg';
-                    if (val === 'WATER') unit = 'vasos';
-                    if (val === 'CALORIES_BURNED') unit = 'kcal';
-                    if (val === 'DISTANCE') unit = 'km';
-                    setNewMetric({...newMetric, type: val, unit});
-                  }}
-                >
-                  <option value="STEPS">Pasos Diarios</option>
-                  <option value="WEIGHT">Peso Corporal</option>
-                  <option value="WATER">Agua (Vasos)</option>
-                  <option value="DISTANCE">Distancia Recorrida (km)</option>
-                  <option value="CALORIES_BURNED">Calorías Quemadas (kcal)</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Valor ({newMetric.unit})</label>
-                <input 
-                  type="number" 
-                  step="0.1"
-                  required
-                  autoFocus
-                  className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  value={newMetric.value}
-                  onChange={(e) => setNewMetric({...newMetric, value: e.target.value})}
-                  placeholder="Ej: 75"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Fecha</label>
-                <input 
-                  type="date"
-                  required
-                  className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  value={newMetric.date}
-                  onChange={(e) => setNewMetric({...newMetric, date: e.target.value})}
-                />
-              </div>
-              <div className="pt-4 flex gap-4">
-                <button 
-                  type="button"
-                  onClick={() => setShowLogModal(false)}
-                  className="flex-1 px-4 py-3 rounded-xl border border-white/10 text-slate-400 hover:bg-white/5 font-bold transition-all"
-                >
-                  Cancelar
-                </button>
-                <button 
-                  type="submit"
-                  className="flex-1 px-4 py-3 rounded-xl bg-primary hover:bg-primary-light text-white font-bold transition-all shadow-lg shadow-primary/20"
-                >
-                  Guardar
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
-      {/* Goals Setup Modal */}
-      {showGoalModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
-          <div className="bg-slate-900 border border-white/10 w-full max-w-md rounded-3xl p-8 shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">Establecer Metas Diarias</h2>
-              <button onClick={() => setShowGoalModal(false)} className="text-slate-400 hover:text-white">✕</button>
+            {/* Premium segmented tabs */}
+            <div className="flex border-b border-white/10 mb-6">
+              <button
+                type="button"
+                onClick={() => setManageModalTab('log')}
+                className={`flex-1 pb-3 text-center font-bold text-sm transition-all border-b-2 ${
+                  manageModalTab === 'log' ? 'border-primary text-white' : 'border-transparent text-slate-400 hover:text-white'
+                }`}
+              >
+                ✍️ Registrar Hoy
+              </button>
+              <button
+                type="button"
+                onClick={() => setManageModalTab('goal')}
+                className={`flex-1 pb-3 text-center font-bold text-sm transition-all border-b-2 ${
+                  manageModalTab === 'goal' ? 'border-primary text-white' : 'border-transparent text-slate-400 hover:text-white'
+                }`}
+              >
+                🎯 Establecer Metas
+              </button>
             </div>
-            <form onSubmit={handleUpdateGoal} className="space-y-5">
-              <div>
-                <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Meta de Calorías (kcal)</label>
-                <input 
-                  type="number" 
-                  required
-                  className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  value={editGoal.targetCalories}
-                  onChange={(e) => setEditGoal({...editGoal, targetCalories: parseInt(e.target.value)})}
-                />
-                
-                {/* Asistente Inteligente de Calorías recomendado por el Gerente */}
-                <div className="mt-2.5 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-center justify-between gap-3">
-                  <div className="text-[10px] text-indigo-300 leading-relaxed font-medium">
-                    💡 <strong>Sugerencia Hercix:</strong> Basado en tu peso de <strong>{editGoal.targetWeight || 70} kg</strong>, tu meta diaria ideal activa es de <strong>{Math.round((editGoal.targetWeight || 70) * 8)} kcal</strong>.
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditGoal({ ...editGoal, targetCalories: Math.round((editGoal.targetWeight || 70) * 8) });
-                      toast.success('🎯 Sugerencia calórica aplicada a tu meta.');
+
+            {/* Tab content */}
+            {manageModalTab === 'log' ? (
+              <form onSubmit={handleAddMetric} className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-2">Tipo de Métrica</label>
+                  <select 
+                    className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    value={newMetric.type}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      let unit = 'unid';
+                      if (val === 'STEPS') unit = 'pasos';
+                      if (val === 'WEIGHT') unit = 'kg';
+                      if (val === 'WATER') unit = 'vasos';
+                      if (val === 'CALORIES_BURNED') unit = 'kcal';
+                      if (val === 'DISTANCE') unit = 'km';
+                      setNewMetric({...newMetric, type: val, unit});
                     }}
-                    className="shrink-0 text-[9px] uppercase tracking-wider font-extrabold bg-indigo-500 hover:bg-indigo-400 text-white px-2.5 py-1.5 rounded-lg transition-all"
                   >
-                    Usar
+                    <option value="STEPS">Pasos Diarios</option>
+                    <option value="WEIGHT">Peso Corporal</option>
+                    <option value="WATER">Agua (Vasos)</option>
+                    <option value="DISTANCE">Distancia Recorrida (km)</option>
+                    <option value="CALORIES_BURNED">Calorías Quemadas (kcal)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-2">Valor ({newMetric.unit})</label>
+                  <input 
+                    type="number" 
+                    step="0.1"
+                    required
+                    autoFocus
+                    className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    value={newMetric.value}
+                    onChange={(e) => setNewMetric({...newMetric, value: e.target.value})}
+                    placeholder="Ej: 75"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-2">Fecha</label>
+                  <input 
+                    type="date"
+                    required
+                    className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    value={newMetric.date}
+                    onChange={(e) => setNewMetric({...newMetric, date: e.target.value})}
+                  />
+                </div>
+                <div className="pt-4 flex gap-4">
+                  <button 
+                    type="button"
+                    onClick={() => setShowManageModal(false)}
+                    className="flex-1 px-4 py-3 rounded-xl border border-white/10 text-slate-400 hover:bg-white/5 font-bold transition-all"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    type="submit"
+                    className="flex-1 px-4 py-3 rounded-xl bg-primary hover:bg-primary-light text-white font-bold transition-all shadow-lg shadow-primary/20"
+                  >
+                    Guardar
                   </button>
                 </div>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Meta de Pasos</label>
-                <input 
-                  type="number" 
-                  required
-                  className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  value={editGoal.targetSteps}
-                  onChange={(e) => setEditGoal({...editGoal, targetSteps: parseInt(e.target.value)})}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Meta de Hidratación (Vasos)</label>
-                <input 
-                  type="number" 
-                  required
-                  className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  value={editGoal.targetWater}
-                  onChange={(e) => setEditGoal({...editGoal, targetWater: parseInt(e.target.value)})}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Meta de Peso Corporal (kg)</label>
-                <input 
-                  type="number" 
-                  step="0.1"
-                  required
-                  className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  value={editGoal.targetWeight || ''}
-                  onChange={(e) => setEditGoal({...editGoal, targetWeight: parseFloat(e.target.value)})}
-                />
-              </div>
-              <div className="pt-4 flex gap-4">
-                <button 
-                  type="button"
-                  onClick={() => setShowGoalModal(false)}
-                  className="flex-1 px-4 py-3 rounded-xl border border-white/10 text-slate-400 hover:bg-white/5 font-bold transition-all"
-                >
-                  Cancelar
-                </button>
-                <button 
-                  type="submit"
-                  className="flex-1 px-4 py-3 rounded-xl bg-primary hover:bg-primary-light text-white font-bold transition-all shadow-lg shadow-primary/20"
-                >
-                  Guardar Cambios
-                </button>
-              </div>
-            </form>
+              </form>
+            ) : (
+              <form onSubmit={handleUpdateGoal} className="space-y-5">
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Meta de Calorías (kcal)</label>
+                  <input 
+                    type="number" 
+                    required
+                    className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    value={editGoal.targetCalories}
+                    onChange={(e) => setEditGoal({...editGoal, targetCalories: parseInt(e.target.value)})}
+                  />
+                  
+                  {/* Asistente Inteligente de Calorías recomendado por el Gerente */}
+                  <div className="mt-2.5 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-center justify-between gap-3">
+                    <div className="text-[10px] text-indigo-300 leading-relaxed font-medium">
+                      💡 <strong>Sugerencia Hercix:</strong> Basado en tu peso de <strong>{editGoal.targetWeight || 70} kg</strong>, tu meta diaria ideal activa es de <strong>{Math.round((editGoal.targetWeight || 70) * 8)} kcal</strong>.
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditGoal({ ...editGoal, targetCalories: Math.round((editGoal.targetWeight || 70) * 8) });
+                        toast.success('🎯 Sugerencia calórica aplicada a tu meta.');
+                      }}
+                      className="shrink-0 text-[9px] uppercase tracking-wider font-extrabold bg-indigo-500 hover:bg-indigo-400 text-white px-2.5 py-1.5 rounded-lg transition-all"
+                    >
+                      Usar
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Meta de Pasos</label>
+                  <input 
+                    type="number" 
+                    required
+                    className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    value={editGoal.targetSteps}
+                    onChange={(e) => setEditGoal({...editGoal, targetSteps: parseInt(e.target.value)})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Meta de Hidratación (Vasos)</label>
+                  <input 
+                    type="number" 
+                    required
+                    className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    value={editGoal.targetWater}
+                    onChange={(e) => setEditGoal({...editGoal, targetWater: parseInt(e.target.value)})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">Meta de Peso Corporal (kg)</label>
+                  <input 
+                    type="number" 
+                    step="0.1"
+                    required
+                    className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    value={editGoal.targetWeight || ''}
+                    onChange={(e) => setEditGoal({...editGoal, targetWeight: parseFloat(e.target.value)})}
+                  />
+                </div>
+                <div className="pt-4 flex gap-4">
+                  <button 
+                    type="button"
+                    onClick={() => setShowManageModal(false)}
+                    className="flex-1 px-4 py-3 rounded-xl border border-white/10 text-slate-400 hover:bg-white/5 font-bold transition-all"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    type="submit"
+                    className="flex-1 px-4 py-3 rounded-xl bg-primary hover:bg-primary-light text-white font-bold transition-all shadow-lg shadow-primary/20"
+                  >
+                    Guardar
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
