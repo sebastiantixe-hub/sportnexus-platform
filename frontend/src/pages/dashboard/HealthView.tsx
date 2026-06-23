@@ -47,6 +47,53 @@ interface Goal {
   targetWeight?: number;
 }
 
+function StatCard({ icon, title, value, unit, goal, color, trend, description, onClick }: any) {
+  const percentage = goal ? Math.min((value / goal) * 100, 100) : 100;
+  
+  return (
+    <div 
+      onClick={onClick}
+      className={`bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-3xl p-6 relative overflow-hidden group hover:border-white/10 transition-all ${
+        onClick ? 'cursor-pointer hover:bg-slate-900/80 active:scale-98' : ''
+      }`}
+    >
+      <div className="flex items-start justify-between mb-4">
+        <div className="p-3 bg-white/5 rounded-2xl group-hover:scale-110 transition-transform">
+          {icon}
+        </div>
+        {trend && <span className="text-[10px] text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded-full">{trend}</span>}
+      </div>
+      <div>
+        <p className="text-slate-400 text-sm font-medium">{title}</p>
+        <div className="flex items-baseline gap-1 mt-1">
+          <span className="text-3xl font-bold">{value.toLocaleString()}</span>
+          <span className="text-slate-500 text-sm font-medium">{unit}</span>
+        </div>
+        {description}
+      </div>
+      
+      {goal && (
+        <div className="mt-6">
+          <div className="flex items-center justify-between text-[10px] text-slate-500 mb-1.5 uppercase font-bold tracking-wider">
+            <span>Progreso</span>
+            <span>{Math.round(percentage)}%</span>
+          </div>
+          <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+            <div 
+              className={`h-full rounded-full transition-all duration-1000 ${
+                color === 'blue' ? 'bg-blue-400' : 
+                color === 'orange' ? 'bg-orange-500' : 
+                color === 'cyan' ? 'bg-cyan-400' : 'bg-emerald-400'
+              }`}
+              style={{ width: `${percentage}%` }}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const HealthView: React.FC = () => {
   const [metrics, setMetrics] = useState<Metric[]>([]);
   const [goal, setGoal] = useState<Goal>({ targetCalories: 600, targetSteps: 10000, targetWater: 8, targetWeight: 70 });
@@ -1778,53 +1825,6 @@ const HealthView: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
-  );
-};
-
-const StatCard = ({ icon, title, value, unit, goal, color, trend, description, onClick }: any) => {
-  const percentage = goal ? Math.min((value / goal) * 100, 100) : 100;
-  
-  return (
-    <div 
-      onClick={onClick}
-      className={`bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-3xl p-6 relative overflow-hidden group hover:border-white/10 transition-all ${
-        onClick ? 'cursor-pointer hover:bg-slate-900/80 active:scale-98' : ''
-      }`}
-    >
-      <div className="flex items-start justify-between mb-4">
-        <div className="p-3 bg-white/5 rounded-2xl group-hover:scale-110 transition-transform">
-          {icon}
-        </div>
-        {trend && <span className="text-[10px] text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded-full">{trend}</span>}
-      </div>
-      <div>
-        <p className="text-slate-400 text-sm font-medium">{title}</p>
-        <div className="flex items-baseline gap-1 mt-1">
-          <span className="text-3xl font-bold">{value.toLocaleString()}</span>
-          <span className="text-slate-500 text-sm font-medium">{unit}</span>
-        </div>
-        {description}
-      </div>
-      
-      {goal && (
-        <div className="mt-6">
-          <div className="flex items-center justify-between text-[10px] text-slate-500 mb-1.5 uppercase font-bold tracking-wider">
-            <span>Progreso</span>
-            <span>{Math.round(percentage)}%</span>
-          </div>
-          <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-            <div 
-              className={`h-full rounded-full transition-all duration-1000 ${
-                color === 'blue' ? 'bg-blue-400' : 
-                color === 'orange' ? 'bg-orange-500' : 
-                color === 'cyan' ? 'bg-cyan-400' : 'bg-emerald-400'
-              }`}
-              style={{ width: `${percentage}%` }}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 };
