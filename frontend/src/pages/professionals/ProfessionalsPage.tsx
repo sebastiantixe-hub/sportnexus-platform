@@ -191,7 +191,7 @@ const ProfessionalsPage: React.FC = () => {
           </h1>
           <p className="text-slate-400 mt-2">Fisioterapeutas, nutricionistas y personal trainers certificados.</p>
         </div>
-        {(user?.role === 'ADMIN' || user?.role === 'TRAINER') && (
+        {isTrainerOrAdmin && (
           <button 
             onClick={() => setShowCreateModal(true)}
             className="bg-accent hover:bg-accent-dark text-white px-4 py-2 rounded-xl flex items-center gap-2 font-bold transition-all shadow-lg shadow-accent/20"
