@@ -206,8 +206,14 @@ const Dashboard: React.FC = () => {
 
   // ── Owner Suite de Control states ──
   const [activeView, setActiveView] = useState<'dashboard' | 'suite'>('dashboard');
-  const [suiteTab, setSuiteTab] = useState<'clients' | 'classes' | 'crm'>('clients');
+  const [suiteTab, setSuiteTab] = useState<'clients' | 'classes' | 'crm' | 'staff'>('clients');
   const [ownerClasses, setOwnerClasses] = useState<any[]>([]);
+  const [ownerGyms, setOwnerGyms] = useState<any[]>([]);
+  const [gymTrainers, setGymTrainers] = useState<any[]>([]);
+  const [allPlatformTrainers, setAllPlatformTrainers] = useState<any[]>([]);
+  const [assignGymId, setAssignGymId] = useState('');
+  const [assignTrainerUserId, setAssignTrainerUserId] = useState('');
+  const [assignCanCreateClasses, setAssignCanCreateClasses] = useState(true);
 
   // ── Role Request states ──
   const [activeRoleRequest, setActiveRoleRequest] = useState<any>(null);
@@ -241,7 +247,7 @@ const Dashboard: React.FC = () => {
   };
   
   // Custom Modals states
-  const [activeModal, setActiveModal] = useState<'history' | 'edit' | 'message' | 'register' | null>(null);
+  const [activeModal, setActiveModal] = useState<'history' | 'edit' | 'message' | 'register' | 'assignTrainer' | null>(null);
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [editedDni, setEditedDni] = useState('');
   const [editedBirthDate, setEditedBirthDate] = useState('');
@@ -266,6 +272,37 @@ const Dashboard: React.FC = () => {
   const isTrainer = user?.role === 'TRAINER';
   const isAdmin = user?.role === 'ADMIN';
 
+  const fetchGymTrainers = async (gymsList: any[]) => {
+    try {
+      const promises = gymsList.map((g) => api.get(`/trainers/gym/${g.id}`));
+      const responses = await Promise.all(promises);
+      const assignments = responses.flatMap((res, index) => {
+        const gym = gymsList[index];
+        return res.data.map((item: any) => ({
+          gymId: gym.id,
+          gymName: gym.name,
+          trainerId: item.trainer.id,
+          trainerName: item.trainer.user?.name || 'Entrenador',
+          trainerEmail: item.trainer.user?.email || 'N/A',
+          trainerAvatar: item.trainer.user?.avatarUrl || '',
+          canCreateClasses: item.canCreateClasses,
+        }));
+      });
+      setGymTrainers(assignments);
+    } catch (err) {
+      console.error('Error fetching gym trainers:', err);
+    }
+  };
+
+  const fetchAllPlatformTrainers = async () => {
+    try {
+      const { data } = await api.get('/trainers');
+      setAllPlatformTrainers(data);
+    } catch (err) {
+      console.error('Error fetching all trainers:', err);
+    }
+  };
+
   useEffect(() => {
     api.get('/auth/stats').then(({ data }) => setStats(data)).catch(console.error).finally(() => setLoading(false));
     if (user?.role === 'USER') {
@@ -276,6 +313,10 @@ const Dashboard: React.FC = () => {
       api.get('/classes').then(({ data }) => {
         const filtered = data.filter((c: any) => c.gym?.ownerId === user?.id);
         setOwnerClasses(filtered);
+      }).catch(console.error);
+      api.get(`/gyms?ownerId=${user.id}`).then(({ data }) => {
+        setOwnerGyms(data);
+        fetchGymTrainers(data);
       }).catch(console.error);
     }
   }, [user]);
@@ -381,6 +422,12 @@ const Dashboard: React.FC = () => {
             className={`pb-4 text-sm font-bold border-b-2 transition-all ${suiteTab === 'crm' ? 'border-primary-light text-primary-light' : 'border-transparent text-slate-400 hover:text-white'}`}
           >
             🧠 CRM Churn y Alientos
+          </button>
+          <button 
+            onClick={() => setSuiteTab('staff')}
+            className={`pb-4 text-sm font-bold border-b-2 transition-all ${suiteTab === 'staff' ? 'border-primary-light text-primary-light' : 'border-transparent text-slate-400 hover:text-white'}`}
+          >
+            👥 Personal / Entrenadores
           </button>
         </div>
 
@@ -617,6 +664,105 @@ const Dashboard: React.FC = () => {
                 No hay atletas inactivos o lesionados registrados en este momento.
               </div>
             )}
+          </div>
+        )}
+
+        {/* Tab 4: Staff/Entrenadores */}
+        {suiteTab === 'staff' && (
+          <div className="glass-card overflow-hidden border border-white/5 bg-slate-900/50 animate-in fade-in duration-300">
+            <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
+              <div>
+                <h3 className="text-lg font-bold text-white">Personal & Entrenadores 👥</h3>
+                <p className="text-slate-400 text-xs mt-1">Gestiona los entrenadores vinculados a tus locales de entrenamiento.</p>
+              </div>
+              <button 
+                onClick={async () => {
+                  setAssignGymId('');
+                  setAssignTrainerUserId('');
+                  setAssignCanCreateClasses(true);
+                  await fetchAllPlatformTrainers();
+                  setActiveModal('assignTrainer' as any);
+                }}
+                className="bg-primary hover:bg-primary-light text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-lg"
+              >
+                <span>➕ Vincular Entrenador</span>
+              </button>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-white/5 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    <th className="p-4 pl-6">Entrenador</th>
+                    <th className="p-4">Email</th>
+                    <th className="p-4">Gimnasio Asignado</th>
+                    <th className="p-4">Permiso de Clases</th>
+                    <th className="p-4 text-right pr-6">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 text-sm text-slate-300">
+                  {gymTrainers.length > 0 ? (
+                    gymTrainers.map((item, idx) => (
+                      <tr key={`${item.gymId}-${item.trainerId}-${idx}`} className="hover:bg-white/5 transition-all">
+                        <td className="p-4 pl-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-slate-950 border border-white/10 flex items-center justify-center font-bold text-primary-light overflow-hidden">
+                              {item.trainerAvatar ? (
+                                <img src={item.trainerAvatar} alt={item.trainerName} className="w-full h-full object-cover" />
+                              ) : (
+                                item.trainerName[0]
+                              )}
+                            </div>
+                            <div>
+                              <p className="text-white font-bold">{item.trainerName}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4 font-mono text-xs text-slate-400">{item.trainerEmail}</td>
+                        <td className="p-4">
+                          <span className="px-2 py-0.5 rounded bg-slate-950 text-xs font-bold text-slate-400 border border-white/10">
+                            🏢 {item.gymName}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                            item.canCreateClasses 
+                              ? 'bg-green-500/10 text-green-400 border border-green-500/20' 
+                              : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
+                          }`}>
+                            {item.canCreateClasses ? 'Puede crear clases' : 'Solo visualizar / dictar'}
+                          </span>
+                        </td>
+                        <td className="p-4 text-right pr-6">
+                          <button 
+                            onClick={async () => {
+                              if (confirm(`¿Estás seguro de que deseas desvincular a ${item.trainerName} del gimnasio ${item.gymName}?`)) {
+                                try {
+                                  await api.delete(`/trainers/${item.gymId}/trainer/${item.trainerId}`);
+                                  toast.success('¡Entrenador desvinculado con éxito!');
+                                  fetchGymTrainers(ownerGyms);
+                                } catch (err: any) {
+                                  toast.error(`Error al desvincular: ${err.response?.data?.message || err.message}`);
+                                }
+                              }
+                            }}
+                            className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-3 py-1 rounded-lg text-xs font-bold transition-all"
+                          >
+                            Desvincular
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="p-12 text-center text-slate-500 italic">
+                        No tienes entrenadores contratados aún en tus sedes. Haz clic en "+ Vincular Entrenador".
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
@@ -959,6 +1105,106 @@ const Dashboard: React.FC = () => {
             </motion.div>
           </div>
         )}
+
+        {/* 5. Assign Trainer Modal */}
+        {activeModal === 'assignTrainer' && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-300">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }} 
+              animate={{ scale: 1, opacity: 1 }} 
+              className="bg-gradient-to-b from-slate-900 to-slate-950 border border-white/10 rounded-3xl p-6 w-full max-w-md shadow-2xl relative"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <span className="text-xs font-bold text-primary-light uppercase tracking-widest text-[10px] font-mono">Contratación de Personal</span>
+                  <h3 className="text-xl font-bold text-white mt-1">Vincular Entrenador</h3>
+                </div>
+                <button 
+                  onClick={() => setActiveModal(null)} 
+                  className="text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-xl transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">1. Seleccionar Sede / Gimnasio</label>
+                  <select 
+                    value={assignGymId} 
+                    onChange={(e) => setAssignGymId(e.target.value)}
+                    className="w-full mt-1.5 bg-slate-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:border-primary-light outline-none"
+                  >
+                    <option value="">-- Elige un Gimnasio --</option>
+                    {ownerGyms.map((g: any) => (
+                      <option key={g.id} value={g.id}>{g.name} ({g.district})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">2. Seleccionar Entrenador de la Plataforma</label>
+                  <select 
+                    value={assignTrainerUserId} 
+                    onChange={(e) => setAssignTrainerUserId(e.target.value)}
+                    className="w-full mt-1.5 bg-slate-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:border-primary-light outline-none"
+                  >
+                    <option value="">-- Elige un Entrenador --</option>
+                    {allPlatformTrainers.map((t: any) => (
+                      <option key={t.id} value={t.user.id}>
+                        {t.user.name} ({t.user.email || 'Sin correo'})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-3 bg-white/5 p-4 rounded-2xl border border-white/5 mt-2">
+                  <input 
+                    type="checkbox" 
+                    id="canCreateClasses"
+                    checked={assignCanCreateClasses} 
+                    onChange={(e) => setAssignCanCreateClasses(e.target.checked)} 
+                    className="w-4 h-4 rounded border-white/10 bg-slate-950 text-primary-light focus:ring-primary"
+                  />
+                  <label htmlFor="canCreateClasses" className="text-xs text-slate-300 font-bold select-none cursor-pointer">
+                    Permitir crear y editar clases (Permisos de Staff)
+                  </label>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-white/5 flex gap-3">
+                <button 
+                  onClick={() => setActiveModal(null)} 
+                  className="flex-grow py-2.5 border border-white/10 hover:bg-white/5 text-slate-300 hover:text-white rounded-xl text-sm font-bold transition-all"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={async () => {
+                    if (!assignGymId || !assignTrainerUserId) {
+                      toast.error('Por favor completa todos los campos.');
+                      return;
+                    }
+                    try {
+                      await api.post(`/trainers/${assignGymId}/assign`, {
+                        trainerId: assignTrainerUserId,
+                        canCreateClasses: assignCanCreateClasses,
+                      });
+                      toast.success('¡Entrenador contratado y vinculado con éxito!');
+                      setActiveModal(null);
+                      fetchGymTrainers(ownerGyms);
+                    } catch (err: any) {
+                      toast.error(`Error al vincular: ${err.response?.data?.message || err.message}`);
+                    }
+                  }} 
+                  className="flex-grow py-2.5 bg-primary hover:bg-primary-light text-white rounded-xl text-sm font-bold transition-all shadow-lg"
+                >
+                  Contratar / Vincular
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </div>
     );
   }
@@ -1032,6 +1278,40 @@ const Dashboard: React.FC = () => {
           </>
         )}
       </div>
+
+      {isTrainer && (stats?.gyms ?? 0) === 0 && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }} 
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-amber-500/10 via-amber-600/5 to-transparent border border-amber-500/20 p-6 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-4"
+        >
+          <div className="space-y-1">
+            <h3 className="text-amber-400 font-bold text-lg flex items-center gap-2">
+              ⚠️ Perfil de Coach Activo (Sin Sede Vinculada)
+            </h3>
+            <p className="text-slate-300 text-sm max-w-2xl">
+              Tu cuenta está aprobada como Entrenador, pero aún no has sido vinculado a ninguna sede o gimnasio en la plataforma. Por este motivo, tus métricas de aforo, alumnos y clases se muestran en 0.
+            </p>
+            <p className="text-slate-500 text-xs">
+              Para empezar, puedes ponerte en contacto con el dueño de un gimnasio para que te registre en su staff, o solicitar asistencia a soporte técnico.
+            </p>
+          </div>
+          <div className="flex gap-2 flex-shrink-0">
+            <button 
+              onClick={() => navigate('/gyms')}
+              className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 px-4 py-2.5 rounded-xl text-xs font-bold transition-all"
+            >
+              🏢 Explorar Gimnasios
+            </button>
+            <button 
+              onClick={() => navigate('/dashboard/tickets')}
+              className="bg-slate-800 hover:bg-slate-700 text-white border border-white/10 px-4 py-2.5 rounded-xl text-xs font-bold transition-all"
+            >
+              ✉️ Contactar Soporte
+            </button>
+          </div>
+        </motion.div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Actividades */}

@@ -12,6 +12,7 @@ interface Athlete {
   id: string;
   name: string;
   email: string;
+  phone?: string;
   weight: number;
   avatarUrl?: string;
   totalCaloriesBurned: number;
@@ -264,8 +265,35 @@ const CoachHealthView: React.FC = () => {
                       </div>
                     )}
                     <div>
-                      <h2 className="text-xl font-bold">{selectedAthlete.name}</h2>
+                      <h2 className="text-xl font-bold flex items-center gap-2">
+                        {selectedAthlete.name}
+                        {selectedAthlete.phone && (
+                          <a
+                            href={`https://api.whatsapp.com/send?phone=${selectedAthlete.phone}&text=${encodeURIComponent(`Hola ${selectedAthlete.name}, soy tu coach en Hercix. He revisado tus métricas de hoy.`)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 text-green-400 p-1.5 rounded-lg transition-all flex items-center justify-center"
+                            title="Contactar por WhatsApp"
+                          >
+                            <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.035-4.22c1.661.989 3.29 1.562 5.923 1.563 5.461 0 9.903-4.43 9.907-9.895.002-2.65-1.02-5.14-2.877-7.00C17.185 2.59 14.697 1.56 12.01 1.56c-5.466 0-9.911 4.44-9.916 9.905-.001 1.954.512 3.86 1.488 5.539L2.613 21.09l4.31-1.13c.001 0 .001 0 0 0zm11.238-6.195c-.3-.15-1.774-.875-2.046-.975-.272-.1-.47-.15-.667.15-.198.3-.766.975-.94 1.175-.173.2-.347.225-.647.075-.3-.15-1.266-.467-2.41-1.485-.89-.794-1.49-1.775-1.665-2.075-.175-.3-.018-.463.13-.612.134-.133.3-.347.45-.52.15-.172.2-.299.3-.5.1-.2.05-.375-.025-.525-.075-.15-.667-1.605-.913-2.197-.24-.578-.48-.5-.667-.51-.173-.008-.371-.01-.57-.01-.197 0-.518.074-.789.374-.272.3-1.04 1.016-1.04 2.479 0 1.462 1.064 2.875 1.213 3.074.149.2 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.774-.726 2.022-1.429.247-.704.247-1.306.173-1.43-.075-.124-.272-.199-.57-.349z"/>
+                            </svg>
+                          </a>
+                        )}
+                        <a
+                          href={`mailto:${selectedAthlete.email}?subject=Hercix%20-%20Monitoreo%20de%20Actividad&body=${encodeURIComponent(`Hola ${selectedAthlete.name},\n\nTe escribo para darte seguimiento sobre tus entrenamientos en Hercix...`)}`}
+                          className="bg-primary/10 hover:bg-primary/20 border border-primary/20 text-primary-light p-1.5 rounded-lg transition-all flex items-center justify-center"
+                          title="Contactar por Email"
+                        >
+                          <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                            <path d="M0 3v18h24v-18h-24zm21.518 2l-9.518 7.713-9.518-7.713h19.036zm-19.518 14v-11.817l10 8.104 10-8.104v11.817h-20z"/>
+                          </svg>
+                        </a>
+                      </h2>
                       <p className="text-slate-500 text-sm">{selectedAthlete.email}</p>
+                      {selectedAthlete.phone && (
+                        <p className="text-slate-400 text-xs mt-1 font-mono">📞 {selectedAthlete.phone}</p>
+                      )}
                     </div>
                   </div>
                   {selectedAthlete.trainedToday ? (

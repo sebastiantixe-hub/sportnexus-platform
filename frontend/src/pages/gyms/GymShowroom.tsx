@@ -337,8 +337,24 @@ const GymShowroom: React.FC = () => {
                {gym.description ? gym.description.split('\n\n[Categorías:')[0] : 'Este negocio ofrece los mejores servicios deportivos del sector.'}
              </p>
              <div className="space-y-3 pt-4">
-               <div className="flex items-center gap-3 text-sm text-slate-300">
-                 <Phone className="w-4 h-4 text-primary-light" /> {gym.phone || '+51 900 100 200'}
+               <div className="flex flex-col gap-2">
+                 <div className="flex items-center justify-between gap-3 text-sm text-slate-300">
+                   <div className="flex items-center gap-3">
+                     <Phone className="w-4 h-4 text-primary-light" /> {gym.phone || '+51 900 100 200'}
+                   </div>
+                   {gym.phone && (
+                     <a
+                       href={`https://api.whatsapp.com/send?phone=${gym.phone.replace(/[^0-9+]/g, '')}&text=${encodeURIComponent(`Hola ${gym.name}, me gustaría consultar sobre sus planes y clases en Hercix.`)}`}
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       className="bg-green-500/10 hover:bg-green-500/20 text-green-400 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all border border-green-500/20 flex items-center gap-1"
+                       title="Chatear con el local"
+                     >
+                       <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                       Chatear
+                     </a>
+                   )}
+                 </div>
                </div>
                <div className="flex items-center gap-3 text-sm text-slate-300">
                  <Globe className="w-4 h-4 text-primary-light" /> {gym.website || 'www.negocio.com'}

@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Body,
   Param,
   UseGuards,
@@ -65,5 +66,18 @@ export class TrainersController {
   @ApiOperation({ summary: 'Listar entrenadores de un gimnasio específico' })
   getGymTrainers(@Param('gymId') gymId: string) {
     return this.trainersService.getGymTrainers(gymId);
+  }
+
+  @Delete(':gymId/trainer/:trainerId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.GYM_OWNER, UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Desvincular un entrenador de un gimnasio' })
+  unassignTrainer(
+    @Param('gymId') gymId: string,
+    @Param('trainerId') trainerId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.trainersService.unassignTrainer(gymId, user.id, trainerId);
   }
 }

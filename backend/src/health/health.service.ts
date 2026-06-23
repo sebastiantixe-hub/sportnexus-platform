@@ -160,6 +160,7 @@ export class HealthService {
               id: true,
               name: true,
               email: true,
+              phone: true,
               weight: true,
               avatarUrl: true,
               healthMetrics: {
@@ -186,26 +187,8 @@ export class HealthService {
           return true;
         });
     } else {
-      // 2b. Coach sin gym asignado aún: devolver todos los atletas (fallback)
-      athletes = await this.prisma.user.findMany({
-        where: { role: UserRole.USER },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          weight: true,
-          avatarUrl: true,
-          healthMetrics: {
-            orderBy: { date: 'desc' },
-            take: 60,
-          },
-          coachRecommendations: {
-            orderBy: { createdAt: 'desc' },
-            take: 1,
-            include: { coach: { select: { name: true } } },
-          },
-        },
-      });
+      // 2b. Coach sin gym asignado aún: retornar vacío por límites de seguridad/privacidad
+      athletes = [];
     }
 
     const todayStr = today.toISOString().split('T')[0];
@@ -237,6 +220,7 @@ export class HealthService {
         id: ath.id,
         name: ath.name,
         email: ath.email,
+        phone: ath.phone,
         weight: lastWeight,
         avatarUrl: ath.avatarUrl,
         totalCaloriesBurned,
