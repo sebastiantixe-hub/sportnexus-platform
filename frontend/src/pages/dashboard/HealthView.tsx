@@ -367,6 +367,23 @@ const HealthView: React.FC = () => {
     }
   };
 
+  const handleResetWater = async () => {
+    const todayStr = getLocalDateString();
+    try {
+      await api.post('/health/metrics', {
+        type: 'WATER',
+        value: 0,
+        unit: 'vasos',
+        date: todayStr
+      });
+      toast.success('💧 Hidratación de hoy reiniciada a 0 vasos.');
+      fetchData();
+    } catch (err: any) {
+      const msg = err.response?.data?.message;
+      toast.error(msg || 'Error al reiniciar agua');
+    }
+  };
+
   const handleQuickWaterAdd = async () => {
     const todayStr = getLocalDateString();
     const todayWater = metrics.find(m => m.type === 'WATER' && m.date.startsWith(todayStr))?.value || 0;
@@ -870,21 +887,31 @@ const HealthView: React.FC = () => {
               <div className="p-3 bg-white/5 rounded-2xl group-hover:scale-115 transition-transform">
                 <Droplets className="text-cyan-400 w-6 h-6 animate-pulse" />
               </div>
-              <button 
-                onClick={handleQuickWaterAdd}
-                disabled={todayMetrics.water >= goal.targetWater}
-                className={`text-[10px] font-bold px-3 py-1.5 rounded-full transition-all flex items-center gap-1 ${
-                  todayMetrics.water >= goal.targetWater
-                    ? 'bg-emerald-500/20 text-emerald-400 cursor-not-allowed border border-emerald-500/30'
-                    : 'bg-cyan-400/20 text-cyan-400 hover:bg-cyan-400/30'
-                }`}
-              >
-                {todayMetrics.water >= goal.targetWater ? (
-                  <>✓ Meta Cumplida</>
-                ) : (
-                  <><Plus className="w-3 h-3" /> Tomar Vaso</>
+              <div className="flex gap-2">
+                {todayMetrics.water > 0 && (
+                  <button 
+                    onClick={handleResetWater}
+                    className="text-[10px] font-bold px-2.5 py-1.5 rounded-full bg-red-500/10 text-red-400 hover:bg-red-500/25 border border-red-500/20 transition-all"
+                  >
+                    Reiniciar
+                  </button>
                 )}
-              </button>
+                <button 
+                  onClick={handleQuickWaterAdd}
+                  disabled={todayMetrics.water >= goal.targetWater}
+                  className={`text-[10px] font-bold px-3 py-1.5 rounded-full transition-all flex items-center gap-1 ${
+                    todayMetrics.water >= goal.targetWater
+                      ? 'bg-emerald-500/20 text-emerald-400 cursor-not-allowed border border-emerald-500/30'
+                      : 'bg-cyan-400/20 text-cyan-400 hover:bg-cyan-400/30'
+                  }`}
+                >
+                  {todayMetrics.water >= goal.targetWater ? (
+                    <>✓ Meta Cumplida</>
+                  ) : (
+                    <><Plus className="w-3 h-3" /> Tomar Vaso</>
+                  )}
+                </button>
+              </div>
             </div>
             <div>
               <p className="text-slate-400 text-sm font-medium">Hidratación Diaria</p>
