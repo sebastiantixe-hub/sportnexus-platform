@@ -43,6 +43,7 @@ let TrainersService = class TrainersService {
                     select: {
                         id: true,
                         name: true,
+                        email: true,
                         avatarUrl: true,
                     },
                 },
@@ -89,10 +90,29 @@ let TrainersService = class TrainersService {
                             select: {
                                 id: true,
                                 name: true,
+                                email: true,
                                 avatarUrl: true,
                             },
                         },
                     },
+                },
+            },
+        });
+    }
+    async unassignTrainer(gymId, currentOwnerId, trainerId) {
+        const gym = await this.prisma.gym.findUnique({
+            where: { id: gymId },
+        });
+        if (!gym)
+            throw new common_1.NotFoundException('Gimnasio no encontrado');
+        if (gym.ownerId !== currentOwnerId) {
+            throw new common_1.ForbiddenException('No eres el dueño de este gimnasio');
+        }
+        return this.prisma.gymTrainer.delete({
+            where: {
+                gymId_trainerId: {
+                    gymId,
+                    trainerId,
                 },
             },
         });

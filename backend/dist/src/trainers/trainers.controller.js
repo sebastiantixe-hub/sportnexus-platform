@@ -39,6 +39,9 @@ let TrainersController = class TrainersController {
     getGymTrainers(gymId) {
         return this.trainersService.getGymTrainers(gymId);
     }
+    unassignTrainer(gymId, trainerId, user) {
+        return this.trainersService.unassignTrainer(gymId, user.id, trainerId);
+    }
 };
 exports.TrainersController = TrainersController;
 __decorate([
@@ -81,6 +84,19 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], TrainersController.prototype, "getGymTrainers", null);
+__decorate([
+    (0, common_1.Delete)(':gymId/trainer/:trainerId'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.GYM_OWNER, client_1.UserRole.ADMIN),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Desvincular un entrenador de un gimnasio' }),
+    __param(0, (0, common_1.Param)('gymId')),
+    __param(1, (0, common_1.Param)('trainerId')),
+    __param(2, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", void 0)
+], TrainersController.prototype, "unassignTrainer", null);
 exports.TrainersController = TrainersController = __decorate([
     (0, swagger_1.ApiTags)('trainers'),
     (0, common_1.Controller)('trainers'),

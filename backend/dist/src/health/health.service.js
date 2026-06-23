@@ -144,6 +144,7 @@ let HealthService = class HealthService {
                             id: true,
                             name: true,
                             email: true,
+                            phone: true,
                             weight: true,
                             avatarUrl: true,
                             healthMetrics: {
@@ -170,25 +171,7 @@ let HealthService = class HealthService {
             });
         }
         else {
-            athletes = await this.prisma.user.findMany({
-                where: { role: client_1.UserRole.USER },
-                select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    weight: true,
-                    avatarUrl: true,
-                    healthMetrics: {
-                        orderBy: { date: 'desc' },
-                        take: 60,
-                    },
-                    coachRecommendations: {
-                        orderBy: { createdAt: 'desc' },
-                        take: 1,
-                        include: { coach: { select: { name: true } } },
-                    },
-                },
-            });
+            athletes = [];
         }
         const todayStr = today.toISOString().split('T')[0];
         return athletes.map((ath) => {
@@ -212,6 +195,7 @@ let HealthService = class HealthService {
                 id: ath.id,
                 name: ath.name,
                 email: ath.email,
+                phone: ath.phone,
                 weight: lastWeight,
                 avatarUrl: ath.avatarUrl,
                 totalCaloriesBurned,

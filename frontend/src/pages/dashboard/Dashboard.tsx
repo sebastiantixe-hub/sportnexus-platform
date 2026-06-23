@@ -1369,14 +1369,30 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
           ) : isTrainer ? (
-            <div className="bg-gradient-to-br from-accent/20 to-slate-900 p-6 rounded-3xl border border-accent/20">
-              <span className="text-white/40 text-xs font-semibold uppercase tracking-wider">Perfil Coach</span>
-              <h3 className="text-2xl font-extrabold text-white mt-1">Gestión de Clases</h3>
-              <p className="text-slate-500 mt-3 text-sm">Organiza tus sesiones y gestiona participantes.</p>
-              <button onClick={() => navigate('/classes')}
-                className="bg-accent hover:bg-accent-light text-white w-full py-2.5 mt-5 text-sm rounded-xl font-bold transition-all">
-                <Calendar className="w-4 h-4 inline mr-2" /> Administrar Clases
-              </button>
+            <div className="space-y-6">
+              <div className="bg-gradient-to-br from-accent/20 to-slate-900 p-6 rounded-3xl border border-accent/20">
+                <span className="text-white/40 text-xs font-semibold uppercase tracking-wider">Perfil Coach</span>
+                <h3 className="text-2xl font-extrabold text-white mt-1">Gestión de Clases</h3>
+                <p className="text-slate-500 mt-3 text-sm">Organiza tus sesiones y gestiona participantes.</p>
+                <button onClick={() => navigate('/classes')}
+                  className="bg-accent hover:bg-accent-light text-white w-full py-2.5 mt-5 text-sm rounded-xl font-bold transition-all">
+                  <Calendar className="w-4 h-4 inline mr-2" /> Administrar Clases
+                </button>
+              </div>
+
+              {stats?.gymDetails && stats.gymDetails.length > 0 && (
+                <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-3xl border border-white/5 space-y-4">
+                  <span className="text-white/40 text-xs font-semibold uppercase tracking-wider">Sedes Vinculadas</span>
+                  <div className="space-y-3 mt-2">
+                    {stats.gymDetails.map((gym: any) => (
+                      <div key={gym.id} className="flex items-center gap-2 border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                        <Building2 className="w-4 h-4 text-accent" />
+                        <span className="text-white text-sm font-medium">{gym.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-3xl border border-white/5 space-y-4">

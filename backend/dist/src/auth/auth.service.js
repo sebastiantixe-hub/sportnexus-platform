@@ -392,11 +392,16 @@ let AuthService = class AuthService {
                 description: `${res.user.name} reservó en ${res.class.gym.name}`,
                 date: res.bookedAt,
             }));
+            const gymDetails = trainerProfile.gymTrainers.map(gt => ({
+                id: gt.gym.id,
+                name: gt.gym.name,
+            }));
             return {
                 classes: trainerProfile.classes.length,
                 members: uniqueAthletes.size,
                 services: servicesCount,
                 gyms: trainerProfile.gymTrainers.length,
+                gymDetails,
                 activities,
                 isTrainer: true,
             };

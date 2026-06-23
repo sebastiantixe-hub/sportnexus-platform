@@ -16,10 +16,10 @@ export declare class AuthService {
         refreshToken: string;
         user: {
             id: string;
-            createdAt: Date;
             name: string;
             email: string;
             role: import("@prisma/client").$Enums.UserRole;
+            createdAt: Date;
         };
     }>;
     login(dto: LoginDto): Promise<{
@@ -27,9 +27,8 @@ export declare class AuthService {
         refreshToken: string;
         user: {
             id: string;
-            createdAt: Date;
-            name: string;
             auth0Id: string | null;
+            name: string;
             email: string;
             role: import("@prisma/client").$Enums.UserRole;
             phone: string | null;
@@ -38,6 +37,7 @@ export declare class AuthService {
             isActive: boolean;
             emailVerified: boolean;
             lastLoginAt: Date | null;
+            createdAt: Date;
             updatedAt: Date;
             weight: number | null;
         };
@@ -47,9 +47,8 @@ export declare class AuthService {
         refreshToken: string;
         user: {
             id: string;
-            createdAt: Date;
-            name: string;
             auth0Id: string | null;
+            name: string;
             email: string;
             role: import("@prisma/client").$Enums.UserRole;
             phone: string | null;
@@ -58,6 +57,7 @@ export declare class AuthService {
             isActive: boolean;
             emailVerified: boolean;
             lastLoginAt: Date | null;
+            createdAt: Date;
             updatedAt: Date;
             weight: number | null;
         };
@@ -65,7 +65,6 @@ export declare class AuthService {
     getMe(userId: string): Promise<{
         roles: string[];
         id: string;
-        createdAt: Date;
         name: string;
         email: string;
         role: import("@prisma/client").$Enums.UserRole;
@@ -75,6 +74,7 @@ export declare class AuthService {
         isActive: boolean;
         emailVerified: boolean;
         lastLoginAt: Date | null;
+        createdAt: Date;
     } | null>;
     switchRole(userId: string, newRole: UserRole): Promise<{
         id: string;
@@ -113,6 +113,7 @@ export declare class AuthService {
         }[];
         isAdmin: boolean;
         services?: undefined;
+        gymDetails?: undefined;
         isTrainer?: undefined;
         reservations?: undefined;
         points?: undefined;
@@ -125,6 +126,7 @@ export declare class AuthService {
         activities: any[];
         isAdmin?: undefined;
         services?: undefined;
+        gymDetails?: undefined;
         isTrainer?: undefined;
         reservations?: undefined;
         points?: undefined;
@@ -137,6 +139,7 @@ export declare class AuthService {
         activities: never[];
         revenue?: undefined;
         isAdmin?: undefined;
+        gymDetails?: undefined;
         isTrainer?: undefined;
         reservations?: undefined;
         points?: undefined;
@@ -146,6 +149,10 @@ export declare class AuthService {
         members: number;
         services: number;
         gyms: number;
+        gymDetails: {
+            id: string;
+            name: string;
+        }[];
         activities: {
             id: string;
             type: string;
@@ -176,6 +183,7 @@ export declare class AuthService {
         revenue?: undefined;
         isAdmin?: undefined;
         services?: undefined;
+        gymDetails?: undefined;
         isTrainer?: undefined;
     }>;
     findOrCreateAuth0User(params: {

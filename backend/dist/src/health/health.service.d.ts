@@ -96,6 +96,7 @@ export declare class HealthService {
         id: any;
         name: any;
         email: any;
+        phone: any;
         weight: any;
         avatarUrl: any;
         totalCaloriesBurned: any;
