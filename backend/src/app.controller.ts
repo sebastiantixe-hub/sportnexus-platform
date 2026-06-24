@@ -22,7 +22,7 @@ export class AppController {
         status: 'ok',
         database: 'connected',
         userCount,
-        dbUrlHidden: process.env.DATABASE_URL ? `${process.env.DATABASE_URL.substring(0, 25)}...` : 'not-set',
+        dbUrlHidden: process.env.DATABASE_URL ? process.env.DATABASE_URL.replace(/:[^:@]+@/, ':***@') : 'not-set',
       };
     } catch (err: any) {
       return {
@@ -31,7 +31,7 @@ export class AppController {
         stack: err.stack,
         env: {
           DATABASE_URL_EXISTS: !!process.env.DATABASE_URL,
-          DATABASE_URL_VAL: process.env.DATABASE_URL ? `${process.env.DATABASE_URL.substring(0, 25)}...` : 'not-set',
+          DATABASE_URL_VAL: process.env.DATABASE_URL ? process.env.DATABASE_URL.replace(/:[^:@]+@/, ':***@') : 'not-set',
         },
       };
     }

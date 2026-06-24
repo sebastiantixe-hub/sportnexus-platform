@@ -32,8 +32,9 @@ const AnalyticsView: React.FC = () => {
       if (!user) return;
       try {
         setLoading(true);
-        // Traer únicamente los negocios del dueño logueado
-        const { data } = await api.get(`/gyms?ownerId=${user.id}`);
+        // Admin ve todos los gimnasios; Dueño solo los suyos
+        const url = user.role === 'ADMIN' ? '/gyms' : `/gyms?ownerId=${user.id}`;
+        const { data } = await api.get(url);
         setGyms(data);
         
         if (data && data.length > 0) {
@@ -74,25 +75,32 @@ const AnalyticsView: React.FC = () => {
     );
   }
 
-  // Onboarding screen if the owner has no gyms registered yet
+  // Onboarding screen if no gyms exist on the platform
   if (stats && stats.hasGyms === false) {
+    const isAdmin = user?.role === 'ADMIN';
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center max-w-md mx-auto space-y-6 animate-in fade-in duration-500">
         <div className="w-20 h-20 bg-primary/10 rounded-[2rem] flex items-center justify-center text-primary-light border border-primary/20 shadow-xl shadow-primary/5">
           <TrendingUp className="w-10 h-10 animate-pulse" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-black text-white tracking-tight">Sin Negocios Registrados</h2>
+          <h2 className="text-2xl font-black text-white tracking-tight">
+            {isAdmin ? 'Sin Gimnasios en la Plataforma' : 'Sin Negocios Registrados'}
+          </h2>
           <p className="text-slate-400 text-sm leading-relaxed">
-            Para poder calcular tu analítica avanzada (MRR, retención de atletas, y clases asistidas), primero necesitas registrar al menos un gimnasio en la plataforma.
+            {isAdmin
+              ? 'Aún no hay gimnasios registrados en la plataforma. Cuando los dueños registren sus negocios, verás la analítica aquí.'
+              : 'Para poder calcular tu analítica avanzada (MRR, retención de atletas, y clases asistidas), primero necesitas registrar al menos un gimnasio en la plataforma.'}
           </p>
         </div>
-        <button 
-          onClick={() => navigate('/gyms')} 
-          className="btn-primary px-8 py-3.5 font-bold rounded-2xl active:scale-95 transition-transform flex items-center gap-2 shadow-lg shadow-primary/20"
-        >
-          Registrar mi primer gimnasio
-        </button>
+        {!isAdmin && (
+          <button 
+            onClick={() => navigate('/gyms')} 
+            className="btn-primary px-8 py-3.5 font-bold rounded-2xl active:scale-95 transition-transform flex items-center gap-2 shadow-lg shadow-primary/20"
+          >
+            Registrar mi primer gimnasio
+          </button>
+        )}
       </div>
     );
   }
