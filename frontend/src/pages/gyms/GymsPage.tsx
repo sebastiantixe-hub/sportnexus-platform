@@ -35,72 +35,105 @@ const GymCard: React.FC<{
   gym: any;
   isOwner: boolean;
   isAdmin?: boolean;
+  userRole?: string;
+  userId?: string;
+  hasPendingRequest?: boolean;
+  onRequestLink?: (gymId: string) => void;
   onEdit: (gym: any) => void;
   onDelete: (id: string) => void;
   navigate: any;
-}> = ({ gym, isOwner, isAdmin, onEdit, onDelete, navigate }) => (
+}> = ({ gym, isOwner, isAdmin, userRole, userId, hasPendingRequest, onRequestLink, onEdit, onDelete, navigate }) => (
   <motion.div
     whileHover={{ y: -5 }}
     onClick={() => navigate(`/gyms/${gym.id}`)}
-    className="glass-card overflow-hidden group border-white/5 hover:border-primary/30 transition-all cursor-pointer"
+    className="glass-card overflow-hidden group border-white/5 hover:border-primary/30 transition-all cursor-pointer flex flex-col justify-between"
   >
-    <div className="h-40 bg-slate-950 relative overflow-hidden">
-      <img 
-        src={getGymCardBanner(gym)} 
-        alt={gym.name}
-        className="w-full h-full object-cover opacity-50 group-hover:scale-105 transition-all duration-700" 
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
-      <div className="absolute bottom-4 left-4">
-        <span className="bg-primary/80 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">
-          {gym.status || 'Activo'}
-        </span>
-      </div>
-    </div>
-
-    <div className="p-6">
-      <h3 className="text-xl font-bold text-white group-hover:text-primary-light transition-colors">{gym.name}</h3>
-      <p className="text-slate-400 text-sm mt-2 line-clamp-2">
-        {gym.description ? gym.description.split('\n\n[Categorías:')[0] : 'Sin descripción disponible.'}
-      </p>
-
-      <div className="mt-6 flex flex-col gap-2">
-        <div className="flex items-center gap-2 text-slate-400 text-xs text-secondary-light">
-          <MapPin className="w-4 h-4" />
-          <span className="line-clamp-1">
-            {gym.address || 'Sin dirección'}
-            {gym.district && `, ${gym.district}`}
-            {gym.province && `, ${gym.province}`}
+    <div>
+      <div className="h-40 bg-slate-950 relative overflow-hidden">
+        <img 
+          src={getGymCardBanner(gym)} 
+          alt={gym.name}
+          className="w-full h-full object-cover opacity-50 group-hover:scale-105 transition-all duration-700" 
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
+        <div className="absolute bottom-4 left-4">
+          <span className="bg-primary/80 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">
+            {gym.status || 'Activo'}
           </span>
         </div>
       </div>
 
-      <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-between">
-        <div className="flex items-center gap-1">
+      <div className="p-6 pb-0">
+        <h3 className="text-xl font-bold text-white group-hover:text-primary-light transition-colors">{gym.name}</h3>
+        <p className="text-slate-400 text-sm mt-2 line-clamp-2">
+          {gym.description ? gym.description.split('\n\n[Categorías:')[0] : 'Sin descripción disponible.'}
+        </p>
+
+        <div className="mt-6 flex flex-col gap-2">
+          <div className="flex items-center gap-2 text-slate-400 text-xs text-secondary-light">
+            <MapPin className="w-4 h-4" />
+            <span className="line-clamp-1">
+              {gym.address || 'Sin dirección'}
+              {gym.district && `, ${gym.district}`}
+              {gym.province && `, ${gym.province}`}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div className="p-6 pt-0">
+      <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1 shrink-0">
           <Star className="text-yellow-400 fill-yellow-400 w-4 h-4" />
           <span className="text-white font-bold text-sm">NUEVO</span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          {userRole === 'TRAINER' && (
+            <>
+              {gym.gymTrainers?.some((gt: any) => gt.trainer?.userId === userId) ? (
+                <span className="text-green-400 font-bold text-xs bg-green-500/10 border border-green-500/20 px-3 py-1.5 rounded-xl flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Vinculado
+                </span>
+              ) : hasPendingRequest ? (
+                <span className="text-amber-400 font-bold text-xs bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-xl flex items-center gap-1 shrink-0">
+                  Pendiente ⏳
+                </span>
+              ) : (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onRequestLink) onRequestLink(gym.id);
+                  }}
+                  className="bg-primary hover:bg-primary-light text-white text-xs font-bold px-3 py-1.5 rounded-xl transition-all active:scale-95 shadow-md shrink-0"
+                >
+                  Postular
+                </button>
+              )}
+            </>
+          )}
+
           {(isOwner || isAdmin) && (
             <>
               <button
                 onClick={(e) => { e.stopPropagation(); onEdit(gym); }}
-                className="text-slate-400 hover:text-white transition-colors text-sm"
+                className="text-slate-400 hover:text-white transition-colors text-xs"
               >
                 Editar
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); onDelete(gym.id); }}
-                className="text-red-400 hover:text-red-300 transition-colors text-sm font-bold"
+                className="text-red-400 hover:text-red-300 transition-colors text-xs font-bold"
               >
                 Eliminar
               </button>
             </>
           )}
+
           <button
             onClick={() => navigate(`/gyms/${gym.id}`)}
-            className="text-primary-light font-bold text-sm hover:underline"
+            className="text-primary-light font-bold text-xs hover:underline shrink-0"
           >
             Ver Detalles
           </button>
@@ -113,6 +146,7 @@ const GymCard: React.FC<{
 const GymsPage: React.FC = () => {
   const navigate = useNavigate();
   const [gyms, setGyms] = useState<any[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -136,9 +170,32 @@ const GymsPage: React.FC = () => {
     }
   };
 
+  const fetchMyRequests = async () => {
+    if (user?.role !== 'TRAINER') return;
+    try {
+      const { data } = await api.get('/trainers/my-requests');
+      setPendingRequests(data);
+    } catch (err) {
+      console.error('Error fetching my link requests:', err);
+    }
+  };
+
+  const handleRequestLink = async (gymId: string) => {
+    try {
+      await api.post(`/trainers/${gymId}/request`);
+      setMessage({ type: 'success', text: '¡Solicitud de postulación enviada exitosamente!' });
+      fetchMyRequests();
+      setTimeout(() => setMessage(null), 3000);
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.response?.data?.message || 'Error al enviar solicitud.' });
+      setTimeout(() => setMessage(null), 3000);
+    }
+  };
+
   useEffect(() => {
     fetchGyms();
-  }, []);
+    fetchMyRequests();
+  }, [user]);
 
   const handleDelete = async (id: string) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este gimnasio?')) {
@@ -339,6 +396,10 @@ const GymsPage: React.FC = () => {
               gym={gym}
               isOwner={user?.role === 'GYM_OWNER' && gym.ownerId === user?.id}
               isAdmin={user?.role === 'ADMIN'}
+              userRole={user?.role}
+              userId={user?.id}
+              hasPendingRequest={pendingRequests.some(r => r.gymId === gym.id)}
+              onRequestLink={handleRequestLink}
               onEdit={setEditingGym}
               onDelete={handleDelete}
               navigate={navigate}

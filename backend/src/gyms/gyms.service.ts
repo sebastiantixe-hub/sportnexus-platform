@@ -129,6 +129,16 @@ export class GymsService {
               avatarUrl: true,
             },
           },
+          gymTrainers: {
+            select: {
+              trainerId: true,
+              trainer: {
+                select: {
+                  userId: true,
+                },
+              },
+            },
+          },
         },
       });
     } catch (err: any) {

@@ -214,6 +214,7 @@ const Dashboard: React.FC = () => {
   const [assignGymId, setAssignGymId] = useState('');
   const [assignTrainerUserId, setAssignTrainerUserId] = useState('');
   const [assignCanCreateClasses, setAssignCanCreateClasses] = useState(true);
+  const [pendingLinkRequests, setPendingLinkRequests] = useState<any[]>([]);
 
   // ── Role Request states ──
   const [activeRoleRequest, setActiveRoleRequest] = useState<any>(null);
@@ -303,6 +304,29 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const fetchPendingLinkRequests = async () => {
+    try {
+      const { data } = await api.get('/trainers/owner/requests');
+      setPendingLinkRequests(data);
+    } catch (err) {
+      console.error('Error fetching pending requests:', err);
+    }
+  };
+
+  const handleRespondRequest = async (requestId: string, approve: boolean) => {
+    try {
+      await api.post(`/trainers/owner/requests/${requestId}/respond`, { approve });
+      toast.success(approve ? '¡Solicitud aprobada y entrenador vinculado!' : 'Solicitud rechazada.');
+      fetchPendingLinkRequests();
+      api.get(`/gyms?ownerId=${user?.id}`).then(({ data }) => {
+        setOwnerGyms(data);
+        fetchGymTrainers(data);
+      }).catch(console.error);
+    } catch (err: any) {
+      toast.error(`Error: ${err.response?.data?.message || err.message}`);
+    }
+  };
+
   useEffect(() => {
     api.get('/auth/stats').then(({ data }) => setStats(data)).catch(console.error).finally(() => setLoading(false));
     if (user?.role === 'USER') {
@@ -310,6 +334,7 @@ const Dashboard: React.FC = () => {
       api.get('/users/role-requests/mine').then(({ data }) => setActiveRoleRequest(data)).catch(() => {});
     }
     if (isOwner) {
+      fetchPendingLinkRequests();
       api.get('/classes').then(({ data }) => {
         const filtered = data.filter((c: any) => c.gym?.ownerId === user?.id);
         setOwnerClasses(filtered);
@@ -688,6 +713,41 @@ const Dashboard: React.FC = () => {
                 <span>➕ Vincular Entrenador</span>
               </button>
             </div>
+
+            {pendingLinkRequests.length > 0 && (
+              <div className="p-6 border-b border-white/5 bg-amber-500/5">
+                <h4 className="text-amber-400 text-xs font-bold uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                  <span>⏳ Solicitudes de Vinculación Pendientes ({pendingLinkRequests.length})</span>
+                </h4>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {pendingLinkRequests.map((req) => (
+                    <div key={req.id} className="bg-slate-950/40 border border-white/5 p-4 rounded-2xl flex flex-col justify-between gap-3 hover:border-amber-500/20 transition-all">
+                      <div>
+                        <p className="text-white font-bold text-sm">{req.trainerName}</p>
+                        <p className="text-slate-400 text-xs">{req.trainerEmail}</p>
+                        <p className="text-slate-500 text-[10px] mt-1.5">
+                          Quiere unirse a: <strong className="text-slate-300">{req.gymName}</strong>
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleRespondRequest(req.id, true)}
+                          className="px-3 py-1.5 bg-green-500 hover:bg-green-400 text-white rounded-lg text-xs font-bold transition-all shadow-md active:scale-95"
+                        >
+                          Aceptar
+                        </button>
+                        <button
+                          onClick={() => handleRespondRequest(req.id, false)}
+                          className="px-3 py-1.5 bg-red-500 hover:bg-red-400 text-white rounded-lg text-xs font-bold transition-all shadow-md active:scale-95"
+                        >
+                          Rechazar
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">

@@ -2,13 +2,40 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateTrainerProfileDto } from './dto/trainer.dto';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class TrainersService {
   constructor(private prisma: PrismaService) {}
+
+  private readonly filepath = path.join(process.cwd(), 'pending-requests.json');
+
+  private readPendingRequests(): any[] {
+    try {
+      if (!fs.existsSync(this.filepath)) {
+        fs.writeFileSync(this.filepath, JSON.stringify([]));
+        return [];
+      }
+      const data = fs.readFileSync(this.filepath, 'utf-8');
+      return JSON.parse(data || '[]');
+    } catch (err) {
+      console.error('Error reading pending requests file:', err);
+      return [];
+    }
+  }
+
+  private writePendingRequests(requests: any[]) {
+    try {
+      fs.writeFileSync(this.filepath, JSON.stringify(requests, null, 2), 'utf-8');
+    } catch (err) {
+      console.error('Error writing pending requests file:', err);
+    }
+  }
 
   async upsertProfile(userId: string, dto: UpdateTrainerProfileDto) {
     // First, verify the user or just upsert (assuming they have TRAINER role)
@@ -129,5 +156,107 @@ export class TrainersService {
         },
       },
     });
+  }
+
+  async requestLinkToGym(gymId: string, trainerUserId: string) {
+    // 1. Verificar perfil de entrenador
+    const trainerProfile = await this.prisma.trainerProfile.findUnique({
+      where: { userId: trainerUserId },
+      include: { user: true },
+    });
+    if (!trainerProfile) {
+      throw new NotFoundException('El usuario no tiene un perfil de entrenador activo');
+    }
+
+    // 2. Verificar gimnasio
+    const gym = await this.prisma.gym.findUnique({
+      where: { id: gymId },
+    });
+    if (!gym) {
+      throw new NotFoundException('Gimnasio no encontrado');
+    }
+
+    // 3. Verificar si ya existe vinculación real en DB
+    const existingLink = await this.prisma.gymTrainer.findUnique({
+      where: {
+        gymId_trainerId: {
+          gymId,
+          trainerId: trainerProfile.id,
+        },
+      },
+    });
+    if (existingLink) {
+      throw new BadRequestException('Ya estás vinculado a esta sede');
+    }
+
+    // 4. Verificar si ya existe postulación pendiente en JSON
+    const requests = this.readPendingRequests();
+    const existingRequest = requests.find(
+      (r) => r.gymId === gymId && r.trainerUserId === trainerUserId,
+    );
+    if (existingRequest) {
+      throw new BadRequestException('Ya tienes una postulación pendiente para esta sede');
+    }
+
+    // 5. Agregar solicitud
+    const newRequest = {
+      id: Math.random().toString(36).substring(2, 9) + '-' + Date.now().toString(36),
+      gymId,
+      gymName: gym.name,
+      trainerUserId,
+      trainerName: trainerProfile.user.name,
+      trainerEmail: trainerProfile.user.email,
+      createdAt: new Date().toISOString(),
+    };
+    requests.push(newRequest);
+    this.writePendingRequests(requests);
+
+    return newRequest;
+  }
+
+  async getPendingRequestsForOwner(ownerUserId: string) {
+    // Buscar los gimnasios propiedad de este dueño
+    const ownerGyms = await this.prisma.gym.findMany({
+      where: { ownerId: ownerUserId },
+      select: { id: true },
+    });
+    const gymIds = ownerGyms.map((g) => g.id);
+
+    const requests = this.readPendingRequests();
+    return requests.filter((r) => gymIds.includes(r.gymId));
+  }
+
+  async getPendingRequestsForTrainer(trainerUserId: string) {
+    const requests = this.readPendingRequests();
+    return requests.filter((r) => r.trainerUserId === trainerUserId);
+  }
+
+  async respondToRequest(requestId: string, ownerUserId: string, approve: boolean) {
+    const requests = this.readPendingRequests();
+    const reqIndex = requests.findIndex((r) => r.id === requestId);
+    if (reqIndex === -1) {
+      throw new NotFoundException('Solicitud no encontrada');
+    }
+
+    const request = requests[reqIndex];
+
+    // Verificar propiedad del gimnasio
+    const gym = await this.prisma.gym.findUnique({
+      where: { id: request.gymId },
+    });
+    if (!gym || gym.ownerId !== ownerUserId) {
+      throw new ForbiddenException('No tienes permiso para gestionar solicitudes de este gimnasio');
+    }
+
+    if (approve) {
+      // Si se aprueba, crear vinculación real en base de datos
+      await this.assignToGym(request.gymId, ownerUserId, request.trainerUserId, true);
+    }
+
+    // Eliminar solicitud de la lista
+    requests.splice(reqIndex, 1);
+    this.writePendingRequests(requests);
+
+    return { success: true, message: approve ? 'Solicitud aprobada y entrenador vinculado' : 'Solicitud rechazada' };
   }
 }

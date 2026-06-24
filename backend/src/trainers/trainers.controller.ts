@@ -80,4 +80,44 @@ export class TrainersController {
   ) {
     return this.trainersService.unassignTrainer(gymId, user.id, trainerId);
   }
+
+  @Post(':gymId/request')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.TRAINER, UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Solicitar vinculación a un gimnasio (Entrenador)' })
+  requestLink(@Param('gymId') gymId: string, @CurrentUser() user: any) {
+    return this.trainersService.requestLinkToGym(gymId, user.id);
+  }
+
+  @Get('owner/requests')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.GYM_OWNER, UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Obtener postulaciones pendientes para mis gimnasios' })
+  getOwnerRequests(@CurrentUser() user: any) {
+    return this.trainersService.getPendingRequestsForOwner(user.id);
+  }
+
+  @Get('my-requests')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.TRAINER, UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Obtener mis postulaciones enviadas' })
+  getMyRequests(@CurrentUser() user: any) {
+    return this.trainersService.getPendingRequestsForTrainer(user.id);
+  }
+
+  @Post('owner/requests/:requestId/respond')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.GYM_OWNER, UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Responder (Aceptar/Rechazar) a una postulación de entrenador' })
+  respondRequest(
+    @Param('requestId') requestId: string,
+    @Body('approve') approve: boolean,
+    @CurrentUser() user: any,
+  ) {
+    return this.trainersService.respondToRequest(requestId, user.id, approve);
+  }
 }
