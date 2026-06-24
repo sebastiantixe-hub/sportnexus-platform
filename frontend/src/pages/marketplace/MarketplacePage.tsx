@@ -28,7 +28,7 @@ const ProductCard: React.FC<{
   return (
     <motion.div 
       whileHover={{ y: -5 }}
-      className="glass-card overflow-hidden border-white/5 hover:border-secondary/30 transition-all group relative"
+      className="glass-card overflow-hidden border-white/5 hover:border-secondary/30 transition-all group relative flex flex-col h-full"
     >
       {isOwner && (
         <div className="absolute top-3 left-3 z-30 flex gap-2">
@@ -66,9 +66,16 @@ const ProductCard: React.FC<{
       </div>
     </div>
     
-    <div className="p-5">
-      <h3 className="text-lg font-bold text-white mb-1">{product.name}</h3>
-      <p className="text-slate-500 text-xs mb-4 line-clamp-1">{product.description || 'Sin descripción.'}</p>
+    <div className="p-5 flex flex-col justify-between flex-grow">
+      <div>
+        <h3 className="text-lg font-bold text-white mb-0.5 line-clamp-1">{product.name}</h3>
+        {product.gym?.name && (
+          <span className="text-secondary-light text-[11px] font-bold block mb-3 font-mono tracking-wide uppercase">
+            🏪 {product.gym.name}
+          </span>
+        )}
+        <p className="text-slate-500 text-xs mb-4 line-clamp-2">{product.description || 'Sin descripción.'}</p>
+      </div>
       
       <div className="flex items-center justify-between mt-auto">
         <span className="text-xl font-extrabold text-white">${Number(product.price).toFixed(2)}</span>
