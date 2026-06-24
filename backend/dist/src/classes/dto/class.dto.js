@@ -88,6 +88,7 @@ class UpdateClassDto {
     location;
     meetingUrl;
     isActive;
+    trainerId;
 }
 exports.UpdateClassDto = UpdateClassDto;
 __decorate([
@@ -144,4 +145,9 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Boolean)
 ], UpdateClassDto.prototype, "isActive", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], UpdateClassDto.prototype, "trainerId", void 0);
 //# sourceMappingURL=class.dto.js.map

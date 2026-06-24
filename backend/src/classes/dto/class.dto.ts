@@ -99,4 +99,8 @@ export class UpdateClassDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
+
+  @IsString()
+  @IsOptional()
+  trainerId?: string;
 }

@@ -22,4 +22,5 @@ export declare class UpdateClassDto {
     location?: string;
     meetingUrl?: string;
     isActive?: boolean;
+    trainerId?: string;
 }

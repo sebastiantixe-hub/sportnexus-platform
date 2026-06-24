@@ -34,14 +34,14 @@ let ClassesService = class ClassesService {
         const trainerProfile = await this.prisma.trainerProfile.findUnique({
             where: { userId: currentUserId },
         });
-        let finalTrainerId = dto.trainerId;
+        let finalTrainerId = dto.trainerId && dto.trainerId !== "" ? dto.trainerId : null;
         if (!finalTrainerId && trainerProfile) {
             finalTrainerId = trainerProfile.id;
         }
         const isOwner = gym.ownerId === currentUserId;
         const isTrainer = trainerProfile && gym.gymTrainers.some((gt) => gt.trainerId === trainerProfile.id && gt.canCreateClasses);
-        if (isOwner && dto.trainerId) {
-            const isTrainerLinked = gym.gymTrainers.some((gt) => gt.trainerId === dto.trainerId);
+        if (isOwner && finalTrainerId) {
+            const isTrainerLinked = gym.gymTrainers.some((gt) => gt.trainerId === finalTrainerId);
             if (!isTrainerLinked) {
                 throw new common_1.ForbiddenException('El entrenador seleccionado no pertenece al staff de este gimnasio');
             }
@@ -238,10 +238,27 @@ let ClassesService = class ClassesService {
         if (classItem.gym.ownerId !== currentUserId) {
             throw new common_1.ForbiddenException('No tienes permiso para actualizar esta clase');
         }
+        let finalTrainerId = dto.trainerId;
+        if (dto.trainerId === "") {
+            finalTrainerId = null;
+        }
+        else if (dto.trainerId) {
+            const gym = await this.prisma.gym.findUnique({
+                where: { id: classItem.gymId },
+                include: { gymTrainers: true },
+            });
+            if (gym) {
+                const isTrainerLinked = gym.gymTrainers.some((gt) => gt.trainerId === dto.trainerId);
+                if (!isTrainerLinked) {
+                    throw new common_1.ForbiddenException('El entrenador seleccionado no pertenece al staff de este gimnasio');
+                }
+            }
+        }
         return this.prisma.class.update({
             where: { id },
             data: {
                 ...dto,
+                trainerId: finalTrainerId,
                 ...(dto.scheduledAt && { scheduledAt: new Date(dto.scheduledAt) })
             }
         });
