@@ -117,11 +117,20 @@ let GymsService = GymsService_1 = class GymsService {
             },
         });
     }
-    async findAll(ownerId) {
+    async findAll(ownerId, trainerUserId) {
         try {
             const where = { status: client_1.GymStatus.ACTIVE };
             if (ownerId)
                 where.ownerId = ownerId;
+            if (trainerUserId) {
+                where.gymTrainers = {
+                    some: {
+                        trainer: {
+                            userId: trainerUserId,
+                        },
+                    },
+                };
+            }
             return await this.prisma.gym.findMany({
                 where,
                 include: {
@@ -131,6 +140,16 @@ let GymsService = GymsService_1 = class GymsService {
                             name: true,
                             email: true,
                             avatarUrl: true,
+                        },
+                    },
+                    gymTrainers: {
+                        select: {
+                            trainerId: true,
+                            trainer: {
+                                select: {
+                                    userId: true,
+                                },
+                            },
                         },
                     },
                 },

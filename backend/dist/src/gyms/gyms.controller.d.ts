@@ -26,7 +26,13 @@ export declare class GymsController {
         openDays: string | null;
         status: import("@prisma/client").$Enums.GymStatus;
     }>;
-    findAll(ownerId?: string): Promise<({
+    findAll(ownerId?: string, trainerUserId?: string): Promise<({
+        gymTrainers: {
+            trainer: {
+                userId: string;
+            };
+            trainerId: string;
+        }[];
         owner: {
             id: string;
             name: string;
@@ -57,6 +63,12 @@ export declare class GymsController {
         status: import("@prisma/client").$Enums.GymStatus;
     })[]>;
     findNearby(lat: string, lng: string, radius?: string): Promise<({
+        gymTrainers: {
+            trainer: {
+                userId: string;
+            };
+            trainerId: string;
+        }[];
         owner: {
             id: string;
             name: string;

@@ -3,6 +3,9 @@ import { UpdateTrainerProfileDto } from './dto/trainer.dto';
 export declare class TrainersService {
     private prisma;
     constructor(prisma: PrismaService);
+    private readonly filepath;
+    private readPendingRequests;
+    private writePendingRequests;
     upsertProfile(userId: string, dto: UpdateTrainerProfileDto): Promise<{
         user: {
             id: string;
@@ -12,14 +15,14 @@ export declare class TrainersService {
     } & {
         id: string;
         userId: string;
+        createdAt: Date;
+        updatedAt: Date;
         bio: string | null;
         specialties: string[];
         certifications: string[];
         experienceYears: number;
         hourlyRate: import("@prisma/client/runtime/library").Decimal | null;
         rating: import("@prisma/client/runtime/library").Decimal;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     findAll(): Promise<({
         user: {
@@ -31,21 +34,21 @@ export declare class TrainersService {
     } & {
         id: string;
         userId: string;
+        createdAt: Date;
+        updatedAt: Date;
         bio: string | null;
         specialties: string[];
         certifications: string[];
         experienceYears: number;
         hourlyRate: import("@prisma/client/runtime/library").Decimal | null;
         rating: import("@prisma/client/runtime/library").Decimal;
-        createdAt: Date;
-        updatedAt: Date;
     })[]>;
     assignToGym(gymId: string, currentOwnerId: string, trainerUserId: string, canCreateClasses: boolean): Promise<{
         id: string;
-        gymId: string;
-        trainerId: string;
         canCreateClasses: boolean;
         joinedAt: Date;
+        gymId: string;
+        trainerId: string;
     }>;
     getGymTrainers(gymId: string): Promise<({
         trainer: {
@@ -58,27 +61,42 @@ export declare class TrainersService {
         } & {
             id: string;
             userId: string;
+            createdAt: Date;
+            updatedAt: Date;
             bio: string | null;
             specialties: string[];
             certifications: string[];
             experienceYears: number;
             hourlyRate: import("@prisma/client/runtime/library").Decimal | null;
             rating: import("@prisma/client/runtime/library").Decimal;
-            createdAt: Date;
-            updatedAt: Date;
         };
     } & {
         id: string;
-        gymId: string;
-        trainerId: string;
         canCreateClasses: boolean;
         joinedAt: Date;
+        gymId: string;
+        trainerId: string;
     })[]>;
     unassignTrainer(gymId: string, currentOwnerId: string, trainerId: string): Promise<{
         id: string;
-        gymId: string;
-        trainerId: string;
         canCreateClasses: boolean;
         joinedAt: Date;
+        gymId: string;
+        trainerId: string;
+    }>;
+    requestLinkToGym(gymId: string, trainerUserId: string): Promise<{
+        id: string;
+        gymId: string;
+        gymName: string;
+        trainerUserId: string;
+        trainerName: string;
+        trainerEmail: string;
+        createdAt: string;
+    }>;
+    getPendingRequestsForOwner(ownerUserId: string): Promise<any[]>;
+    getPendingRequestsForTrainer(trainerUserId: string): Promise<any[]>;
+    respondToRequest(requestId: string, ownerUserId: string, approve: boolean): Promise<{
+        success: boolean;
+        message: string;
     }>;
 }

@@ -12,21 +12,21 @@ export declare class TrainersController {
     } & {
         id: string;
         userId: string;
+        createdAt: Date;
+        updatedAt: Date;
         bio: string | null;
         specialties: string[];
         certifications: string[];
         experienceYears: number;
         hourlyRate: import("@prisma/client/runtime/library").Decimal | null;
         rating: import("@prisma/client/runtime/library").Decimal;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     assignToGym(gymId: string, user: any, assignTrainerDto: AssignTrainerDto): Promise<{
         id: string;
-        gymId: string;
-        trainerId: string;
         canCreateClasses: boolean;
         joinedAt: Date;
+        gymId: string;
+        trainerId: string;
     }>;
     findAll(): Promise<({
         user: {
@@ -38,14 +38,14 @@ export declare class TrainersController {
     } & {
         id: string;
         userId: string;
+        createdAt: Date;
+        updatedAt: Date;
         bio: string | null;
         specialties: string[];
         certifications: string[];
         experienceYears: number;
         hourlyRate: import("@prisma/client/runtime/library").Decimal | null;
         rating: import("@prisma/client/runtime/library").Decimal;
-        createdAt: Date;
-        updatedAt: Date;
     })[]>;
     getGymTrainers(gymId: string): Promise<({
         trainer: {
@@ -58,27 +58,42 @@ export declare class TrainersController {
         } & {
             id: string;
             userId: string;
+            createdAt: Date;
+            updatedAt: Date;
             bio: string | null;
             specialties: string[];
             certifications: string[];
             experienceYears: number;
             hourlyRate: import("@prisma/client/runtime/library").Decimal | null;
             rating: import("@prisma/client/runtime/library").Decimal;
-            createdAt: Date;
-            updatedAt: Date;
         };
     } & {
         id: string;
-        gymId: string;
-        trainerId: string;
         canCreateClasses: boolean;
         joinedAt: Date;
+        gymId: string;
+        trainerId: string;
     })[]>;
     unassignTrainer(gymId: string, trainerId: string, user: any): Promise<{
         id: string;
-        gymId: string;
-        trainerId: string;
         canCreateClasses: boolean;
         joinedAt: Date;
+        gymId: string;
+        trainerId: string;
+    }>;
+    requestLink(gymId: string, user: any): Promise<{
+        id: string;
+        gymId: string;
+        gymName: string;
+        trainerUserId: string;
+        trainerName: string;
+        trainerEmail: string;
+        createdAt: string;
+    }>;
+    getOwnerRequests(user: any): Promise<any[]>;
+    getMyRequests(user: any): Promise<any[]>;
+    respondRequest(requestId: string, approve: boolean, user: any): Promise<{
+        success: boolean;
+        message: string;
     }>;
 }

@@ -31,15 +31,28 @@ let ClassesService = class ClassesService {
         });
         if (!gym)
             throw new common_1.NotFoundException('Gimnasio no encontrado');
-        const isAdmin = false;
+        const trainerProfile = await this.prisma.trainerProfile.findUnique({
+            where: { userId: currentUserId },
+        });
+        let finalTrainerId = dto.trainerId;
+        if (!finalTrainerId && trainerProfile) {
+            finalTrainerId = trainerProfile.id;
+        }
         const isOwner = gym.ownerId === currentUserId;
-        const isTrainer = gym.gymTrainers.some((gt) => gt.trainerId === dto.trainerId && gt.canCreateClasses);
+        const isTrainer = trainerProfile && gym.gymTrainers.some((gt) => gt.trainerId === trainerProfile.id && gt.canCreateClasses);
+        if (isOwner && dto.trainerId) {
+            const isTrainerLinked = gym.gymTrainers.some((gt) => gt.trainerId === dto.trainerId);
+            if (!isTrainerLinked) {
+                throw new common_1.ForbiddenException('El entrenador seleccionado no pertenece al staff de este gimnasio');
+            }
+        }
         if (!isOwner && !isTrainer) {
             throw new common_1.ForbiddenException('No tienes permiso para crear clases en este gimnasio');
         }
         return this.prisma.class.create({
             data: {
                 ...dto,
+                trainerId: finalTrainerId,
                 gymId,
                 scheduledAt: new Date(dto.scheduledAt),
             },

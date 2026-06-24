@@ -42,6 +42,18 @@ let TrainersController = class TrainersController {
     unassignTrainer(gymId, trainerId, user) {
         return this.trainersService.unassignTrainer(gymId, user.id, trainerId);
     }
+    requestLink(gymId, user) {
+        return this.trainersService.requestLinkToGym(gymId, user.id);
+    }
+    getOwnerRequests(user) {
+        return this.trainersService.getPendingRequestsForOwner(user.id);
+    }
+    getMyRequests(user) {
+        return this.trainersService.getPendingRequestsForTrainer(user.id);
+    }
+    respondRequest(requestId, approve, user) {
+        return this.trainersService.respondToRequest(requestId, user.id, approve);
+    }
 };
 exports.TrainersController = TrainersController;
 __decorate([
@@ -97,6 +109,53 @@ __decorate([
     __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", void 0)
 ], TrainersController.prototype, "unassignTrainer", null);
+__decorate([
+    (0, common_1.Post)(':gymId/request'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.TRAINER, client_1.UserRole.ADMIN),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Solicitar vinculación a un gimnasio (Entrenador)' }),
+    __param(0, (0, common_1.Param)('gymId')),
+    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], TrainersController.prototype, "requestLink", null);
+__decorate([
+    (0, common_1.Get)('owner/requests'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.GYM_OWNER, client_1.UserRole.ADMIN),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Obtener postulaciones pendientes para mis gimnasios' }),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], TrainersController.prototype, "getOwnerRequests", null);
+__decorate([
+    (0, common_1.Get)('my-requests'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.TRAINER, client_1.UserRole.ADMIN),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Obtener mis postulaciones enviadas' }),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], TrainersController.prototype, "getMyRequests", null);
+__decorate([
+    (0, common_1.Post)('owner/requests/:requestId/respond'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.GYM_OWNER, client_1.UserRole.ADMIN),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Responder (Aceptar/Rechazar) a una postulación de entrenador' }),
+    __param(0, (0, common_1.Param)('requestId')),
+    __param(1, (0, common_1.Body)('approve')),
+    __param(2, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Boolean, Object]),
+    __metadata("design:returntype", void 0)
+], TrainersController.prototype, "respondRequest", null);
 exports.TrainersController = TrainersController = __decorate([
     (0, swagger_1.ApiTags)('trainers'),
     (0, common_1.Controller)('trainers'),
