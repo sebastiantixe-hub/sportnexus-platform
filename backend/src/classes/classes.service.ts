@@ -27,13 +27,33 @@ export class ClassesService {
 
     if (!gym) throw new NotFoundException('Gimnasio no encontrado');
 
-    const isAdmin = false; // We can check role if needed, but assuming controller handles roles
+    // Buscar si el usuario actual es entrenador y tiene perfil
+    const trainerProfile = await this.prisma.trainerProfile.findUnique({
+      where: { userId: currentUserId },
+    });
+
+    let finalTrainerId = dto.trainerId;
+    // Si el creador es un entrenador, se auto-asigna
+    if (!finalTrainerId && trainerProfile) {
+      finalTrainerId = trainerProfile.id;
+    }
+
     const isOwner = gym.ownerId === currentUserId;
-    const isTrainer = gym.gymTrainers.some(
-      (gt) => gt.trainerId === dto.trainerId && gt.canCreateClasses,
+    const isTrainer = trainerProfile && gym.gymTrainers.some(
+      (gt) => gt.trainerId === trainerProfile.id && gt.canCreateClasses,
     );
 
-    // If a trainer is specified but not the one creating it, we should check if current user is owner
+    // Si el creador es el dueño y especificó un entrenador, validar que el entrenador esté vinculado a este gimnasio
+    if (isOwner && dto.trainerId) {
+      const isTrainerLinked = gym.gymTrainers.some(
+        (gt) => gt.trainerId === dto.trainerId,
+      );
+      if (!isTrainerLinked) {
+        throw new ForbiddenException('El entrenador seleccionado no pertenece al staff de este gimnasio');
+      }
+    }
+
+    // Si no es el dueño ni un entrenador autorizado, denegar
     if (!isOwner && !isTrainer) {
       throw new ForbiddenException('No tienes permiso para crear clases en este gimnasio');
     }
@@ -41,6 +61,7 @@ export class ClassesService {
     return this.prisma.class.create({
       data: {
         ...dto,
+        trainerId: finalTrainerId,
         gymId,
         scheduledAt: new Date(dto.scheduledAt),
       },

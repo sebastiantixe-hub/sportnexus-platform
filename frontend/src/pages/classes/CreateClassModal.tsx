@@ -14,6 +14,7 @@ interface CreateClassModalProps {
 const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onCreated, initialData }) => {
   const { user } = useAuth();
   const [gyms, setGyms] = useState<any[]>([]);
+  const [trainers, setTrainers] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     title: initialData?.title || '',
     description: initialData?.description || '',
@@ -24,6 +25,7 @@ const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onCreated,
     classType: initialData?.classType || 'IN_PERSON',
     location: initialData?.location || '',
     gymId: initialData?.gymId || '',
+    trainerId: initialData?.trainerId || '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -49,6 +51,21 @@ const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onCreated,
     };
     fetchMyGyms();
   }, [user]);
+
+  useEffect(() => {
+    if (!formData.gymId) return;
+    const fetchGymTrainers = async () => {
+      try {
+        const { data } = await api.get(`/trainers/gym/${formData.gymId}`);
+        setTrainers(data);
+      } catch (err) {
+        console.error('Error fetching trainers:', err);
+      }
+    };
+    if (user?.role === 'GYM_OWNER' || user?.role === 'ADMIN') {
+      fetchGymTrainers();
+    }
+  }, [formData.gymId, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,6 +134,24 @@ const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onCreated,
                 {gyms.map(g => <option key={g.id} value={g.id} className="bg-slate-900 text-white">{g.name}</option>)}
               </select>
             </div>
+
+            {(user?.role === 'GYM_OWNER' || user?.role === 'ADMIN') && (
+              <div className="space-y-2">
+                <label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Entrenador (Staff)</label>
+                <select 
+                  value={formData.trainerId}
+                  onChange={e => setFormData({ ...formData, trainerId: e.target.value })}
+                  className="bg-white/5 border-white/10 focus:border-primary-light w-full py-3 px-4 border rounded-xl text-white outline-none"
+                >
+                  <option value="" className="bg-slate-900 text-slate-400">-- Sin Entrenador Asignado --</option>
+                  {trainers.map(t => (
+                    <option key={t.trainer.id} value={t.trainer.id} className="bg-slate-900 text-white">
+                      {t.trainer.user.name} ({t.trainer.user.email || 'Sin email'})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="space-y-2">
               <label className="text-slate-400 text-xs font-bold uppercase tracking-wider">Título de la Clase</label>
