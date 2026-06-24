@@ -72,11 +72,13 @@ const AdminHealthView: React.FC = () => {
   const fetchAthletes = async () => {
     try {
       setLoading(true);
-      const { data } = await api.get('/health/coach/athletes');
-      setAthletes(data);
-      if (data.length > 0) {
-        setSelectedAthlete(data[0]);
-        fetchAthleteDetails(data[0].id);
+      // Admin: fetch all users and filter athletes (role USER)
+      const { data } = await api.get('/users');
+      const athletes = data.filter((u: any) => u.role === 'USER');
+      setAthletes(athletes);
+      if (athletes.length > 0) {
+        setSelectedAthlete(athletes[0]);
+        fetchAthleteDetails(athletes[0].id);
       }
     } catch (err) {
       console.error(err);
