@@ -10,11 +10,13 @@ exports.ProfessionalsModule = void 0;
 const common_1 = require("@nestjs/common");
 const professionals_controller_1 = require("./professionals.controller");
 const professionals_service_1 = require("./professionals.service");
+const notifications_module_1 = require("../notifications/notifications.module");
 let ProfessionalsModule = class ProfessionalsModule {
 };
 exports.ProfessionalsModule = ProfessionalsModule;
 exports.ProfessionalsModule = ProfessionalsModule = __decorate([
     (0, common_1.Module)({
+        imports: [notifications_module_1.NotificationsModule],
         controllers: [professionals_controller_1.ProfessionalsController],
         providers: [professionals_service_1.ProfessionalsService]
     })

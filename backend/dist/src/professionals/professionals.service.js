@@ -12,10 +12,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProfessionalsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const notifications_service_1 = require("../notifications/notifications.service");
 let ProfessionalsService = class ProfessionalsService {
     prisma;
-    constructor(prisma) {
+    notificationsService;
+    constructor(prisma, notificationsService) {
         this.prisma = prisma;
+        this.notificationsService = notificationsService;
     }
     async create(providerId, createDto) {
         return this.prisma.professionalService.create({
@@ -71,7 +74,7 @@ let ProfessionalsService = class ProfessionalsService {
     }
     async bookService(userId, serviceId, notes) {
         const service = await this.findOne(serviceId);
-        return this.prisma.professionalBooking.create({
+        const booking = await this.prisma.professionalBooking.create({
             data: {
                 userId,
                 serviceId,
@@ -79,9 +82,33 @@ let ProfessionalsService = class ProfessionalsService {
                 status: 'PENDING',
             },
             include: {
-                service: true,
+                service: {
+                    include: { provider: true }
+                },
+                user: true,
             },
         });
+        try {
+            await this.notificationsService.create(service.providerId, {
+                title: 'Nueva Reserva Pendiente',
+                description: `${booking.user?.name || 'Un atleta'} ha solicitado reservar tu servicio: ${service.title}`,
+                type: 'RESERVATION',
+            });
+        }
+        catch (err) {
+            console.error('Error creating booking notification for provider:', err);
+        }
+        try {
+            await this.notificationsService.create(userId, {
+                title: 'Reserva Solicitada',
+                description: `Has solicitado reservar el servicio: ${service.title}. Espera la confirmación.`,
+                type: 'RESERVATION',
+            });
+        }
+        catch (err) {
+            console.error('Error creating booking notification for client:', err);
+        }
+        return booking;
     }
     async getMyBookings(userId) {
         return this.prisma.professionalBooking.findMany({
@@ -120,7 +147,7 @@ let ProfessionalsService = class ProfessionalsService {
         if (!isAdmin && booking.service.providerId !== providerId) {
             throw new common_1.ForbiddenException('No tienes permiso para actualizar esta reserva');
         }
-        return this.prisma.professionalBooking.update({
+        const updated = await this.prisma.professionalBooking.update({
             where: { id: bookingId },
             data: { status },
             include: {
@@ -130,11 +157,24 @@ let ProfessionalsService = class ProfessionalsService {
                 user: true
             }
         });
+        try {
+            let statusText = status === 'CONFIRMED' ? 'confirmada' : status === 'CANCELLED' ? 'cancelada' : status.toLowerCase();
+            await this.notificationsService.create(updated.userId, {
+                title: `Reserva de Servicio ${status === 'CONFIRMED' ? 'Confirmada' : status === 'CANCELLED' ? 'Cancelada' : 'Actualizada'}`,
+                description: `Tu reserva para el servicio: ${updated.service.title} con ${updated.service.provider.name} ha sido ${statusText}.`,
+                type: 'RESERVATION',
+            });
+        }
+        catch (err) {
+            console.error('Error creating status update notification for client:', err);
+        }
+        return updated;
     }
 };
 exports.ProfessionalsService = ProfessionalsService;
 exports.ProfessionalsService = ProfessionalsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        notifications_service_1.NotificationsService])
 ], ProfessionalsService);
 //# sourceMappingURL=professionals.service.js.map
