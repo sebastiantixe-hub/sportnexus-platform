@@ -42,8 +42,12 @@ export class GymsController {
   @Get()
   @ApiOperation({ summary: 'Obtener lista de gimnasios activos' })
   @ApiQuery({ name: 'ownerId', required: false })
-  findAll(@Query('ownerId') ownerId?: string) {
-    return this.gymsService.findAll(ownerId);
+  @ApiQuery({ name: 'trainerUserId', required: false })
+  findAll(
+    @Query('ownerId') ownerId?: string,
+    @Query('trainerUserId') trainerUserId?: string,
+  ) {
+    return this.gymsService.findAll(ownerId, trainerUserId);
   }
 
   @Get('nearby')

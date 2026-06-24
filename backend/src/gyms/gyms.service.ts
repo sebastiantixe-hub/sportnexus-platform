@@ -104,10 +104,19 @@ export class GymsService {
     });
   }
 
-  async findAll(ownerId?: string) {
+  async findAll(ownerId?: string, trainerUserId?: string) {
     try {
       const where: any = { status: GymStatus.ACTIVE };
       if (ownerId) where.ownerId = ownerId;
+      if (trainerUserId) {
+        where.gymTrainers = {
+          some: {
+            trainer: {
+              userId: trainerUserId,
+            },
+          },
+        };
+      }
 
       return await this.prisma.gym.findMany({
         where,

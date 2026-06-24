@@ -31,8 +31,13 @@ const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onCreated,
   useEffect(() => {
     const fetchMyGyms = async () => {
       try {
-        const ownerParam = user?.role === 'GYM_OWNER' ? `?ownerId=${user.id}` : '';
-        const { data } = await api.get(`/gyms${ownerParam}`);
+        let queryParam = '';
+        if (user?.role === 'GYM_OWNER') {
+          queryParam = `?ownerId=${user.id}`;
+        } else if (user?.role === 'TRAINER') {
+          queryParam = `?trainerUserId=${user.id}`;
+        }
+        const { data } = await api.get(`/gyms${queryParam}`);
         setGyms(data);
         if (data.length > 0) {
           const selectedGymId = initialData?.gymId || data[0].id;
@@ -91,6 +96,12 @@ const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onCreated,
         </h2>
 
         {error && <div className="bg-red-500/10 border-red-500/20 p-4 border rounded-xl text-red-400 text-sm mb-6">{error}</div>}
+
+        {gyms.length === 0 && (
+          <div className="bg-amber-500/10 border-amber-500/20 p-4 border rounded-xl text-amber-400 text-sm mb-6">
+            ⚠️ <strong>Sin sedes vinculadas:</strong> No estás registrado en el staff de ningún gimnasio todavía. Pídele al dueño de tu gimnasio que te vincule antes de poder crear clases.
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-6">
           <div className="space-y-4">
@@ -208,8 +219,10 @@ const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onCreated,
 
             <button 
               type="submit" 
-              disabled={loading}
-              className="btn-primary w-full py-4 mt-6 flex items-center justify-center gap-2 relative overflow-hidden active:scale-[0.98]"
+              disabled={loading || gyms.length === 0}
+              className={`w-full py-4 mt-6 flex items-center justify-center gap-2 relative overflow-hidden active:scale-[0.98] rounded-xl font-bold transition-all ${
+                gyms.length === 0 ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-white/5' : 'btn-primary'
+              }`}
             >
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <> <Plus className="w-5 h-5" /> <span>{initialData ? 'Guardar Cambios' : 'Crear Clase'}</span> </>}
             </button>
