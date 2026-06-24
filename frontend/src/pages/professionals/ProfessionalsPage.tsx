@@ -159,6 +159,11 @@ const ProfessionalsPage: React.FC = () => {
   };
 
   const filtered = professionals.filter(p => {
+    // Si el usuario es entrenador o dueño, solo ve sus propios servicios
+    if (user?.role === 'TRAINER' || user?.role === 'GYM_OWNER') {
+      if (p.providerId !== user?.id) return false;
+    }
+
     const s = search.toLowerCase();
     const titleMatch = p.title?.toLowerCase().includes(s);
     const serviceMatch = p.serviceType?.toLowerCase().includes(s);
