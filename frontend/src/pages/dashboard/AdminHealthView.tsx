@@ -467,7 +467,7 @@ const AdminHealthView: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Calorías Quemadas</p>
-                        <h4 className="text-xl font-bold mt-1">{Math.round(selectedAthlete.totalCaloriesBurned)} kcal</h4>
+                        <h4 className="text-xl font-bold mt-1">{Math.round(selectedAthlete.totalCaloriesBurned || 0)} kcal</h4>
                       </div>
                     </div>
 
@@ -477,7 +477,7 @@ const AdminHealthView: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-xs text-slate-400 uppercase font-bold tracking-wider">Pasos Promedio</p>
-                        <h4 className="text-xl font-bold mt-1">{selectedAthlete.averageSteps.toLocaleString()}</h4>
+                        <h4 className="text-xl font-bold mt-1">{(selectedAthlete.averageSteps || 0).toLocaleString()}</h4>
                       </div>
                     </div>
 
@@ -591,7 +591,7 @@ const AdminHealthView: React.FC = () => {
 
                   <div className="p-5 bg-slate-900 border border-white/5 rounded-2xl">
                     <p className="text-xs text-slate-400 uppercase font-bold tracking-wide mb-2">Observación Registrada:</p>
-                    <p className="text-slate-300 italic">"{selectedAthlete.lastObservation}"</p>
+                    <p className="text-slate-300 italic">"{selectedAthlete.lastObservation || 'Sin observaciones registradas aún.'}"</p>
                   </div>
                 </div>
               </>
